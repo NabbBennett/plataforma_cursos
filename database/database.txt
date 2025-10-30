@@ -1,0 +1,94 @@
+-- Crear base de datos
+CREATE DATABASE IF NOT EXISTS plataforma_cursos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE plataforma_cursos;
+
+-- Tabla de usuarios
+CREATE TABLE users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'student',
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL
+);
+
+-- Tabla de cursos
+CREATE TABLE courses (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    image VARCHAR(255),
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL
+);
+
+-- Tabla de semanas
+CREATE TABLE weeks (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    course_id BIGINT UNSIGNED NOT NULL,
+    number INT NOT NULL,
+    live_meet_link VARCHAR(255),
+    recording_link VARCHAR(255),
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+);
+
+-- Tabla de exámenes
+CREATE TABLE exams (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    week_id BIGINT UNSIGNED NOT NULL,
+    duration_minutes INT NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    FOREIGN KEY (week_id) REFERENCES weeks(id) ON DELETE CASCADE
+);
+
+-- Tabla de preguntas
+CREATE TABLE questions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    exam_id BIGINT UNSIGNED NOT NULL,
+    text TEXT NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE
+);
+
+-- Tabla de respuestas
+CREATE TABLE answers (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    question_id BIGINT UNSIGNED NOT NULL,
+    text TEXT NOT NULL,
+    is_correct BOOLEAN NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+);
+
+-- Tabla de compras
+CREATE TABLE purchases (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    course_id BIGINT UNSIGNED NOT NULL,
+    type ENUM('semanal', 'mensual', 'completo') NOT NULL,
+    weeks_unlocked INT NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+
+-- Tabla de estadísticas
+CREATE TABLE statistics (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    exam_id BIGINT UNSIGNED NOT NULL,
+    total_questions INT NOT NULL,
+    correct_answers INT NOT NULL,
+    average_time DOUBLE,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (exam_id) REFERENCES exams(id)
+);

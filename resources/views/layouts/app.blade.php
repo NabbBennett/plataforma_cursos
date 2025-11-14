@@ -3,41 +3,557 @@
 <head>
     <meta charset="UTF-8">
     <title>@yield('title', 'Plataforma Educativa')</title>
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            /* Colores modo claro */
+            --light-base: #FFFFFF;
+            --light-50: #FAFAFA;
+            --light-100: #F5F5F5;
+            --light-200: #E5E5E5;
+            --light-300: #D4D4D4;
+            --light-400: #A3A3A3;
+            --light-500: #737373;
+            --light-600: #525252;
+            --light-700: #404040;
+            --light-800: #262626;
+            --light-900: #171717;
+            --light-950: #0A0A0A;
+            
+            /* Colores modo oscuro */
+            --dark-base: #000000;
+            --dark-50: #0A0A0A;
+            --dark-100: #171717;
+            --dark-200: #262626;
+            --dark-300: #373737;
+            --dark-400: #525252;
+            --dark-500: #8A8A8A;
+            --dark-600: #A3A3A3;
+            --dark-700: #D4D4D4;
+            --dark-800: #E5E5E5;
+            --dark-900: #F5F5F5;
+            --dark-950: #FAFAFA;
+        }
+        
+        body.light-mode {
+            --bg-primary: var(--light-base);
+            --bg-secondary: var(--light-50);
+            --text-primary: var(--light-900);
+            --text-secondary: var(--light-600);
+            --border-color: var(--light-200);
+            --btn-primary-bg: var(--light-800);
+            --btn-primary-text: var(--light-base);
+            --btn-outline-border: var(--light-800);
+            --btn-outline-text: var(--light-800);
+            --btn-outline-hover-bg: var(--light-800);
+            --btn-outline-hover-text: var(--light-base);
+            --btn-danger-bg: #dc3545;
+            --btn-danger-text: white;
+            --navbar-bg: var(--light-base);
+        }
+        
+        body.dark-mode {
+            --bg-primary: var(--dark-base);
+            --bg-secondary: var(--dark-50);
+            --text-primary: var(--dark-950);
+            --text-secondary: var(--dark-500);
+            --border-color: var(--dark-300);
+            --btn-primary-bg: var(--dark-700);
+            --btn-primary-text: var(--dark-base);
+            --btn-outline-border: var(--dark-700);
+            --btn-outline-text: var(--dark-700);
+            --btn-outline-hover-bg: var(--dark-700);
+            --btn-outline-hover-text: var(--dark-base);
+            --btn-danger-bg: #dc3545;
+            --btn-danger-text: white;
+            --navbar-bg: var(--dark-base);
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .navbar {
+            background-color: var(--navbar-bg) !important;
+            border-bottom: 1px solid var(--border-color);
+            margin: 0;
+            padding: 0.5rem 1rem;
+        }
+        
+        .navbar-brand, .nav-link {
+            color: var(--text-primary) !important;
+        }
+        
+        .nav-link:hover {
+            color: var(--text-secondary) !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--btn-primary-bg);
+            border-color: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--btn-outline-hover-bg);
+            border-color: var(--btn-outline-hover-bg);
+            color: var(--btn-outline-hover-text);
+        }
+        
+        .btn-outline-primary {
+            border-color: var(--btn-outline-border);
+            color: var(--btn-outline-text);
+            background-color: transparent;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--btn-outline-hover-bg);
+            color: var(--btn-outline-hover-text);
+            border-color: var(--btn-outline-hover-bg);
+        }
+        
+        .btn-outline-danger {
+            border-color: #dc3545;
+            color: #dc3545;
+            background-color: transparent;
+        }
+        
+        .btn-outline-danger:hover {
+            background-color: var(--btn-danger-bg);
+            color: var(--btn-danger-text);
+        }
+        
+        .btn-link {
+            color: var(--text-primary);
+            background: none;
+            border: none;
+            text-decoration: none;
+        }
+        
+        .btn-link:hover {
+            color: var(--text-secondary);
+        }
+        
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: transform 0.3s;
+            padding: 0.25rem;
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(15deg);
+            color: var(--text-secondary);
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background-color: var(--text-primary);
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-primary);
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .logo-image {
+            width: 60px;
+            height: 60px;
+            margin-right: 10px;
+            object-fit: contain;
+        }
+        
+        .instituto-text {
+            font-weight: bold;
+            color: var(--text-primary);
+            font-size: 20px;
+        }
+        
+        /* Distribución del navbar */
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .navbar-center {
+            display: flex;
+            justify-content: center;
+            flex: 2;
+        }
+        
+        .navbar-right {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            flex: 1;
+            gap: 0.5rem;
+        }
+        
+        /* Estilos para móvil */
+        .mobile-navbar {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0.5rem 0;
+        }
+        
+        .mobile-menu-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        
+        .mobile-logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .mobile-user-icon {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 0.25rem;
+        }
+        
+        .mobile-user-icon:hover {
+            color: var(--text-secondary);
+        }
+        
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 80%;
+            height: 100vh;
+            background-color: var(--navbar-bg);
+            z-index: 1050;
+            transition: left 0.3s ease;
+            padding: 2rem;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .mobile-menu.active {
+            left: 0;
+        }
+        
+        .mobile-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .mobile-menu-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        
+        .mobile-nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .mobile-nav-links li {
+            margin-bottom: 1rem;
+        }
+        
+        .mobile-nav-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 1.1rem;
+            display: block;
+            padding: 0.5rem 0;
+            transition: color 0.3s;
+        }
+        
+        .mobile-nav-links a:hover {
+            color: var(--text-secondary);
+        }
+        
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1049;
+            display: none;
+        }
+        
+        .mobile-menu-overlay.active {
+            display: block;
+        }
+        
+        /* Ajustes para dispositivos móviles */
+        @media (max-width: 992px) {
+            .desktop-navbar {
+                display: none !important;
+            }
+            
+            .mobile-navbar {
+                display: flex;
+            }
+            
+            .navbar-center {
+                display: none;
+            }
+            
+            .navbar-right .btn-link,
+            .navbar-right .theme-toggle,
+            .navbar-right .auth-buttons .btn {
+                display: none;
+            }
+            
+            .mobile-user-icon {
+                display: block !important;
+            }
+
+            .mobile-logo .logo-image {
+                width: 40px;
+                height: 40px;
+            }
+        }
+        
+        @media (min-width: 993px) {
+            .mobile-navbar {
+                display: none;
+            }
+            
+            .desktop-navbar {
+                display: flex !important;
+            }
+            
+            .mobile-user-icon {
+                display: none !important;
+            }
+        }
+
+        /* Mejoras para los botones de autenticación */
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auth-buttons .btn {
+            white-space: nowrap;
+        }
+
+        /* Asegurar que el main ocupe el espacio restante */
+        main {
+            min-height: calc(100vh - 80px);
+            padding: 2rem 0;
+        }
+    </style>
 </head>
-<body>
+<body class="light-mode">
     <!-- Header principal -->
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light px-4 py-2 shadow-sm w-100" style="min-width:100vw;">
-            <a class="navbar-brand fw-bold" href="{{ route('welcome') }}">Inicio</a>
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item ms-3">
-                    <a class="nav-link" href="{{ route('store') }}">Tienda</a>
-                </li>
-                <li class="nav-item ms-3">
-                    <a class="nav-link" href="{{ route('information.index') }}">Información</a>
-                </li>
-            </ul>
-            <div class="d-flex align-items-center">
-                <a href="{{ route('cart.view') }}" class="btn btn-link me-2" style="font-size: 1.5rem;">
-                    <i class="bi bi-cart"></i>
-                </a>
-                @auth
-                    <a class="btn btn-outline-primary me-2" href="{{ route('student.profile') }}">Mi Cuenta</a>
-                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-danger">Cerrar Sesión</button>
-                    </form>
-                @else
-                    <a class="btn btn-primary me-2" href="{{ route('login') }}">Ingresar</a>
-                @endauth
+        <nav class="navbar navbar-expand-lg navbar-light px-4 py-2 shadow-sm w-100">
+            <!-- Navbar para escritorio -->
+            <div class="desktop-navbar navbar-container">
+                <!-- Logo y nombre a la izquierda -->
+                <div class="navbar-left">
+                    <div class="logo-container">
+                        <img src="{{ asset('images/Icono.png') }}" alt="Instituto Resiliencia" class="logo-image">
+                        <span class="instituto-text">Instituto<br>Resiliencia</span>
+                    </div>
+                </div>
+                
+                <!-- Enlaces de navegación en el centro -->
+                <div class="navbar-center">
+                    <ul class="navbar-nav mb-2 mb-lg-0">
+                        <li class="nav-item mx-2">
+                            <a class="nav-link" href="{{ route('welcome') }}">Inicio</a>
+                        </li>
+                        <li class="nav-item mx-2">
+                            <a class="nav-link" href="{{ route('store') }}">Tienda</a>
+                        </li>
+                        <li class="nav-item mx-2">
+                            <a class="nav-link" href="{{ route('information.index') }}">Información</a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Iconos a la derecha -->
+                <div class="navbar-right">
+                    <a href="{{ route('cart.view') }}" class="btn btn-link me-2" style="font-size: 1.5rem;">
+                        <i class="bi bi-cart"></i>
+                    </a>
+                    <button class="theme-toggle me-2" id="themeToggleDesktop">
+                        <i class="bi bi-sun"></i>
+                    </button>
+                    <div class="auth-buttons">
+                        @auth
+                            <a class="btn btn-outline-primary me-2" href="{{ route('student.profile') }}">Mi Cuenta</a>
+                            <form method="POST" action="{{ route('logout') }}" class="d-inline m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-danger">Cerrar Sesión</button>
+                            </form>
+                        @else
+                            <a class="btn btn-primary" href="{{ route('login') }}">Ingresar</a>
+                        @endauth
+                    </div>
+                    <!-- Icono de usuario para móvil (siempre visible) -->
+                    <a href="{{ route('login') }}" class="mobile-user-icon ms-2" style="display: none;">
+                        <i class="bi bi-person"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Navbar para móvil -->
+            <div class="mobile-navbar">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                
+                <div class="mobile-logo">
+                    <img src="{{ asset('images/Icono.png') }}" alt="Instituto Resiliencia" class="logo-image">
+                </div>
+                
+                <div class="mobile-user-section">
+                    <a href="{{ route('login') }}" class="mobile-user-icon">
+                        <i class="bi bi-person"></i>
+                    </a>
+                </div>
             </div>
         </nav>
+        
+        <!-- Menú móvil -->
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-menu-header">
+                <h5>Menú</h5>
+                <div class="d-flex align-items-center">
+                    <button class="theme-toggle me-3" id="themeToggleMobile">
+                        <i class="bi bi-sun"></i>
+                    </button>
+                    <button class="mobile-menu-close" id="mobileMenuClose">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <ul class="mobile-nav-links">
+                <li><a href="{{ route('welcome') }}">Inicio</a></li>
+                <li><a href="{{ route('store') }}">Tienda</a></li>
+                <li><a href="{{ route('information.index') }}">Información</a></li>
+                <li><a href="{{ route('cart.view') }}">Carrito</a></li>
+            </ul>
+        </div>
     </header>
+    
     <main class="py-4">
         @yield('content')
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggleDesktop = document.getElementById('themeToggleDesktop');
+            const themeToggleMobile = document.getElementById('themeToggleMobile');
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const mobileMenuClose = document.getElementById('mobileMenuClose');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+            
+            // Función para cambiar el tema
+            function toggleTheme() {
+                if (document.body.classList.contains('light-mode')) {
+                    document.body.classList.replace('light-mode', 'dark-mode');
+                    updateThemeIcons('moon');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.body.classList.replace('dark-mode', 'light-mode');
+                    updateThemeIcons('sun');
+                    localStorage.setItem('theme', 'light');
+                }
+            }
+            
+            // Función para actualizar todos los iconos de tema
+            function updateThemeIcons(icon) {
+                const iconClass = icon === 'sun' ? 'bi-sun' : 'bi-moon';
+                const elements = [themeToggleDesktop, themeToggleMobile];
+                
+                elements.forEach(element => {
+                    if (element) {
+                        element.innerHTML = `<i class="bi ${iconClass}"></i>`;
+                    }
+                });
+            }
+            
+            // Verificar si hay una preferencia guardada del tema
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.replace('light-mode', 'dark-mode');
+                updateThemeIcons('moon');
+            }
+            
+            // Toggle del tema para desktop
+            if (themeToggleDesktop) {
+                themeToggleDesktop.addEventListener('click', toggleTheme);
+            }
+            
+            // Toggle del tema para móvil
+            if (themeToggleMobile) {
+                themeToggleMobile.addEventListener('click', toggleTheme);
+            }
+            
+            // Toggle del menú móvil
+            mobileMenuToggle.addEventListener('click', function() {
+                mobileMenu.classList.add('active');
+                mobileMenuOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+            
+            mobileMenuClose.addEventListener('click', function() {
+                mobileMenu.classList.remove('active');
+                mobileMenuOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            });
+            
+            mobileMenuOverlay.addEventListener('click', function() {
+                mobileMenu.classList.remove('active');
+                mobileMenuOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            });
+        });
+    </script>
 </body>
 </html>

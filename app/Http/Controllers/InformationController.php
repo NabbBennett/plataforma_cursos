@@ -14,6 +14,17 @@ class InformationController extends Controller{
         $currentId = $request->query('id', $institutions->first()->id ?? null);
         $info = $institutions->where('id', $currentId)->first();
 
+        // Si no hay instituciones, redirigir o mostrar mensaje
+        if (!$info) {
+            return view('general.information.index', [
+                'info' => null,
+                'recommendedCourses' => collect(),
+                'allInstitutions' => $institutions,
+                'prevId' => null,
+                'nextId' => null
+            ]);
+        }
+
         // Procesa recommended_courses como antes
         $raw = json_decode($info->recommended_courses ?? '[]');
         $ids = [];
@@ -30,11 +41,30 @@ class InformationController extends Controller{
         $prevId = $institutions[$currentIndex - 1]->id ?? null;
         $nextId = $institutions[$currentIndex + 1]->id ?? null;
 
-        return view('general.information.index', compact('info', 'recommendedCourses', 'prevId', 'nextId'));
+        return view('general.information.index', compact(
+            'info', 
+            'recommendedCourses', 
+            'prevId', 
+            'nextId',
+            'institutions' // Pasamos todas las instituciones para el dropdown
+        ));
     }
-    // Vista pública
+
+    // Vista pública (mantener por compatibilidad)
     public function show(){
+        $institutions = \App\Models\InstitutionInformation::all();
         $info = InstitutionInformation::first();
+        
+        if (!$info) {
+            return view('general.information.index', [
+                'info' => null,
+                'recommendedCourses' => collect(),
+                'allInstitutions' => $institutions,
+                'prevId' => null,
+                'nextId' => null
+            ]);
+        }
+
         $raw = json_decode($info->recommended_courses ?? '[]');
         $ids = [];
         foreach ($raw as $item) {
@@ -44,7 +74,14 @@ class InformationController extends Controller{
             }
         }
         $recommendedCourses = \App\Models\Course::whereIn('id', $ids)->get();
-        return view('general.information.index', compact('info', 'recommendedCourses'));
+        
+        return view('general.information.index', [
+            'info' => $info,
+            'recommendedCourses' => $recommendedCourses,
+            'allInstitutions' => $institutions,
+            'prevId' => null,
+            'nextId' => null
+        ]);
     }
 
     public function create(){
@@ -54,7 +91,7 @@ class InformationController extends Controller{
 
     // Admin: Editar información
     public function edit($id){
-            $info = InstitutionInformation::findOrFail($id);
+        $info = InstitutionInformation::findOrFail($id);
         $courses = Course::all();
         return view('admin.information.edit', compact('info', 'courses'));
     }
@@ -113,7 +150,6 @@ class InformationController extends Controller{
 
         return redirect()->route('admin.information.index')->with('success', 'Información actualizada correctamente.');
     }
-
 
     public function destroy($id){
         $info = InstitutionInformation::findOrFail($id);

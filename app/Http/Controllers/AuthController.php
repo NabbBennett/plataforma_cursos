@@ -106,6 +106,14 @@ class AuthController extends Controller {
         return view('auth.forgot-password');
     }
 
+    public function showResetPasswordForm($token) {
+        $email = request()->query('email');
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => $email
+        ]);
+    }
+
     public function resetPassword(Request $request) {
         $request->validate([
             "token" => "required",
@@ -124,9 +132,5 @@ class AuthController extends Controller {
         return $status === Password::PASSWORD_RESET
             ? redirect()->route("login")->with("status", __($status))
             : back()->withErrors(["email" => [__($status)]]);
-    }
-
-    public function showResetPasswordForm($token) {
-        return view('auth.reset-password', ['token' => $token]);
     }
 }

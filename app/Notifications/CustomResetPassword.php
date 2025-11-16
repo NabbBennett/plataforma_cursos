@@ -34,19 +34,18 @@ class CustomResetPassword extends Notification
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail(object $notifiable): MailMessage
-    {
+    public function toMail($notifiable){
         $url = url(route('password.reset', [
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),
         ], false));
 
         return (new MailMessage)
-            ->subject('Restablece tu contraseña')
-            ->view('emails.reset-password', [
-                'url' => $url,
-                'user' => $notifiable,
-            ]);
+            ->subject('Restablecer Contraseña - Instituto Resiliencia')
+            ->line('Estás recibiendo este email porque se solicitó un restablecimiento de contraseña para tu cuenta.')
+            ->action('Restablecer Contraseña', $url)
+            ->line('Este enlace de restablecimiento expirará en 60 minutos.')
+            ->line('Si no solicitaste un restablecimiento de contraseña, no es necesario realizar ninguna acción.');
     }
 
     /**

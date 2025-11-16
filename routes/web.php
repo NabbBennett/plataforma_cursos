@@ -20,8 +20,6 @@ use App\Models\Course;
 use App\Models\WeekDay;
 use App\Models\Week;
 
-
-
 // Página principal
 Route::get('/', function () {
     return view('main');
@@ -129,10 +127,11 @@ Route::get('/api/purchase/weeks/{user_id}/{course_id}', function ($user_id, $cou
 
 // Verificación de correo electrónico
     Route::get('/verificar-correo', [VerificationController::class, 'showForm'])->name('verification.form');
-    Route::post('/verificar-correo', [VerificationController::class, 'checkCode'])->name('verification.check');
+    Route::post('/verificar-codigo', [VerificationController::class, 'checkCode'])->name('verification.check');
     Route::post('/reenviar-codigo', [VerificationController::class, 'resendCode'])->name('verification.resend');
+
     Route::middleware(['auth', 'verified'])->get('/profile', [ProfileController::class, 'perfil'])->name('profile.profile');
-Route::get('admin/courses/week-block', [AdminController::class, 'getWeekBlock'])->name('admin.courses.week-block');
+    Route::get('admin/courses/week-block', [AdminController::class, 'getWeekBlock'])->name('admin.courses.week-block');
 
 
 // USUARIO //
@@ -143,6 +142,7 @@ Route::post('/contacto', [ContactController::class, 'contactSubmit'])->name('con
 //Vista de tienda
 Route::get('/store', [StoreController::class, 'store'])->name('store');
 Route::get('/store/course/{id}', [StoreController::class, 'show'])->name('store.course');
+Route::post('/store/course/{id}/review', [StoreController::class, 'storeReview'])->name('course.review.store')->middleware('auth');
 Route::post('/cart/coupon', [StoreController::class, 'applyCoupon'])->name('cart.coupon');
 
 //carrito de compras
@@ -174,13 +174,21 @@ Route::prefix('admin/information')->middleware(['auth', 'can:isAdmin'])->name('a
 });
 
 //VISTASO DE PERFIL USUARIO
-Route::get('/mi-perfil', [ProfileController::class, 'perfil'])->middleware('auth')->name('student.profile');
-Route::middleware(['auth'])->get('/courses/{id}', [\App\Http\Controllers\CourseController::class, 'show'])->name('courses.show');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/mi-perfil', [ProfileController::class, 'perfil'])->name('student.profile');
+    Route::get('/configuracion', [ProfileController::class, 'configuration'])->name('student.configuration');
+    
+    // Rutas para actualizaciones AJAX
+    Route::post('/update-avatar', [ProfileController::class, 'updateAvatar'])->name('student.update.avatar');
+    Route::post('/update-banner', [ProfileController::class, 'updateBanner'])->name('student.update.banner');
+    Route::post('/update-name', [ProfileController::class, 'updateName'])->name('student.update.name');
+    Route::post('/update-password', [ProfileController::class, 'updatePassword'])->name('student.update.password');
+});
 
 //Ver clases grabadas
 Route::get('/student/courses/recorded/{day}', [ProfileController::class, 'showRecorded'])->name('student.recorded');
 
-Route::get('/student/courses/{id}', [CourseController::class, 'show'])->name('student.courses.show');
+Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
 
 //EXAMEN DE USUARIOS
 Route::get('/student/exams/{course}/{exam}/start', [ExamStudentController::class, 'start'])->name('student.exams.start');
@@ -195,5 +203,4 @@ Route::get('/student/resources/{type}/{id}', [ProfileController::class, 'viewRes
 
 // Entrega segura del archivo
 Route::get('/student/resources/file/{resource}', [ProfileController::class, 'serveFile'])->name('student.resources.serveFile');
-
 Route::get('/student/courses/{course}/progress', [ExamStudentController::class, 'getExamProgress'])->name('student.courses.progress');

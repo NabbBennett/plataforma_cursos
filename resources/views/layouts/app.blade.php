@@ -6,6 +6,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--icono de la pagina-->
+    <link rel="icon" type="image/png" href="{{ asset('images/Icono.png') }}">
     <style>
         :root {
             /* Colores modo claro */
@@ -323,61 +325,53 @@
         }
         
         main {
-            flex-grow: 1; 
             padding: 2rem 0;
         }
 
+        /* Estilos actualizados para el footer */
         .main-footer {
             width: 100%;
             background-color: var(--bg-primary);
-            padding: 0.1rem 1rem 1rem;
+            padding: 2rem 1rem;
             text-align: center;
-        }
-        
-        .footer-divider {
-            width: 100%;
-            height: 1px;
-            background-color: var(--footer-border);
-            margin-bottom: 3rem;
+            border-top: 1px solid var(--border-color);
         }
 
+        .footer-separator {
+            font-size: 100%;
+            margin: 0 15px;
+            color: var(--text-primary);
+            font-weight: bold;
+        }
+        
         .footer-content {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
-
-        .footer-logo-group {
+        
+        .footer-logo-container {
             display: flex;
             align-items: center;
-            flex-direction: column;
-            margin-bottom: 2rem;
-            color: var(--text-primary);
+            margin-bottom: 1rem;
         }
-
-        .footer-logo {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .footer-logo i {
-            color: var(--text-primary);
-            font-size: 2rem;
+        
+        .footer-logo-image {
+            width: 60px;
+            height: 60px;
+            margin-right: 10px;
+            object-fit: contain;
         }
         
         .footer-text {
-            font-size: 1.5rem;
-            font-weight: 500;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
+            font-weight: bold;
+            color: var(--text-primary);
+            font-size: 20px;
+            text-align: left;
+            line-height: 1.2;
         }
-
+        
         .footer-copy {
             color: var(--footer-text);
             font-size: 0.75rem;
@@ -444,10 +438,6 @@
             .mobile-navbar { display: flex; }
             .navbar-center { display: none; }
             .navbar-right .btn-link, .navbar-right .theme-toggle, .navbar-right .auth-buttons .btn { display: none; }
-            
-            /* LÍNEA CORREGIDA: Se eliminó la regla .mobile-user-section > * { display: block !important; }
-               para que el dropdown respete el "display: none" por defecto. */
-            
             .mobile-logo .logo-image { width: 40px; height: 40px; }
         }
         
@@ -564,13 +554,13 @@
     </main>
 
     <footer class="main-footer">
-        <div class="footer-divider"></div>
         <div class="footer-content">
-            <div class="footer-logo-group">
-                <div class="logo-container">
-                    <img src="{{ asset('images/Icono.png') }}" alt="Instituto Resiliencia" class="logo-image">
+            <div class="footer-logo-container">
+                <img src="{{ asset('images/Icono.png') }}" alt="Instituto Resiliencia" class="footer-logo-image">
+                <span class="footer-separator">|</span>
+                <div class="footer-text">
+                    INSTITUTO<br>RESILIENCIA
                 </div>
-                <div class="text">Instituto Resiliencia</div>
             </div>
             <p class="footer-copy">Copyright &copy; 2026 Instituto Resiliencia</p>
         </div>

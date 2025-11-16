@@ -34,8 +34,27 @@ class Course extends Model
         return $this->hasMany(EvaluationBlock::class)->orderBy('after_week_id');
     }
 
-    public function exams()
-    {
+    public function exams(){
         return $this->hasMany(\App\Models\Exam::class);
+    }
+
+    public function reviews(){
+        return $this->hasMany(CourseReview::class);
+    }
+
+     public function averageRating(){
+        return $this->reviews()->avg('rating') ?? 0;
+    }
+
+    public function percentageForRating($rating){
+        $totalReviews = $this->reviews()->count();
+        if ($totalReviews === 0) return 0;
+
+        $ratingCount = $this->reviews()->where('rating', $rating)->count();
+        return ($ratingCount / $totalReviews) * 100;
+    }
+
+    public function countForRating($rating){
+        return $this->reviews()->where('rating', $rating)->count();
     }
 }

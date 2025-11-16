@@ -4,12 +4,43 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Course;
+use App\Models\CourseReview;
 
 class StoreController extends Controller
 {
     public function show($id){
-        $course = \App\Models\Course::with('weeks')->findOrFail($id);
+        // Cargar el curso con semanas y reseñas (incluyendo el usuario que hizo cada reseña)
+        $course = Course::with(['weeks', 'reviews.user'])->findOrFail($id);
         return view('general.store.detail', compact('course'));
+    }
+
+    public function storeReview(Request $request, $id){
+        $course = Course::findOrFail($id);
+        
+        // Verificar que el usuario ha comprado todos los módulos
+        if (!auth()->user()->hasPurchasedAllModules($course)) {
+            return back()->with('error', 'Debes completar la compra de todos los módulos para dejar una reseña.');
+        }
+
+        // Validar la reseña
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|min:10|max:1000'
+        ]);
+
+        // Crear o actualizar la reseña
+        CourseReview::updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'course_id' => $course->id
+            ],
+            [
+                'rating' => $request->rating,
+                'comment' => $request->comment
+            ]
+        );
+
+        return back()->with('success', 'Tu reseña ha sido guardada.');
     }
 
     public function store(Request $request)

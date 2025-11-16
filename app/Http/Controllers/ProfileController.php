@@ -13,7 +13,7 @@ use App\Models\WeekDay;
 
 class ProfileController extends Controller
 {
-   public function perfil(){
+    public function perfil(){
         $user = auth()->user();
 
         // Obtener las compras del usuario con la información del curso
@@ -21,7 +21,113 @@ class ProfileController extends Controller
             ->where('user_id', $user->id)
             ->get();
 
-        return view('student.profile', compact('user', 'compras'));
+        // Obtener IDs de cursos comprados
+        $cursosCompradosIds = $compras->pluck('course_id')->filter()->toArray();
+
+        // Obtener cursos recomendados (cursos no comprados)
+        $cursosRecomendados = Course::whereNotIn('id', $cursosCompradosIds)
+            ->inRandomOrder()
+            ->limit(6)
+            ->get();
+
+        return view('student.profile', compact('user', 'compras', 'cursosRecomendados'));
+    }
+
+    public function configuration()
+    {
+        $user = auth()->user();
+        return view('student.configuration.configuration', compact('user'));
+    }
+
+
+    public function updateAvatar(Request $request){
+        $request->validate([
+            'avatar' => 'required|integer|between:1,6'
+        ]);
+
+        $user = auth()->user();
+        $user->avatar = $request->avatar;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Avatar actualizado correctamente',
+            'avatar_url' => $user->avatar_url
+        ]);
+    }
+
+
+    public function updateBanner(Request $request){
+        $request->validate([
+            'banner' => 'required|integer|between:1,4'
+        ]);
+
+        $user = auth()->user();
+        $user->banner = $request->banner;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Banner actualizado correctamente',
+            'banner_url' => $user->banner_url
+        ]);
+    }
+
+
+    public function updateName(Request $request){
+        $request->validate([
+            'name' => 'required|string|min:2|max:255'
+        ]);
+
+        $user = auth()->user();
+        $user->name = $request->name;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Nombre actualizado correctamente'
+        ]);
+    }
+
+    public function updatePassword(Request $request){
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = auth()->user();
+
+        // Verificar contraseña actual
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'errors' => ['current_password' => ['La contraseña actual es incorrecta']]
+            ], 422);
+        }
+
+        // Verificar que la nueva contraseña no sea igual a la actual
+        if (Hash::check($request->new_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'errors' => ['new_password' => ['La nueva contraseña no puede ser igual a la actual']]
+            ], 422);
+        }
+
+        // Actualizar contraseña
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contraseña actualizada correctamente'
+        ]);
     }
 
     public function showRecorded($dayId) {

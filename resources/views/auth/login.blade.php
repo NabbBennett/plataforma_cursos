@@ -24,9 +24,9 @@
                             @csrf
                             
                             <div class="form-group">
-                                <label for="email" class="form-label">Email / Teléfono</label>
+                                <label for="email" class="form-label">Correo Electrónico</label>
                                 <input type="text" id="email" name="email" class="form-input" 
-                                        placeholder="Ingresa tu email o número telefónico" 
+                                        placeholder="Ingresa tu correo electrónico" 
                                         value="{{ old('email') }}" required>
                                 @error('email')
                                     <span class="error-message">{{ $message }}</span>
@@ -35,15 +35,20 @@
 
                             <div class="form-group">
                                 <label for="password" class="form-label">Contraseña</label>
-                                <input type="password" id="password" name="password" class="form-input" 
-                                        placeholder="Ingresa tu contraseña" required>
+                                <div class="password-input-container">
+                                    <input type="password" id="password" name="password" class="form-input password-input" 
+                                            placeholder="Ingresa tu contraseña" required>
+                                    <button type="button" class="password-toggle" data-target="password">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                                 @error('password')
                                     <span class="error-message">{{ $message }}</span>
                                 @enderror
                             </div>
 
                             <div class="form-help">
-                                <a href="{{ route('password.request') }}" class="help-link">¿Problemas para iniciar sesión?</a>
+                                <a href="{{ route('password.request') }}" class="help-link">¿Olvidaste tu contraseña?</a>
                             </div>
 
                             <button type="submit" class="login-btn">Iniciar Sesión</button>
@@ -100,14 +105,24 @@
 
                             <div class="form-group">
                                 <label for="register_password" class="form-label">Contraseña</label>
-                                <input type="password" id="register_password" name="password" class="form-input" 
-                                        placeholder="Contraseña" required oninput="validatePassword()">
+                                <div class="password-input-container">
+                                    <input type="password" id="register_password" name="password" class="form-input password-input" 
+                                            placeholder="Contraseña" required oninput="validatePassword()">
+                                    <button type="button" class="password-toggle" data-target="register_password">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label for="confirm_password" class="form-label">Confirmar Contraseña</label>
-                                <input type="password" id="confirm_password" name="password_confirmation" class="form-input" 
-                                        placeholder="Confirma tu contraseña" required oninput="validatePasswordMatch()">
+                                <div class="password-input-container">
+                                    <input type="password" id="confirm_password" name="password_confirmation" class="form-input password-input" 
+                                            placeholder="Confirma tu contraseña" required oninput="validatePasswordMatch()">
+                                    <button type="button" class="password-toggle" data-target="confirm_password">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="form-warnings">
@@ -148,7 +163,7 @@
     align-items: center;
     justify-content: center;
     background: var(--bg-primary);
-    padding: 1rem 1rem; /* Ajustado para menos espacio arriba */
+    padding: 3rem 1rem; 
     perspective: 1000px; 
 }
 
@@ -252,6 +267,39 @@
     box-shadow: 0 0 0 3px rgba(0, 71, 84, 0.1); /* Usando el color principal */
 }
 
+/* Estilos para el contenedor de contraseña con icono */
+.password-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-input {
+    padding-right: 3rem; /* Espacio para el icono */
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: color 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.password-toggle:hover {
+    color: var(--btn-primary-bg);
+}
+
+.password-toggle:focus {
+    outline: none;
+}
+
 .error-message, .warning-message {
     color: var(--btn-danger-bg);
     font-size: 0.8rem;
@@ -329,6 +377,10 @@
     .login-content {
         padding: 1.5rem;
     }
+    
+    .password-toggle {
+        right: 0.5rem;
+    }
 }
 </style>
 
@@ -372,6 +424,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Opcional: Ajustar la altura si la ventana cambia de tamaño
     window.addEventListener('resize', adjustCardHeight);
+
+    // Función para mostrar/ocultar contraseña
+    function setupPasswordToggles() {
+        const toggles = document.querySelectorAll('.password-toggle');
+        
+        toggles.forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            });
+        });
+    }
+
+    // Inicializar los toggles de contraseña
+    setupPasswordToggles();
 });
 
 function validatePassword() {

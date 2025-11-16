@@ -10,7 +10,7 @@
             <div class="col-lg-6 hero-text-content">
                 <div class="hero-content-inner">
                     <h1 class="display-4 fw-bold mb-4">BIENVENIDO A INSTITUTO RESILIENCIA</h1>
-                    <p class="lead mb-4">Tu plataforma educativa para aprender, avanzar y lograr tus metas.</p>
+                    <p class="lead mb-4">Somos un centro de enseñanza para potencializar el aprendizaje de los y las estudiantes en diferentes campos de conocimientos. Especializándonos principalmente en las habilidades requeridas para la entrada a las mejores universidades del país. Únete a nosotros y descubre cómo podemos ayudarte a alcanzar tus metas académicas</p>
                     <div class="d-flex gap-3 flex-wrap justify-content-center">
                         <a href="{{ route('store') }}" class="btn btn-primary btn-lg">Explorar Cursos</a>
                         <a href="{{ route('information.index') }}" class="btn btn-outline-primary btn-lg">Más Información</a>
@@ -35,7 +35,6 @@
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="display-5 fw-bold mb-3">NUESTRA MISIÓN Y VISIÓN</h2>
-            <p class="lead">Comprometidos con tu crecimiento educativo</p>
         </div>
         
         <div class="row">
@@ -44,9 +43,8 @@
                     <i class="bi bi-bullseye display-4 mb-3 mission-icon"></i>
                     <h3 class="h4 fw-bold mb-3 mission-title">Misión</h3>
                     <p class="mission-text">
-                        Formar profesionales resilientes capaces de adaptarse a los cambios 
-                        y transformar desafíos en oportunidades mediante educación de calidad 
-                        accesible para todos.
+                        El Instituto Resiliencia es una organización especializada en potenciar el aprendizaje de los estudiantes en diversas áreas académicas. Con cinco años de experiencia en el sector educativo, hemos obtenido resultados sumamente gratificantes. 
+                        <br>Nuestra especialidad son los cursos de admisión a la Benemérita Universidad Autónoma de Puebla, institución en la que la mayoría de nuestros instructores se formaron, lo que enriquece nuestro conocimiento del proceso de ingreso.
                     </p>
                 </div>
             </div>
@@ -55,9 +53,8 @@
                     <i class="bi bi-eye display-4 mb-3 vision-icon"></i>
                     <h3 class="h4 fw-bold mb-3 vision-title">Visión</h3>
                     <p class="vision-text">
-                        Ser el instituto líder en educación digital, reconocido por formar 
-                        la próxima generación de profesionales que impulsarán el desarrollo 
-                        y la innovación en nuestra sociedad.
+                        Ser la organización líder en apoyar a jóvenes estudiantes para desarrollar sus conocimientos y habilidades, mejorando tanto sus aspectos académicos como psicológicos. 
+                        <br><br>Brindamos las herramientas necesarias para enfrentar desafíos relacionados con autoestima, rendimiento académico, logros educativos y las exigencias de un mundo globalizado.
                     </p>
                 </div>
             </div>
@@ -69,41 +66,138 @@
 <section class="features py-5">
     <div class="container">
         <h2 class="display-5 fw-bold text-center mb-5">¿POR QUÉ ELEGIRNOS?</h2>
-        <div class="row">
-            <div class="col-md-4 mb-4">
+        
+        <!-- Primera fila con 2 tarjetas principales -->
+        <div class="row justify-content-center">
+            <!-- Tarjeta 1 - Capacitación -->
+            <div class="col-md-6 mb-4">
                 <div class="feature-card text-center p-4 rounded shadow-lg h-100">
                     <div class="feature-icon mb-3">
                         <i class="bi bi-award display-4 feature-icon-svg"></i>
                     </div>
-                    <h4 class="fw-bold mb-3 feature-title">CAPACITACIÓN</h4>
-                    <p class="feature-text">
-                        Programas educativos diseñados por expertos con metodologías 
-                        innovadoras y contenido actualizado.
+                    <h4 class="fw-bold mb-3 feature-title">CAPACITACIÓN DE EXCELENCIA</h4>
+                    <p class="feature-text-short">
+                        Cursos de ingreso basados en temarios oficiales y actualizados de las mejores universidades.
                     </p>
+                    <div class="feature-full-content" style="display: none;">
+                        <p class="feature-text">
+                            Contamos con los mejores cursos para el ingreso a las mejores universidades del país, basado en los temarios oficiales y actualizados proporcionados por cada una de las instituciones. Nos destacamos por la calidad en nuestro plan psicopedagógico de enseñanza, planificado y guiado por psicólogos educativos y clínicos que en conjunto con licenciados y expertos en cada uno de los temas se llevan a cabo de la mejor manera.
+                        </p>
+                    </div>
+                    <button class="btn btn-outline-primary read-more-btn mt-3" onclick="toggleReadMore(this)">
+                        Leer más
+                    </button>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
+            
+            <!-- Tarjeta 2 - Costos -->
+            <div class="col-md-6 mb-4">
                 <div class="feature-card text-center p-4 rounded shadow-lg h-100">
                     <div class="feature-icon mb-3">
                         <i class="bi bi-currency-dollar display-4 feature-icon-svg"></i>
                     </div>
-                    <h4 class="fw-bold mb-3 feature-title">PRECIO</h4>
-                    <p class="feature-text">
-                        Educación de calidad a precios accesibles con diferentes planes 
-                        de pago y becas disponibles.
+                    <h4 class="fw-bold mb-3 feature-title">PRECIO ACCESIBLE</h4>
+                    <p class="feature-text-short">
+                        La mejor relación calidad-precio con un ambiente de aprendizaje óptimo por solo <strong>70 pesos por semana.</strong>
                     </p>
+                    <div class="feature-full-content" style="display: none;">
+                        <p class="feature-text">
+                            No solo destacamos por ser el mejor instituto en calidad académica, comprometidos con el alumnado buscamos ser la mejor opción en un ambiente libre, respetuoso y divertido, teniendo como costo exclusivamente <strong>70 pesos por semana</strong> en nuestros cursos base para la admisión a universidades.
+                        </p>
+                    </div>
+                    <button class="btn btn-outline-primary read-more-btn mt-3" onclick="toggleReadMore(this)">
+                        Leer más
+                    </button>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
+        </div>
+
+        <!-- Segunda fila con 2 tarjetas principales -->
+        <div class="row justify-content-center">
+            <!-- Tarjeta 3 - Tiempo -->
+            <div class="col-md-6 mb-4">
                 <div class="feature-card text-center p-4 rounded shadow-lg h-100">
                     <div class="feature-icon mb-3">
                         <i class="bi bi-clock display-4 feature-icon-svg"></i>
                     </div>
-                    <h4 class="fw-bold mb-3 feature-title">TIEMPO</h4>
-                    <p class="feature-text">
-                        Flexibilidad horaria total. Aprende a tu propio ritmo sin comprometer 
-                        tus otras responsabilidades.
+                    <h4 class="fw-bold mb-3 feature-title">TIEMPO Y ACOMPAÑAMIENTO</h4>
+                    <p class="feature-text-short">
+                        Acompañamiento continuo durante aproximadamente 6 meses hasta tu examen de admisión.
                     </p>
+                    <div class="feature-full-content" style="display: none;">
+                        <p class="feature-text">
+                            Todos nuestros cursos cuentan con acompañamiento continuo desde la inscripción a dicho curso hasta la presentación de cada uno de sus exámenes, esto dependerá a que universidad o institución este próximo a entrar con un aproximado de 6 meses.
+                        </p>
+                    </div>
+                    <button class="btn btn-outline-primary read-more-btn mt-3" onclick="toggleReadMore(this)">
+                        Leer más
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tarjeta 4 - Ciclo de Estudios -->
+            <div class="col-md-6 mb-4">
+                <div class="feature-card text-center p-4 rounded shadow-lg h-100">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-journal-text display-4 feature-icon-svg"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3 feature-title">CICLO DE ESTUDIOS</h4>
+                    <p class="feature-text-short">
+                        Curso dividido en 3 ciclos estratégicos con clases de 90 minutos y evaluaciones constantes.
+                    </p>
+                    <div class="feature-full-content" style="display: none;">
+                        <p class="feature-text">
+                            Nuestro curso está guiado y planeado por profesionales en la educación, por lo que estratégicamente se divide en 3 ciclos donde se verán las materias necesarias para su pase a la universidad elegida. Al término de cada semana se harán exámenes didácticos de los temas vistos durante el periodo, así mismo, al término de cada ciclo se hará un examen simulador sumamente parecido al real. Es necesario saber que todos los viernes junto al examen didáctico tendrán una sesión de asesoría, donde se podrán aclarar dudas aún existentes. Todas nuestras clases son grabadas y duran 90 minutos al día.
+                        </p>
+                    </div>
+                    <button class="btn btn-outline-primary read-more-btn mt-3" onclick="toggleReadMore(this)">
+                        Leer más
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tercera fila con 2 tarjetas principales -->
+        <div class="row justify-content-center">
+            <!-- Tarjeta 5 - Exámenes Simuladores -->
+            <div class="col-md-6 mb-4">
+                <div class="feature-card text-center p-4 rounded shadow-lg h-100">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-graph-up display-4 feature-icon-svg"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3 feature-title">EXÁMENES SIMULADORES</h4>
+                    <p class="feature-text-short">
+                        Simuladores didácticos semanales y oficiales que replican el examen real con estadísticas detalladas.
+                    </p>
+                    <div class="feature-full-content" style="display: none;">
+                        <p class="feature-text">
+                            Existen dos tipos de exámenes simuladores: didácticos y oficiales. Los didácticos son a forma de juego TODAS las semanas, y son temas que se vieron durante la semana en pie, mientras los oficiales son al término de cada ciclo y estarán estructurados con las mismas preguntas y tiempo de acuerdo al examen real. Al término de cualquier examen podrán ver sus estadísticas: preguntas correctas, incorrectas, tiempo dedicado en terminarlo, promedio de tiempo por pregunta, temas a mejorar y comparación de resultado con tus anteriores exámenes.
+                        </p>
+                    </div>
+                    <button class="btn btn-outline-primary read-more-btn mt-3" onclick="toggleReadMore(this)">
+                        Leer más
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tarjeta 6 - Guías y Material -->
+            <div class="col-md-6 mb-4">
+                <div class="feature-card text-center p-4 rounded shadow-lg h-100">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-book display-4 feature-icon-svg"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3 feature-title">GUÍAS Y MATERIAL DIDÁCTICO</h4>
+                    <p class="feature-text-short">
+                        Material exclusivo IR para reforzar conocimientos y potenciar tus habilidades académicas.
+                    </p>
+                    <div class="feature-full-content" style="display: none;">
+                        <p class="feature-text">
+                            Contamos con guías propias de IR que ayudarán a reforzar los conocimientos vistos en clase y demostrado en exámenes simuladores, así como actividades y videos extras que te darán mayor seguridad en tus habilidades académicas.
+                        </p>
+                    </div>
+                    <button class="btn btn-outline-primary read-more-btn mt-3" onclick="toggleReadMore(this)">
+                        Leer más
+                    </button>
                 </div>
             </div>
         </div>
@@ -194,8 +288,7 @@
 <section class="faq py-5">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="faq-title">Preguntas Frecuentes</h2>
-            <p class="lead">Resolvemos tus dudas más comunes</p>
+            <h2 class="display-5 fw-bold text-center mb-5">PREGUNTAS FRECUENTES</h2>
         </div>
         
         <div class="row justify-content-center">
@@ -255,11 +348,11 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-8">
-                <h3 class="h2 fw-bold mb-3">¿Listo para comenzar tu journey educativo?</h3>
-                <p class="mb-0">Únete a miles de estudiantes que ya están transformando su futuro con nosotros.</p>
+                <h3 class="h2 fw-bold mb-3">¿Dudas?</h3>
+                <p class="mb-0">Si tienes dudas puedes contactarnos para más información</p>
             </div>
-            <div class="col-lg-4 text-lg-end">
-                <a href="{{ route('store') }}" class="btn btn-cta btn-lg">Inscribirse Ahora</a>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="{{ route('contact') }}" class="btn btn-cta btn-lg">Contáctanos</a>
             </div>
         </div>
     </div>
@@ -1011,6 +1104,10 @@ body.dark-mode .accordion-content {
     color: var(--btn-primary-text);
 }
 
+.cta-section .container{
+margin-left: 20px;
+}
+
 .btn-cta {
     background-color: var(--btn-primary-text);
     color: var(--btn-primary-bg);
@@ -1161,6 +1258,22 @@ body.dark-mode .lead {
 </style>
 
 <script>
+function toggleReadMore(button) {
+    const card = button.closest('.feature-card');
+    const shortText = card.querySelector('.feature-text-short');
+    const fullContent = card.querySelector('.feature-full-content');
+    
+    if (fullContent.style.display === 'none') {
+        fullContent.style.display = 'block';
+        shortText.style.display = 'none';
+        button.textContent = 'Leer menos';
+    } else {
+        fullContent.style.display = 'none';
+        shortText.style.display = 'block';
+        button.textContent = 'Leer más';
+    }
+}
+
 // Inicializar Swiper para testimonios
 document.addEventListener('DOMContentLoaded', function () {
     // Testimonios Swiper
@@ -1185,6 +1298,10 @@ document.addEventListener('DOMContentLoaded', function () {
         navigation: {
             nextEl: '.swiper-button-next',
             prevEl: '.swiper-button-prev',
+        },
+        autoplay: {
+            delay: 2000, 
+            disableOnInteraction: false,
         },
         breakpoints: {
             320: {

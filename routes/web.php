@@ -14,9 +14,12 @@ use App\Http\Controllers\PurchasesController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\InformationController;
 use App\Http\Controllers\ExamStudentController;
+use App\Http\Controllers\ContactController;
+
 use App\Models\Course;
 use App\Models\WeekDay;
 use App\Models\Week;
+
 
 
 // Página principal
@@ -133,6 +136,9 @@ Route::get('admin/courses/week-block', [AdminController::class, 'getWeekBlock'])
 
 
 // USUARIO //
+// Contact routes
+Route::get('/contacto', [ContactController::class, 'contact'])->name('contact');
+Route::post('/contacto', [ContactController::class, 'contactSubmit'])->name('contact.submit');
 
 //Vista de tienda
 Route::get('/store', [StoreController::class, 'store'])->name('store');

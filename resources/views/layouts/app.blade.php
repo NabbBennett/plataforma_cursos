@@ -52,6 +52,8 @@
             --btn-danger-bg: #dc3545;
             --btn-danger-text: white;
             --navbar-bg: var(--light-base);
+            --footer-text: var(--light-400);
+            --footer-border: var(--light-200);
         }
         
         body.dark-mode {
@@ -69,6 +71,8 @@
             --btn-danger-bg: #dc3545;
             --btn-danger-text: white;
             --navbar-bg: var(--dark-base);
+            --footer-text: var(--dark-600);
+            --footer-border: var(--dark-300);
         }
         
         body {
@@ -77,6 +81,9 @@
             transition: background-color 0.3s, color 0.3s;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         
         .navbar {
@@ -87,310 +94,373 @@
         }
         
         .navbar-brand, .nav-link {
-            color: var(--text-primary) !important;
+            color: var(--text-primary) !important; 
         }
         
-        .nav-link:hover {
-            color: var(--text-secondary) !important;
+        .nav-link:hover { 
+            color: var(--text-secondary) !important; 
         }
         
-        .btn-primary {
-            background-color: var(--btn-primary-bg);
-            border-color: var(--btn-primary-bg);
-            color: var(--btn-primary-text);
+        .btn-primary { 
+            background-color: var(--btn-primary-bg); 
+            border-color: var(--btn-primary-bg); 
+            color: var(--btn-primary-text); 
         }
         
-        .btn-primary:hover {
-            background-color: var(--btn-outline-hover-bg);
-            border-color: var(--btn-outline-hover-bg);
-            color: var(--btn-outline-hover-text);
+        .btn-primary:hover { 
+            background-color: var(--btn-outline-hover-bg); 
+            border-color: var(--btn-outline-hover-bg); 
+            color: var(--btn-outline-hover-text); 
         }
         
-        .btn-outline-primary {
-            border-color: var(--btn-outline-border);
-            color: var(--btn-outline-text);
-            background-color: transparent;
+        .btn-outline-primary { 
+            border-color: var(--btn-outline-border); 
+            color: var(--btn-outline-text); 
+            background-color: transparent; 
         }
         
-        .btn-outline-primary:hover {
-            background-color: var(--btn-outline-hover-bg);
-            color: var(--btn-outline-hover-text);
-            border-color: var(--btn-outline-hover-bg);
+        .btn-outline-primary:hover { 
+            background-color: var(--btn-outline-hover-bg); 
+            color: var(--btn-outline-hover-text); 
+            border-color: var(--btn-outline-hover-bg); 
         }
         
-        .btn-outline-danger {
-            border-color: #dc3545;
-            color: #dc3545;
-            background-color: transparent;
+        .btn-outline-danger { 
+            border-color: #dc3545; 
+            color: #dc3545; 
+            background-color: transparent; 
         }
         
-        .btn-outline-danger:hover {
-            background-color: var(--btn-danger-bg);
-            color: var(--btn-danger-text);
+        .btn-outline-danger:hover { 
+            background-color: var(--btn-danger-bg); 
+            color: var(--btn-danger-text); 
         }
         
-        .btn-link {
-            color: var(--text-primary);
-            background: none;
+        .btn-link { 
+            color: var(--text-primary); 
+            background: none; 
+            border: none; 
+            text-decoration: none; 
+        }
+        
+        .btn-link:hover { 
+            color: var(--text-secondary); 
+        }
+        
+        .theme-toggle { 
+            background: none; 
             border: none;
-            text-decoration: none;
+            font-size: 1.5rem; 
+            color: var(--text-primary); 
+            cursor: pointer; 
+            transition: transform 0.3s; 
+            padding: 0.25rem; 
         }
         
-        .btn-link:hover {
-            color: var(--text-secondary);
+        .theme-toggle:hover { 
+            transform: rotate(15deg); 
+            color: var(--text-secondary); 
         }
         
-        .theme-toggle {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: transform 0.3s;
-            padding: 0.25rem;
+        .logo-container { 
+            display: flex; 
+            align-items: center; 
         }
         
-        .theme-toggle:hover {
-            transform: rotate(15deg);
-            color: var(--text-secondary);
+        .logo-image { 
+            width: 60px; 
+            height: 60px; 
+            margin-right: 10px; 
+            object-fit: contain; 
         }
         
-        .logo-container {
-            display: flex;
-            align-items: center;
+        .instituto-text { 
+            font-weight: bold; 
+            color: var(--text-primary); 
+            font-size: 20px; 
         }
         
-        .logo {
-            width: 40px;
-            height: 40px;
-            background-color: var(--text-primary);
-            border-radius: 50%;
-            margin-right: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--bg-primary);
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-
-        .logo-image {
-            width: 60px;
-            height: 60px;
-            margin-right: 10px;
-            object-fit: contain;
+        .navbar-container { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%; 
         }
         
-        .instituto-text {
-            font-weight: bold;
-            color: var(--text-primary);
-            font-size: 20px;
+        .navbar-left { 
+            display: flex; 
+            align-items: center; 
+            flex: 1; 
         }
         
-        /* Distribución del navbar */
-        .navbar-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
+        .navbar-center { 
+            display: flex; 
+            justify-content: center; 
+            flex: 2; 
         }
         
-        .navbar-left {
-            display: flex;
-            align-items: center;
-            flex: 1;
+        .navbar-right { 
+            display: flex; 
+            justify-content: flex-end; 
+            align-items: center; 
+            flex: 1; 
+            gap: 0.5rem; 
         }
         
-        .navbar-center {
-            display: flex;
-            justify-content: center;
-            flex: 2;
-        }
-        
-        .navbar-right {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            flex: 1;
-            gap: 0.5rem;
-        }
-        
-        /* Estilos para móvil */
         .mobile-navbar {
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            padding: 0.5rem 0;
+            display: none; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%; 
+            padding: 0.5rem 0; 
         }
         
-        .mobile-menu-toggle {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--text-primary);
-            cursor: pointer;
-            padding: 0.25rem;
+        .mobile-menu-toggle { 
+            background: none; 
+            border: none; 
+            font-size: 1.5rem; 
+            color: var(--text-primary); 
+            cursor: pointer; 
+            padding: 0.25rem; 
         }
         
-        .mobile-logo {
-            display: flex;
-            align-items: center;
+        .mobile-logo { 
+            display: flex; 
+            align-items: center; 
         }
         
-        .mobile-user-icon {
-            font-size: 1.5rem;
-            color: var(--text-primary);
-            text-decoration: none;
-            padding: 0.25rem;
+        .mobile-user-icon { 
+            font-size: 1.5rem; 
+            color: var(--text-primary); 
+            text-decoration: none; 
+            padding: 0.25rem; 
         }
         
-        .mobile-user-icon:hover {
-            color: var(--text-secondary);
+        .mobile-user-icon:hover { 
+            color: var(--text-secondary); 
         }
         
-        .mobile-menu {
-            position: fixed;
-            top: 0;
-            left: -100%;
-            width: 80%;
-            height: 100vh;
-            background-color: var(--navbar-bg);
-            z-index: 1050;
-            transition: left 0.3s ease;
-            padding: 2rem;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        .mobile-menu { 
+            position: fixed; 
+            top: 0; 
+            left: -100%; 
+            width: 80%; 
+            height: 100vh; 
+            background-color: var(--navbar-bg); 
+            z-index: 1050; 
+            transition: left 0.3s ease; 
+            padding: 2rem; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1); 
         }
         
-        .mobile-menu.active {
-            left: 0;
+        .mobile-menu.active { 
+            left: 0; 
         }
         
-        .mobile-menu-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .mobile-menu-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.5); 
+            z-index: 1049; 
+            display: none; 
+        }
+        
+        .mobile-menu-overlay.active { display: block; 
+        }
+        
+        .mobile-menu-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
             margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem; 
+            border-bottom: 1px solid var(--border-color); 
         }
         
-        .mobile-menu-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
+        .mobile-menu-close { 
+            background: none; 
+            border: none; 
+            font-size: 1.5rem; 
+            color: var(--text-primary); 
+            cursor: pointer; 
+            padding: 0.25rem; 
+        }
+        
+        .mobile-nav-links { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+        }
+        
+        .mobile-nav-links li { 
+            margin-bottom: 1rem; 
+        }
+
+        .mobile-nav-links a { 
+            color: var(--text-primary); 
+            text-decoration: none; 
+            font-size: 1.1rem; 
+            display: block; 
+            padding: 0.5rem 0; 
+            transition: color 0.3s;  
+        }
+
+        .mobile-nav-links a:hover {
+             color: var(--text-secondary); 
+        }
+
+        .auth-buttons { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+        }
+
+        .auth-buttons .btn { 
+            white-space: nowrap; 
+        }
+        
+        main {
+            flex-grow: 1; 
+            padding: 2rem 0;
+        }
+
+        .main-footer {
+            width: 100%;
+            background-color: var(--bg-primary);
+            padding: 0.1rem 1rem 1rem;
+            text-align: center;
+        }
+        
+        .footer-divider {
+            width: 100%;
+            height: 1px;
+            background-color: var(--footer-border);
+            margin-bottom: 3rem;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footer-logo-group {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            margin-bottom: 2rem;
             color: var(--text-primary);
-            cursor: pointer;
-            padding: 0.25rem;
+        }
+
+        .footer-logo {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-logo i {
+            color: var(--text-primary);
+            font-size: 2rem;
         }
         
-        .mobile-nav-links {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .footer-text {
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
         }
-        
-        .mobile-nav-links li {
-            margin-bottom: 1rem;
+
+        .footer-copy {
+            color: var(--footer-text);
+            font-size: 0.75rem;
+            margin-top: 1rem;
         }
-        
-        .mobile-nav-links a {
+
+        .mobile-user-section {
+            position: relative;
+        }
+
+        .mobile-profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 180px;
+            background-color: var(--navbar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1060;
+            overflow: hidden;
+            /* Se oculta por defecto y solo se muestra con la clase .active */
+            display: none; 
+        }
+
+        .mobile-profile-dropdown.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
             color: var(--text-primary);
             text-decoration: none;
-            font-size: 1.1rem;
-            display: block;
-            padding: 0.5rem 0;
-            transition: color 0.3s;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
         }
-        
-        .mobile-nav-links a:hover {
-            color: var(--text-secondary);
-        }
-        
-        .mobile-menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1049;
-            display: none;
-        }
-        
-        .mobile-menu-overlay.active {
-            display: block;
-        }
-        
-        /* Ajustes para dispositivos móviles */
-        @media (max-width: 992px) {
-            .desktop-navbar {
-                display: none !important;
-            }
-            
-            .mobile-navbar {
-                display: flex;
-            }
-            
-            .navbar-center {
-                display: none;
-            }
-            
-            .navbar-right .btn-link,
-            .navbar-right .theme-toggle,
-            .navbar-right .auth-buttons .btn {
-                display: none;
-            }
-            
-            .mobile-user-icon {
-                display: block !important;
-            }
 
-            .mobile-logo .logo-image {
-                width: 40px;
-                height: 40px;
-            }
+        .dropdown-item:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        .mobile-profile-dropdown form {
+            width: 100%;
+        }
+
+        .mobile-profile-dropdown .dropdown-item[type="submit"] {
+            color: #dc3545;
+            width: 100%;
+            text-align: left;
+        }
+
+        .mobile-profile-dropdown .dropdown-item[type="submit"]:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+        
+        @media (max-width: 992px) {
+            .desktop-navbar { display: none !important; }
+            .mobile-navbar { display: flex; }
+            .navbar-center { display: none; }
+            .navbar-right .btn-link, .navbar-right .theme-toggle, .navbar-right .auth-buttons .btn { display: none; }
+            
+            /* LÍNEA CORREGIDA: Se eliminó la regla .mobile-user-section > * { display: block !important; }
+               para que el dropdown respete el "display: none" por defecto. */
+            
+            .mobile-logo .logo-image { width: 40px; height: 40px; }
         }
         
         @media (min-width: 993px) {
-            .mobile-navbar {
-                display: none;
-            }
-            
-            .desktop-navbar {
-                display: flex !important;
-            }
-            
-            .mobile-user-icon {
-                display: none !important;
-            }
-        }
-
-        /* Mejoras para los botones de autenticación */
-        .auth-buttons {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .auth-buttons .btn {
-            white-space: nowrap;
-        }
-
-        /* Asegurar que el main ocupe el espacio restante */
-        main {
-            min-height: calc(100vh - 80px);
-            padding: 2rem 0;
+            .mobile-navbar { display: none; }
+            .desktop-navbar { display: flex !important; }
         }
     </style>
 </head>
 <body class="light-mode">
-    <!-- Header principal -->
     <header>
         <nav class="navbar navbar-expand-lg navbar-light px-4 py-2 shadow-sm w-100">
-            <!-- Navbar para escritorio -->
             <div class="desktop-navbar navbar-container">
-                <!-- Logo y nombre a la izquierda -->
                 <div class="navbar-left">
                     <div class="logo-container">
                         <img src="{{ asset('images/Icono.png') }}" alt="Instituto Resiliencia" class="logo-image">
@@ -398,11 +468,13 @@
                     </div>
                 </div>
                 
-                <!-- Enlaces de navegación en el centro -->
                 <div class="navbar-center">
                     <ul class="navbar-nav mb-2 mb-lg-0">
                         <li class="nav-item mx-2">
                             <a class="nav-link" href="{{ route('welcome') }}">Inicio</a>
+                        </li>
+                        <li class="nav-item mx-2">
+                            <a class="nav-link" href="{{ route('contact') }}">Contactanos</a>
                         </li>
                         <li class="nav-item mx-2">
                             <a class="nav-link" href="{{ route('store') }}">Tienda</a>
@@ -413,7 +485,6 @@
                     </ul>
                 </div>
                 
-                <!-- Iconos a la derecha -->
                 <div class="navbar-right">
                     <a href="{{ route('cart.view') }}" class="btn btn-link me-2" style="font-size: 1.5rem;">
                         <i class="bi bi-cart"></i>
@@ -432,14 +503,9 @@
                             <a class="btn btn-primary" href="{{ route('login') }}">Ingresar</a>
                         @endauth
                     </div>
-                    <!-- Icono de usuario para móvil (siempre visible) -->
-                    <a href="{{ route('login') }}" class="mobile-user-icon ms-2" style="display: none;">
-                        <i class="bi bi-person"></i>
-                    </a>
                 </div>
             </div>
             
-            <!-- Navbar para móvil -->
             <div class="mobile-navbar">
                 <button class="mobile-menu-toggle" id="mobileMenuToggle">
                     <i class="bi bi-list"></i>
@@ -450,14 +516,26 @@
                 </div>
                 
                 <div class="mobile-user-section">
-                    <a href="{{ route('login') }}" class="mobile-user-icon">
-                        <i class="bi bi-person"></i>
-                    </a>
+                    @auth
+                        <a href="#" class="mobile-user-icon" id="mobileProfileToggle">
+                            <i class="bi bi-person-circle"></i>
+                        </a>
+                        <div class="mobile-profile-dropdown" id="mobileProfileDropdown">
+                            <a href="{{ route('student.profile') }}" class="dropdown-item">Ir a Cuenta</a>
+                            <form method="POST" action="{{ route('logout') }}" class="m-0">
+                                @csrf
+                                <button type="submit" class="dropdown-item">Cerrar Sesión</button>
+                            </form>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-primary btn-sm" style="padding: 0.375rem 0.75rem;">
+                            Ingresar
+                        </a>
+                    @endauth
                 </div>
             </div>
         </nav>
         
-        <!-- Menú móvil -->
         <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
         <div class="mobile-menu" id="mobileMenu">
             <div class="mobile-menu-header">
@@ -473,6 +551,7 @@
             </div>
             <ul class="mobile-nav-links">
                 <li><a href="{{ route('welcome') }}">Inicio</a></li>
+                <li><a href="{{ route('contact') }}">Contactanos</a></li>
                 <li><a href="{{ route('store') }}">Tienda</a></li>
                 <li><a href="{{ route('information.index') }}">Información</a></li>
                 <li><a href="{{ route('cart.view') }}">Carrito</a></li>
@@ -480,80 +559,161 @@
         </div>
     </header>
     
-    <main class="py-4">
+    <main class="py-0">
         @yield('content')
     </main>
 
+    <footer class="main-footer">
+        <div class="footer-divider"></div>
+        <div class="footer-content">
+            <div class="footer-logo-group">
+                <div class="logo-container">
+                    <img src="{{ asset('images/Icono.png') }}" alt="Instituto Resiliencia" class="logo-image">
+                </div>
+                <div class="text">Instituto Resiliencia</div>
+            </div>
+            <p class="footer-copy">Copyright &copy; 2026 Instituto Resiliencia</p>
+        </div>
+    </footer>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const themeToggleDesktop = document.getElementById('themeToggleDesktop');
-            const themeToggleMobile = document.getElementById('themeToggleMobile');
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-            const mobileMenuClose = document.getElementById('mobileMenuClose');
-            const mobileMenu = document.getElementById('mobileMenu');
-            const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-            
-            // Función para cambiar el tema
-            function toggleTheme() {
-                if (document.body.classList.contains('light-mode')) {
-                    document.body.classList.replace('light-mode', 'dark-mode');
-                    updateThemeIcons('moon');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    document.body.classList.replace('dark-mode', 'light-mode');
-                    updateThemeIcons('sun');
-                    localStorage.setItem('theme', 'light');
-                }
-            }
-            
-            // Función para actualizar todos los iconos de tema
-            function updateThemeIcons(icon) {
-                const iconClass = icon === 'sun' ? 'bi-sun' : 'bi-moon';
-                const elements = [themeToggleDesktop, themeToggleMobile];
-                
-                elements.forEach(element => {
-                    if (element) {
-                        element.innerHTML = `<i class="bi ${iconClass}"></i>`;
-                    }
-                });
-            }
-            
-            // Verificar si hay una preferencia guardada del tema
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Toggle de Tema ---
+        const themeToggleDesktop = document.getElementById('themeToggleDesktop');
+        const themeToggleMobile = document.getElementById('themeToggleMobile');
+        
+        function toggleTheme() {
+            if (document.body.classList.contains('light-mode')) {
                 document.body.classList.replace('light-mode', 'dark-mode');
                 updateThemeIcons('moon');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.replace('dark-mode', 'light-mode');
+                updateThemeIcons('sun');
+                localStorage.setItem('theme', 'light');
             }
+        }
+        
+        function updateThemeIcons(icon) {
+            const iconClass = icon === 'sun' ? 'bi-sun' : 'bi-moon';
+            const elements = [themeToggleDesktop, themeToggleMobile];
             
-            // Toggle del tema para desktop
-            if (themeToggleDesktop) {
-                themeToggleDesktop.addEventListener('click', toggleTheme);
-            }
-            
-            // Toggle del tema para móvil
-            if (themeToggleMobile) {
-                themeToggleMobile.addEventListener('click', toggleTheme);
-            }
-            
-            // Toggle del menú móvil
+            elements.forEach(element => {
+                if (element) {
+                    element.innerHTML = `<i class="bi ${iconClass}"></i>`;
+                }
+            });
+        }
+        
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.replace('light-mode', 'dark-mode');
+            updateThemeIcons('moon');
+        } else {
+             // Asegura que el ícono es el correcto al inicio si no hay tema guardado o es 'light'
+             updateThemeIcons('sun');
+        }
+        
+        if (themeToggleDesktop) {
+            themeToggleDesktop.addEventListener('click', toggleTheme);
+        }
+        if (themeToggleMobile) {
+            themeToggleMobile.addEventListener('click', toggleTheme);
+        }
+        
+        // --- Toggle del Menú Móvil ---
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenuClose = document.getElementById('mobileMenuClose');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+        
+        function closeMobileMenu() {
+            mobileMenu.classList.remove('active');
+            mobileMenuOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        if (mobileMenuToggle) {
             mobileMenuToggle.addEventListener('click', function() {
                 mobileMenu.classList.add('active');
                 mobileMenuOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
+                // Asegúrate de cerrar el dropdown de perfil si el menú lateral se abre
+                if (mobileProfileDropdown && mobileProfileDropdown.classList.contains('active')) {
+                    closeProfileDropdown();
+                }
             });
-            
-            mobileMenuClose.addEventListener('click', function() {
-                mobileMenu.classList.remove('active');
-                mobileMenuOverlay.classList.remove('active');
-                document.body.style.overflow = 'auto';
+        }
+        
+        if (mobileMenuClose) {
+            mobileMenuClose.addEventListener('click', closeMobileMenu);
+        }
+        if (mobileMenuOverlay) {
+            mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+        }
+        
+        // --- Toggle del Dropdown de Perfil Móvil ---
+        const mobileProfileToggle = document.getElementById('mobileProfileToggle');
+        const mobileProfileDropdown = document.getElementById('mobileProfileDropdown');
+
+        if (mobileProfileToggle && mobileProfileDropdown) {
+            let isDropdownOpen = false;
+
+            // Función para cerrar el dropdown
+            function closeProfileDropdown() {
+                mobileProfileDropdown.classList.remove('active');
+                isDropdownOpen = false;
+                // Remover el event listener global cuando se cierra
+                document.removeEventListener('click', closeOnClickOutside);
+            }
+
+            // Función para manejar clics fuera del dropdown
+            function closeOnClickOutside(event) {
+                if (!mobileProfileToggle.contains(event.target) && !mobileProfileDropdown.contains(event.target)) {
+                    closeProfileDropdown();
+                }
+            }
+
+            // Evento para el botón de perfil
+            mobileProfileToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Asegúrate de cerrar el menú lateral si está abierto
+                if (mobileMenu && mobileMenu.classList.contains('active')) {
+                    closeMobileMenu();
+                }
+
+                if (isDropdownOpen) {
+                    closeProfileDropdown();
+                } else {
+                    // Abrir dropdown
+                    mobileProfileDropdown.classList.add('active');
+                    isDropdownOpen = true;
+                    
+                    // Agregar event listener para clics fuera del dropdown
+                    // Usamos setTimeout para que no se active inmediatamente
+                    setTimeout(() => {
+                        document.addEventListener('click', closeOnClickOutside);
+                    }, 10);
+                }
             });
-            
-            mobileMenuOverlay.addEventListener('click', function() {
-                mobileMenu.classList.remove('active');
-                mobileMenuOverlay.classList.remove('active');
-                document.body.style.overflow = 'auto';
+
+            // Cerrar dropdown cuando se hace clic en un enlace dentro de él
+            const dropdownLinks = mobileProfileDropdown.querySelectorAll('a, button');
+            dropdownLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    closeProfileDropdown();
+                });
             });
-        });
+
+            // Cerrar dropdown cuando se cambia el tamaño de la ventana
+            window.addEventListener('resize', function() {
+                closeProfileDropdown();
+            });
+
+        }
+    });
     </script>
 </body>
 </html>

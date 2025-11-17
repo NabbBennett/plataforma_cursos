@@ -2,46 +2,234 @@
 
 @section('content')
 
+<style>
+    .exam-bg {
+        background-color: var(--bg-primary);
+        min-height: 100vh;
+        transition: background-color 0.3s;
+    }
+    
+    .exam-header {
+        background: rgba(0, 0, 0, 0.1) !important;
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        border: 1px solid var(--border-color);
+    }
+    
+    .question-container, .answer-container {
+        background-color: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s;
+    }
+    
+    .indicators-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: var(--bg-secondary);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+    
+    .indicators-table th, .indicators-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        transition: all 0.3s;
+    }
+    
+    .indicators-table th {
+        background-color: var(--bg-primary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--border-color);
+    }
+    
+    .indicators-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .value-cell {
+        text-align: center;
+        font-weight: bold;
+        color: var(--text-secondary);
+    }
+    
+    .nav-btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 5px;
+        margin: 0 2px;
+        opacity: 0.7;
+        transition: all 0.3s;
+        text-decoration: none;
+        border: 1px solid var(--border-color);
+    }
+    
+    .nav-btn.active {
+        opacity: 1;
+        background-color: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+        border-color: var(--btn-primary-bg);
+    }
+    
+    .nav-btn.answered {
+        text-decoration: line-through;
+        background-color: var(--bg-secondary);
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--btn-primary-bg);
+        border-color: var(--btn-primary-bg);
+    }
+    
+    .form-check-label {
+        color: var(--text-primary);
+        transition: color 0.3s;
+    }
+    
+    .section-title {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    hr {
+        border-color: var(--border-color);
+        opacity: 0.5;
+    }
+    
+    /* Estados hover para botones de navegación */
+    .nav-btn:not(.active):hover {
+        opacity: 0.9;
+        background-color: var(--bg-secondary);
+    }
+    
+    /* Estilos específicos para modo oscuro */
+    body.dark-mode .exam-header {
+        background: rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    body.dark-mode .question-container,
+    body.dark-mode .answer-container {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    
+    body.dark-mode .indicators-table {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    
+    body.dark-mode .indicators-table th {
+        background: rgba(255, 255, 255, 0.08);
+    }
+    
+    @media (max-width: 768px) {
+        .exam-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 10px;
+        }
+        
+        .indicators-table {
+            font-size: 0.85rem;
+        }
+        
+        .indicators-table th, .indicators-table td {
+            padding: 8px 10px;
+        }
+        
+        .nav-btn {
+            width: 35px;
+            height: 35px;
+            margin: 1px;
+            font-size: 0.9rem;
+        }
+        
+        .question-container, .answer-container {
+            padding: 15px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .indicators-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .nav-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8rem;
+        }
+        
+        .exam-title span {
+            font-size: 1.5rem !important;
+        }
+        
+        .question-container, .answer-container {
+            padding: 12px;
+        }
+    }
+</style>
+
 <div class="exam-bg py-3">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4 exam-header" style="background: rgba(0, 0, 0, 0.5);">
+        <!-- Header del examen -->
+        <div class="d-flex justify-content-between align-items-center mb-4 exam-header">
             <div class="d-flex align-items-center">
-                <span class="fs-4 fw-bold text-white">Instituto Resiliencia</span>
+                <span class="fs-5 fw-bold" style="color: var(--text-primary);">Instituto Resiliencia</span>
             </div>
             <div class="exam-title text-center flex-grow-1">
-                <span class="fs-3 fw-bold text-white">Examen de semana #{{ $exam->id }}</span>
+                <span class="fs-5 fw-bold" style="color: var(--text-primary);">Examen de semana #{{ $exam->id }}</span>
             </div>
             <div>
-                <span class="fs-4 fw-bold text-white" id="timer">00:00</span>
+                <span class="fs-5 fw-bold" style="color: var(--text-primary);" id="timer">00:00</span>
             </div>
         </div>
 
+        <!-- Formulario del examen -->
         <form id="examAnswersForm" method="POST" action="{{ route('student.exams.submit', ['course' => $course->id, 'exam' => $exam->id]) }}">
             @csrf
             <div class="row g-4">
+                <!-- Columna de pregunta -->
                 <div class="col-md-6">
-                    <div class="mb-3 border rounded p-2">
-                        <strong>Num pregunta: {{ $questionNumber }}</strong>
+                    <div class="mb-3">
+                        <strong class="section-title">Num pregunta: {{ $questionNumber }}</strong>
                     </div>
-                    <div class="border rounded p-3" style="min-height: 180px;">
-                        {!! $question->text !!}
+                    <div class="question-container" style="min-height: 180px;">
+                        <div style="color: var(--text-primary);">
+                            {!! $question->text !!}
+                        </div>
                     </div>
                 </div>
+                
+                <!-- Columna de respuestas -->
                 <div class="col-md-6">
-                    <div class="mb-3 border rounded p-2">
-                        <strong>RESPUESTA</strong>
+                    <div class="mb-3">
+                        <strong class="section-title">RESPUESTA</strong>
                     </div>
-                    <div class="border rounded p-3" style="min-height: 180px;">
+                    <div class="answer-container" style="min-height: 180px;">
                         @foreach ($question->answers as $answer)
-                            <div class="form-check mb-2">
+                            <div class="form-check mb-3">
                                 <input class="form-check-input"
                                        type="radio"
                                        name="answers[{{ $question->id }}]"
                                        value="{{ $answer->id }}"
+                                       id="answer_{{ $answer->id }}"
                                        onchange="saveAnswer({{ $question->id }}, {{ $answer->id }})"
                                        {{ old("answers.{$question->id}", session("exam_{$exam->id}.answers.{$question->id}")) == $answer->id ? 'checked' : '' }}
                                        {{ session("exam_{$exam->id}.finished") ? 'disabled' : '' }}>
-                                <label class="form-check-label">{!! $answer->text !!}</label>
+                                <label class="form-check-label" for="answer_{{ $answer->id }}">
+                                    {!! $answer->text !!}
+                                </label>
                             </div>
                         @endforeach
                     </div>
@@ -51,7 +239,7 @@
 
         <hr class="my-4">
 
-        {{-- Navegación inferior --}}
+        <!-- Navegación inferior -->
         <div class="exam-nav d-flex flex-wrap justify-content-center align-items-center gap-2 py-3">
             @foreach ($exam->questions->sortBy('order')->values() as $i => $q)
                 @php
@@ -63,8 +251,8 @@
                         'exam' => $exam->id,
                         'questionNumber' => $i + 1
                     ]) }}"
-                   class="btn btn-sm {{ $active ? 'btn-light' : 'btn-secondary' }}"
-                   style="opacity: {{ $active ? '1' : '0.7' }}; text-decoration: {{ $answered ? 'line-through' : 'none' }};">
+                   class="nav-btn btn btn-sm {{ $active ? 'active' : '' }} {{ $answered ? 'answered' : '' }}"
+                   style="color: {{ $active ? 'var(--btn-primary-text)' : 'var(--text-primary)' }};">
                     {{ $i + 1 }}
                 </a>
             @endforeach
@@ -72,7 +260,6 @@
         </div>
     </div>
 </div>
-@endsection
 
 <script>
 function saveAnswer(questionId, answerId) {
@@ -90,6 +277,11 @@ function saveAnswer(questionId, answerId) {
     .then(response => response.json())
     .then(data => {
         console.log('Guardado correctamente:', data);
+        // Actualizar el estado de la pregunta en la navegación
+        const navBtn = document.querySelector(`a[href*="questionNumber={{ $questionNumber }}"]`);
+        if (navBtn) {
+            navBtn.classList.add('answered');
+        }
     })
     .catch(error => console.error('Error al guardar respuesta:', error));
 }
@@ -101,16 +293,37 @@ const endTime = new Date(expirationTimestamp).getTime();
 function updateTimer() {
     const now = new Date().getTime();
     const distance = endTime - now;
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    document.getElementById("timer").textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
+    
     if (distance < 0) {
         clearInterval(timerInterval);
         document.getElementById("timer").textContent = "00:00";
         document.getElementById('examAnswersForm').submit();
+        return;
     }
+    
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    document.getElementById("timer").textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
+
 const timerInterval = setInterval(updateTimer, 1000);
 updateTimer();
+
+// Asegurar que los estilos se apliquen correctamente al cambiar de tema
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggleButtons = document.querySelectorAll('.theme-toggle');
+    themeToggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Forzar actualización de estilos después del cambio de tema
+            setTimeout(() => {
+                document.querySelectorAll('.question-container, .answer-container, .indicators-table').forEach(el => {
+                    el.style.display = 'none';
+                    el.offsetHeight; // Trigger reflow
+                    el.style.display = '';
+                });
+            }, 100);
+        });
+    });
+});
 </script>
+@endsection

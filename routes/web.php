@@ -203,4 +203,5 @@ Route::get('/student/resources/{type}/{id}', [ProfileController::class, 'viewRes
 
 // Entrega segura del archivo
 Route::get('/student/resources/file/{resource}', [ProfileController::class, 'serveFile'])->name('student.resources.serveFile');
+
 Route::get('/student/courses/{course}/progress', [ExamStudentController::class, 'getExamProgress'])->name('student.courses.progress');

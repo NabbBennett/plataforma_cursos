@@ -176,17 +176,10 @@
                                 </div>
                                 
                                 <div class="course-actions">
-                                    @if($cursoComprado)
-                                        <button class="btn-course purchased" disabled>
-                                            <i class="bi bi-check-circle"></i>
-                                            Curso Comprado
-                                        </button>
-                                    @else
-                                        <a href="{{ route('store.course', $course->id) }}" class="btn-course primary">
-                                            <i class="bi bi-eye"></i>
-                                            Ver Curso
-                                        </a>
-                                    @endif
+                                    <a href="{{ route('store.course', $course->id) }}" class="btn-course primary">
+                                        <i class="bi bi-eye"></i>
+                                        Ver Curso
+                                    </a>
                                 </div>
                             </div>
                         </div>

@@ -328,16 +328,6 @@
                 </form>
             </div>
             
-            <!-- Lista de reseñas -->
-            <div class="review-sort">
-                <select class="form-select form-select-sm" style="width: auto;" id="reviewSort">
-                    <option value="newest">Más recientes</option>
-                    <option value="oldest">Más antiguos</option>
-                    <option value="highest">Mayor puntuación</option>
-                    <option value="lowest">Menor puntuación</option>
-                </select>
-            </div>
-            
             <div id="reviewsList">
                 @foreach($course->reviews->sortByDesc('created_at') as $review)
                 <div class="review-card">
@@ -434,16 +424,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Inicializar con 5 estrellas seleccionadas
         stars[4].click();
-    }
-    
-    // Ordenar reseñas
-    const reviewSort = document.getElementById('reviewSort');
-    if (reviewSort) {
-        reviewSort.addEventListener('change', function() {
-            // En una implementación real, esto haría una petición al servidor
-            // Por ahora, solo mostramos un mensaje
-            alert('Funcionalidad de ordenamiento en desarrollo. En una implementación completa, esto ordenaría las reseñas según el criterio seleccionado.');
-        });
     }
 });
 </script>

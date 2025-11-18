@@ -11,6 +11,7 @@ use App\Models\WeekDay;
 use App\Models\Exam;
 use App\Models\Purchase;
 use App\Models\EvaluationBlock;
+use App\Models\Coupon;
 
 class AdminController extends Controller
 {
@@ -22,18 +23,35 @@ class AdminController extends Controller
             'courses' => Course::count(),
             'exams' => Exam::count(),
             'resources' => Resource::count(),
+            'coupons' => Coupon::count(),
             'sales' => Purchase::count(),
         ]);
     }
 
     public function usersIndex(Request $request) {
         $role = $request->query('role');
+        $search = $request->query('search');
+        
         $query = User::query();
 
-        if ($role) $query->where('role', $role);
+        // Filtro por rol
+        if ($role) {
+            $query->where('role', $role);
+        }
+
+        // Búsqueda por ID, nombre o correo
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('id', 'LIKE', "%{$search}%")
+                ->orWhere('name', 'LIKE', "%{$search}%")
+                ->orWhere('email', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Paginación con 10 usuarios por página
         $users = $query->paginate(10);
 
-        return view('admin.users.index', compact('users', 'role'));
+        return view('admin.users.index', compact('users', 'role', 'search'));
     }
 
     public function editUser(User $user, Request $request) {

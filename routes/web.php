@@ -15,6 +15,8 @@ use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\InformationController;
 use App\Http\Controllers\ExamStudentController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\CouponController;
+use App\Http\Controllers\Admin\ExamImageUploadController;
 
 use App\Models\Course;
 use App\Models\WeekDay;
@@ -94,6 +96,16 @@ Route::prefix('admin/resources')->name('admin.resources.')->middleware('auth')->
     Route::post('/', [\App\Http\Controllers\ResourceController::class, 'store'])->name('store');
     Route::get('/download/{resource}', [\App\Http\Controllers\ResourceController::class, 'download'])->name('download');
     Route::delete('/{resource}', [\App\Http\Controllers\ResourceController::class, 'destroy'])->name('destroy');
+});
+
+// Cupones
+Route::prefix('admin/coupons')->name('admin.coupons.')->middleware('auth')->group(function () {
+    Route::get('/', [CouponController::class, 'index'])->name('index');
+    Route::get('/create', [CouponController::class, 'create'])->name('create');
+    Route::post('/', [CouponController::class, 'store'])->name('store');
+    Route::get('/{coupon}/edit', [CouponController::class, 'edit'])->name('edit');
+    Route::put('/{coupon}', [CouponController::class, 'update'])->name('update');
+    Route::delete('/{coupon}', [CouponController::class, 'destroy'])->name('destroy');
 });
 
 //ventas - admin
@@ -205,3 +217,6 @@ Route::get('/student/resources/{type}/{id}', [ProfileController::class, 'viewRes
 Route::get('/student/resources/file/{resource}', [ProfileController::class, 'serveFile'])->name('student.resources.serveFile');
 
 Route::get('/student/courses/{course}/progress', [ExamStudentController::class, 'getExamProgress'])->name('student.courses.progress');
+
+Route::post('admin/exams/upload-image', [ExamImageUploadController::class, 'upload'])
+    ->name('admin.exams.uploadImage');

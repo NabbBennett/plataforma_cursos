@@ -282,7 +282,7 @@
         @endif
 
         <!-- Tabla de exámenes -->
-        <div class="table-container">
+        <div class="table-responsive">
             @if($exams->count() > 0)
                 <div class="table-responsive table-responsive-custom">
                     <table class="table table-custom table-hover">

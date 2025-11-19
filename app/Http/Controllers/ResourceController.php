@@ -10,8 +10,14 @@ class ResourceController extends Controller
 {
     public function index()
     {
-        $resources = Resource::latest()->get();
-        return view('admin.resources.index', compact('resources'));
+        try {
+            $resources = Resource::latest()->paginate(10);
+            return view('admin.resources.index', compact('resources'));
+        } catch (\Exception $e) {
+            // Si hay error, pasa un array vacío
+            $resources = [];
+            return view('admin.resources.index', compact('resources'));
+        }
     }
 
     public function create()
@@ -26,16 +32,21 @@ class ResourceController extends Controller
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
-        $path = $request->file('file')->store('resources', 'public');
-        $type = $request->file('file')->getClientOriginalExtension();
+        try {
+            $file = $request->file('file');
+            $path = $file->store('resources', 'public');
+            
+            Resource::create([
+                'title' => $request->title,
+                'file_path' => $path,
+                'type' => $file->getClientOriginalExtension(), // Guarda la extensión del archivo
+            ]);
 
-        Resource::create([
-            'title' => $request->title,
-            'file_path' => $path,
-            'type' => $type,
-        ]);
+            return redirect()->route('admin.resources.index')->with('success', 'Recurso subido correctamente.');
 
-        return redirect()->route('admin.resources.index')->with('success', 'Recurso subido correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al subir el archivo: ' . $e->getMessage());
+        }
     }
 
     public function download(Resource $resource)
@@ -45,9 +56,12 @@ class ResourceController extends Controller
 
     public function destroy(Resource $resource)
     {
-        Storage::disk('public')->delete($resource->file_path);
-        $resource->delete();
-
-        return back()->with('success', 'Recurso eliminado.');
+        try {
+            Storage::disk('public')->delete($resource->file_path);
+            $resource->delete();
+            return back()->with('success', 'Recurso eliminado correctamente.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al eliminar el recurso: ' . $e->getMessage());
+        }
     }
 }

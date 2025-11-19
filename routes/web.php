@@ -3,11 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PurchasesController;
@@ -16,40 +18,86 @@ use App\Http\Controllers\InformationController;
 use App\Http\Controllers\ExamStudentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CouponController;
-use App\Http\Controllers\Admin\ExamImageUploadController;
+use App\Http\Controllers\ExamImageUploadController;
 
 use App\Models\Course;
 use App\Models\WeekDay;
 use App\Models\Week;
+
+/*-------------------
+    VISTA GENERAL
+---------------------*/
 
 // Página principal
 Route::get('/', function () {
     return view('main');
 })->name('welcome');
 
-Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+//Contacto
+Route::get('/contacto', [ContactController::class, 'contact'])->name('contact');
+Route::post('/contacto', [ContactController::class, 'contactSubmit'])->name('contact.submit');
 
-// Autenticación
+//Vista de tienda
+Route::get('/store', [StoreController::class, 'store'])->name('store');
+Route::get('/store/course/{id}', [StoreController::class, 'show'])->name('store.course');
+Route::post('/store/course/{id}/review', [StoreController::class, 'storeReview'])->name('course.review.store')->middleware('auth');
+Route::post('/cart/coupon', [StoreController::class, 'applyCoupon'])->name('cart.coupon');
+
+//Carrito de compras
+Route::prefix('cart')->name('cart.')->middleware('auth')->group(function () {
+    Route::get('/view', [CartController::class, 'view'])->name('view');
+    Route::post('/add/{course}', [CartController::class, 'add'])->name('add');
+    Route::post('/remove/{course}', [CartController::class, 'remove'])->name('remove');
+    Route::post('/update/{course}', [CartController::class, 'update'])->name('update'); 
+    Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout');
+});
+
+//Ticket de compra
+Route::get('/ticket', [CartController::class, 'ticket'])->name('cart.ticket');
+
+//Informacion Institucional
+Route::get('/information', [InformationController::class, 'index'])->name('information.index');
+Route::get('/information/show', [InformationController::class, 'show'])->name('information.show');
+
+
+// Seccion de Login, register, recuperar contraseña, verificar correo y logout
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register.form');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 
-// Cerrar sesión
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Recuperar contraseña
 Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
-// Vistas del administrador
+// Verificación de correo electrónico
+Route::get('/verificar-correo', [VerificationController::class, 'showForm'])->name('verification.form');
+Route::post('/verificar-codigo', [VerificationController::class, 'checkCode'])->name('verification.check');
+Route::post('/reenviar-codigo', [VerificationController::class, 'resendCode'])->name('verification.resend');
+
+/*-------------------
+    VISTA ALUMNO
+---------------------*/
+
+//Perfil verificado
+Route::middleware(['auth', 'verified'])->get('/profile', [ProfileController::class, 'perfil'])->name('profile.profile');
+
+
+/*-------------------
+    VISTA ADMIN
+---------------------*/
+
+// Dashboard accediendo con administrador
 Route::middleware('auth')->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::get('/admin/upload-video', [AdminController::class, 'uploadVideo'])->name('admin.upload.video');
 });
+
+
+Route::get('/admin/courses', [AdminController::class, 'coursesIndex'])->name('admin.courses.index');
 
 // Lista de usuarios
 Route::get('/admin/users', [AdminController::class, 'usersIndex'])->name('admin.users');
@@ -67,7 +115,6 @@ Route::delete('/admin/users/{user}', [AdminController::class, 'deleteUser'])->na
 Route::get('/admin/courses/create', [AdminController::class, 'showCreateCourseForm'])->name('admin.courses.create');
 
 // Administración de cursos 
-Route::get('/admin/courses', [AdminController::class, 'coursesIndex'])->name('admin.courses.index');
 Route::post('/admin/courses/store', [AdminController::class, 'createCourse'])->name('admin.courses.store');
 
 Route::get('/admin/courses/{id}/edit', [AdminController::class, 'edit'])->name('admin.courses.edit');
@@ -91,11 +138,11 @@ Route::post('ckeditor/upload', [App\Http\Controllers\CKEditorController::class, 
 
 //Recursos - Admin
 Route::prefix('admin/resources')->name('admin.resources.')->middleware('auth')->group(function () {
-    Route::get('/', [\App\Http\Controllers\ResourceController::class, 'index'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\ResourceController::class, 'create'])->name('create');
-    Route::post('/', [\App\Http\Controllers\ResourceController::class, 'store'])->name('store');
-    Route::get('/download/{resource}', [\App\Http\Controllers\ResourceController::class, 'download'])->name('download');
-    Route::delete('/{resource}', [\App\Http\Controllers\ResourceController::class, 'destroy'])->name('destroy');
+    Route::get('/', [ResourceController::class, 'index'])->name('index');
+    Route::get('/create', [ResourceController::class, 'create'])->name('create');
+    Route::post('/', [ResourceController::class, 'store'])->name('store');
+    Route::get('/download/{resource}', [ResourceController::class, 'download'])->name('download');
+    Route::delete('/{resource}', [ResourceController::class, 'destroy'])->name('destroy');
 });
 
 // Cupones
@@ -137,42 +184,9 @@ Route::get('/api/purchase/weeks/{user_id}/{course_id}', function ($user_id, $cou
         ->pluck('id');
     })->middleware('auth');
 
-// Verificación de correo electrónico
-    Route::get('/verificar-correo', [VerificationController::class, 'showForm'])->name('verification.form');
-    Route::post('/verificar-codigo', [VerificationController::class, 'checkCode'])->name('verification.check');
-    Route::post('/reenviar-codigo', [VerificationController::class, 'resendCode'])->name('verification.resend');
-
-    Route::middleware(['auth', 'verified'])->get('/profile', [ProfileController::class, 'perfil'])->name('profile.profile');
-    Route::get('admin/courses/week-block', [AdminController::class, 'getWeekBlock'])->name('admin.courses.week-block');
 
 
 // USUARIO //
-// Contact routes
-Route::get('/contacto', [ContactController::class, 'contact'])->name('contact');
-Route::post('/contacto', [ContactController::class, 'contactSubmit'])->name('contact.submit');
-
-//Vista de tienda
-Route::get('/store', [StoreController::class, 'store'])->name('store');
-Route::get('/store/course/{id}', [StoreController::class, 'show'])->name('store.course');
-Route::post('/store/course/{id}/review', [StoreController::class, 'storeReview'])->name('course.review.store')->middleware('auth');
-Route::post('/cart/coupon', [StoreController::class, 'applyCoupon'])->name('cart.coupon');
-
-//carrito de compras
-Route::prefix('cart')->name('cart.')->middleware('auth')->group(function () {
-    Route::get('/view', [CartController::class, 'view'])->name('view');
-    Route::post('/add/{course}', [CartController::class, 'add'])->name('add');
-    Route::post('/remove/{course}', [CartController::class, 'remove'])->name('remove');
-    Route::post('/update/{course}', [CartController::class, 'update'])->name('update'); 
-    Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout');
-});
-
-//ticket de compra
-Route::get('/ticket', [CartController::class, 'ticket'])->name('cart.ticket');
-
-//INFORMACIÓN INSTITUCIONAL
-// Vista pública
-Route::get('/information', [InformationController::class, 'index'])->name('information.index');
-Route::get('/information/show', [InformationController::class, 'show'])->name('information.show');
 
 Route::get('/information', [InformationController::class, 'index'])->name('information.index');
 // Panel admin (todas protegidas con auth + gate)
@@ -190,7 +204,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/mi-perfil', [ProfileController::class, 'perfil'])->name('student.profile');
     Route::get('/configuracion', [ProfileController::class, 'configuration'])->name('student.configuration');
     
-    // Rutas para actualizaciones AJAX
+    // Rutas para actualizaciones de perfil
     Route::post('/update-avatar', [ProfileController::class, 'updateAvatar'])->name('student.update.avatar');
     Route::post('/update-banner', [ProfileController::class, 'updateBanner'])->name('student.update.banner');
     Route::post('/update-name', [ProfileController::class, 'updateName'])->name('student.update.name');

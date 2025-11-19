@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Resource extends Model
 {
@@ -11,13 +11,13 @@ class Resource extends Model
 
     protected $fillable = [
         'title',
-        'file_path',
-        'type',
+        'file_path', 
+        'type'
     ];
 
-    // Retorna la URL pública del archivo
+    // Accessor para la URL del archivo
     public function getUrlAttribute()
     {
-        return asset('storage/' . $this->file_path);
+        return Storage::url($this->file_path);
     }
 }

@@ -416,6 +416,34 @@
             align-items: flex-start;
         }
     }
+
+    /* AGREGAR AL CSS EXISTENTE */
+.existing-image-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.image-preview-container {
+    transition: all 0.3s ease;
+}
+
+.image-preview {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Asegurar que las previsualizaciones sean visibles */
+.image-input.active .image-preview-container {
+    display: block !important;
+}
+
+.text-input.active .image-preview-container {
+    display: none !important;
+}
 </style>
 
 <div class="exam-create-container">
@@ -678,7 +706,10 @@ const examData = @json($examData ?? []);
 function addQuestion(questionData = {}) {
     const template = document.getElementById('question-template').innerHTML;
     
-    // Preparar datos para la plantilla
+    // Determinar si la pregunta tiene imagen existente
+    const questionHasImage = !!(questionData.image_path || questionData.existing_image);
+    
+    // Preparar datos para la plantilla con valores por defecto seguros
     const templateData = {
         '__INDEX__': questionIndex,
         '__QUESTION_ID__': questionData.id || '',
@@ -716,44 +747,238 @@ function addQuestion(questionData = {}) {
     // Actualizar número de pregunta
     div.querySelector('.question-number-display').textContent = questionIndex + 1;
     
-    // Configurar previsualización de imágenes si existen
-    if (questionData.has_image && questionData.image_path) {
-        const previewContainer = document.getElementById(`question-image-preview-${questionIndex}`);
-        if (previewContainer) {
-            const img = document.createElement('img');
-            img.src = questionData.image_path;
-            img.className = 'image-preview';
-            img.alt = 'Imagen de pregunta existente';
-            previewContainer.appendChild(img);
-        }
-        // Activar modo imagen si hay imagen existente
-        setTimeout(() => {
-            const imageBtn = div.querySelector('.toggle-btn[data-type="image"]');
-            if (imageBtn && questionData.has_image) {
-                toggleQuestionInputType(imageBtn, questionIndex);
-            }
-        }, 100);
-    }
-
-    // Inicializar CKEditor 5
+    // CONFIGURAR PREVISUALIZACIÓN DE IMÁGENES EXISTENTES INMEDIATAMENTE
     setTimeout(() => {
+        // Pregunta
+        if (questionData.image_path) {
+            const previewContainer = document.getElementById(`question-image-preview-${questionIndex}`);
+            if (previewContainer) {
+                previewContainer.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = questionData.image_path;
+                img.className = 'image-preview';
+                img.alt = 'Imagen de pregunta existente';
+                img.style.display = 'block'; // FORZAR VISUALIZACIÓN
+                previewContainer.appendChild(img);
+                previewContainer.style.display = 'block'; // FORZAR VISUALIZACIÓN
+            }
+        }
+        
+        // Respuesta correcta
+        if (questionData.correct_image_path) {
+            const previewContainer = document.getElementById(`correct-image-preview-${questionIndex}`);
+            if (previewContainer) {
+                previewContainer.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = questionData.correct_image_path;
+                img.className = 'image-preview';
+                img.alt = 'Imagen de respuesta correcta existente';
+                img.style.display = 'block'; // FORZAR VISUALIZACIÓN
+                previewContainer.appendChild(img);
+                previewContainer.style.display = 'block'; // FORZAR VISUALIZACIÓN
+            }
+        }
+        
+        // Respuestas incorrectas
+        ['wrong1', 'wrong2', 'wrong3'].forEach((wrongType) => {
+            const imagePathKey = `${wrongType}_image_path`;
+            if (questionData[imagePathKey]) {
+                const previewContainer = document.getElementById(`${wrongType}-image-preview-${questionIndex}`);
+                if (previewContainer) {
+                    previewContainer.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = questionData[imagePathKey];
+                    img.className = 'image-preview';
+                    img.alt = `Imagen de respuesta incorrecta existente`;
+                    img.style.display = 'block'; // FORZAR VISUALIZACIÓN
+                    previewContainer.appendChild(img);
+                    previewContainer.style.display = 'block'; // FORZAR VISUALIZACIÓN
+                }
+            }
+        });
+
+        // CONFIGURAR TIPOS DE INPUT BASADO EN IMÁGENES EXISTENTES
+        // Pregunta - activar modo imagen si tiene imagen
+        if (questionHasImage) {
+            const imageBtn = div.querySelector('.input-type-toggle .toggle-btn[data-type="image"]');
+            if (imageBtn) {
+                // Forzar el cambio visual inmediato
+                imageBtn.click();
+            }
+        }
+        
+        // Respuesta correcta - activar modo imagen si tiene imagen
+        if (questionData.correct_image_path) {
+            const imageBtn = div.querySelector('.answer-option:first-child .toggle-btn[data-type="image"]');
+            if (imageBtn) {
+                // Forzar el cambio visual inmediato
+                imageBtn.click();
+            }
+        }
+        
+        // Respuestas incorrectas - activar modo imagen si tienen imagen
+        ['wrong1', 'wrong2', 'wrong3'].forEach((wrongType) => {
+            const imagePathKey = `${wrongType}_image_path`;
+            if (questionData[imagePathKey]) {
+                const answerOptions = div.querySelectorAll('.answer-option');
+                const targetIndex = ['wrong1', 'wrong2', 'wrong3'].indexOf(wrongType) + 1; // +1 porque el primero es correct
+                if (answerOptions[targetIndex]) {
+                    const imageBtn = answerOptions[targetIndex].querySelector('.toggle-btn[data-type="image"]');
+                    if (imageBtn) {
+                        // Forzar el cambio visual inmediato
+                        imageBtn.click();
+                    }
+                }
+            }
+        });
+
+        // Inicializar CKEditor 5
         initializeCKEditor(questionIndex);
-    }, 200);
+    }, 100);
     
     questionIndex++;
 }
 
-// Resto de las funciones (removeQuestion, updateQuestionNumbers, toggleQuestionInputType, toggleAnswerInputType, 
-// previewQuestionImage, previewAnswerImage, initializeCKEditor, destroyCKEditorInstances, createMathPreviews, 
-// createMathPreviewElement, updateMathPreview, togglePreview, updateAllMathPreviews, setupVisibilityObserver)
-// ... (Estas funciones son idénticas a las del create, así que las mantienes igual)
+// MODIFICAR LAS FUNCIONES TOGGLE PARA MANEJAR MEJOR LOS ESTADOS
+function toggleQuestionInputType(button, index) {
+    const type = button.dataset.type;
+    const container = button.closest('.input-type-toggle');
+    
+    // Actualizar botones activos
+    container.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    button.classList.add('active');
+    
+    // Mostrar/ocultar inputs
+    document.getElementById(`question-text-${index}`).classList.toggle('active', type === 'text');
+    document.getElementById(`question-image-${index}`).classList.toggle('active', type === 'image');
+
+    // ACTUALIZAR VISIBILIDAD DE IMÁGENES EXISTENTES INMEDIATAMENTE
+    updateImagePreviewVisibility(index, 'question', type);
+    
+    if (type === 'image') {
+        showExistingImagesImmediately(index);
+    }
+
+    if (type === 'text') {
+        setTimeout(() => initializeCKEditor(index, 'question'), 100);
+    } else {
+        destroyCKEditorInstances(index, 'question');
+    }
+}
+
+function toggleAnswerInputType(button, index, answerType) {
+    const type = button.dataset.type;
+    const container = button.closest('.input-type-toggle');
+    
+    // Actualizar botones activos
+    container.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    button.classList.add('active');
+    
+    // Mostrar/ocultar inputs
+    document.getElementById(`${answerType}-text-${index}`).classList.toggle('active', type === 'text');
+    document.getElementById(`${answerType}-image-${index}`).classList.toggle('active', type === 'image');
+
+    // ACTUALIZAR VISIBILIDAD DE IMÁGENES EXISTENTES INMEDIATAMENTE
+    updateImagePreviewVisibility(index, answerType, type);
+    
+    if (type === 'image') {
+        showExistingImagesImmediately(index);
+    }
+
+    if (type === 'text') {
+        setTimeout(() => initializeCKEditor(index, answerType), 100);
+    } else {
+        destroyCKEditorInstances(index, answerType);
+    }
+}
+
+// AGREGAR FUNCIÓN PARA FORZAR VISUALIZACIÓN DE IMÁGENES EXISTENTES
+function forceImagePreview(elementKey, imageUrl) {
+    const previewContainer = document.getElementById(`${elementKey}-image-preview`);
+    if (previewContainer && imageUrl) {
+        previewContainer.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.className = 'image-preview';
+        img.alt = 'Imagen existente';
+        previewContainer.appendChild(img);
+    }
+}
+
+// FUNCIÓN PARA ACTUALIZAR VISIBILIDAD DE PREVIEW DE IMÁGENES EXISTENTES
+function updateImagePreviewVisibility(index, elementType, inputType) {
+    const previewContainers = [
+        `question-image-preview-${index}`,
+        `correct-image-preview-${index}`,
+        `wrong1-image-preview-${index}`,
+        `wrong2-image-preview-${index}`,
+        `wrong3-image-preview-${index}`
+    ];
+    
+    previewContainers.forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            // Mostrar previsualización solo si estamos en modo imagen Y hay imagen existente
+            const hasExistingImage = container.querySelector('img') !== null;
+            const shouldShow = inputType === 'image' && hasExistingImage;
+            
+            container.style.display = shouldShow ? 'block' : 'none';
+            
+            // Si estamos cambiando a modo texto y hay imagen existente, mostrar advertencia
+            if (inputType === 'text' && hasExistingImage) {
+                const existingWarning = container.querySelector('.existing-image-warning');
+                if (!existingWarning) {
+                    const warning = document.createElement('div');
+                    warning.className = 'existing-image-warning alert alert-warning mt-2 p-2 small';
+                    warning.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Esta pregunta tiene una imagen existente. Al guardar en modo texto, la imagen se eliminará.';
+                    container.appendChild(warning);
+                }
+            } else {
+                // Remover advertencia si existe
+                const existingWarning = container.querySelector('.existing-image-warning');
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
+            }
+        }
+    });
+}
+
+// FUNCIÓN PARA MOSTRAR IMAGEN INMEDIATAMENTE AL CAMBIAR A MODO IMAGEN
+function showExistingImagesImmediately(index) {
+    const previewContainers = [
+        `question-image-preview-${index}`,
+        `correct-image-preview-${index}`,
+        `wrong1-image-preview-${index}`,
+        `wrong2-image-preview-${index}`,
+        `wrong3-image-preview-${index}`
+    ];
+    
+    previewContainers.forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            const img = container.querySelector('img');
+            if (img) {
+                img.style.display = 'block';
+                container.style.display = 'block';
+            }
+        }
+    });
+}
 
 // Inicialización para edición
 document.addEventListener('DOMContentLoaded', function() {
     // Cargar preguntas existentes
     if (examData.questions && examData.questions.length > 0) {
         examData.questions.forEach(question => {
-            addQuestion(question);
+            // Verificar que la pregunta tenga datos válidos
+            if (question && typeof question === 'object') {
+                addQuestion(question);
+            }
         });
     } else {
         // Agregar una pregunta vacía si no hay preguntas
@@ -840,12 +1065,284 @@ window.addEventListener('beforeunload', function() {
     });
 });
 
-// NOTA: Todas las demás funciones (removeQuestion, updateQuestionNumbers, toggleQuestionInputType, etc.)
-// son exactamente las mismas que en el create.blade.php, así que las copias directamente
-</script>
+// ... (EL CÓDIGO ANTERIOR SE MANTIENE IGUAL HASTA ESTA PARTE)
 
-<!-- Aquí copias todas las funciones JavaScript del create que no cambiaron -->
-<script>
-// ... (Copia aquí todas las funciones JavaScript del create que son idénticas)
+// FUNCIONES DEL CREATE.BLADE.PHP QUE FALTAN
+function removeQuestion(button) {
+    const questionCard = button.closest('.question-card');
+    const index = questionCard.dataset.index;
+    
+    // Destruir instancias de CKEditor 5
+    destroyCKEditorInstances(index);
+    
+    if (document.querySelectorAll('.question-card').length > 1) {
+        questionCard.remove();
+        updateQuestionNumbers();
+    } else {
+        alert('Debe haber al menos una pregunta en el examen.');
+    }
+}
+
+function updateQuestionNumbers() {
+    const questions = document.querySelectorAll('.question-card');
+    questions.forEach((card, index) => {
+        card.querySelector('.question-number-display').textContent = index + 1;
+    });
+}
+
+function previewQuestionImage(input, index) {
+    const previewContainer = document.getElementById(`question-image-preview-${index}`);
+    previewContainer.innerHTML = '';
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'image-preview';
+            previewContainer.appendChild(img);
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewAnswerImage(input, index, answerType) {
+    const previewContainer = document.getElementById(`${answerType}-image-preview-${index}`);
+    previewContainer.innerHTML = '';
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'image-preview';
+            previewContainer.appendChild(img);
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// FUNCIÓN CKEDITOR 5: Configuración y Inicialización
+function initializeCKEditor(index, type = null) {
+    if (typeof ClassicEditor === 'undefined') {
+        console.error('CKEditor 5 (ClassicEditor) no está cargado.');
+        return;
+    }
+    
+    const elementsToInit = [];
+    
+    if (type === 'question' || type === null) {
+        elementsToInit.push({
+            id: `editor-question-${index}`,
+            key: `question-${index}`,
+            heightClass: 'ck-editor__editable_inline'
+        });
+    }
+
+    const answerTypes = (type && type !== 'question') ? [type] : ['correct', 'wrong1', 'wrong2', 'wrong3'];
+    
+    answerTypes.forEach(answerType => {
+        elementsToInit.push({
+            id: `editor-${answerType}-${index}`,
+            key: `${answerType}-${index}`,
+            heightClass: 'ck-editor__editable_inline answer-editor'
+        });
+    });
+
+    // Configuración Base de CKEditor 5
+    const editorConfig = {
+        toolbar: {
+            items: [
+                'heading', '|',
+                'bold', 'italic', 'underline', '|',
+                'alignment', '|',
+                'MathType', 'ChemType', '|', 
+                'bulletedList', 'numberedList', 'blockQuote', '|',
+                'link', 'insertTable', 'undo', 'redo', 
+            ]
+        },
+        
+        alignment: {
+            options: [ 'left', 'right', 'center', 'justify' ]
+        },
+
+        htmlSupport: {
+            allow: [
+                {
+                    name: /.*/,
+                    attributes: true,
+                    classes: true,
+                    styles: true
+                }
+            ]
+        }
+    };
+    
+    elementsToInit.forEach(el => {
+        const element = document.getElementById(el.id);
+        const existingInstance = ckeditorInstances[el.key];
+
+        if (element && !existingInstance) {
+             element.closest('.text-input')?.classList.add('active'); 
+
+             ClassicEditor
+                .create(element, editorConfig)
+                .then(editor => {
+                    editor.ui.view.editable.element.classList.add(el.heightClass);
+                    ckeditorInstances[el.key] = editor;
+                    console.log(`CKEditor 5 inicializado: ${el.key}`);
+                    
+                    // Event listener para actualizar previsualización MathJax
+                    editor.model.document.on('change:data', () => {
+                        updateMathPreview(el.key);
+                    });
+                })
+                .catch(error => {
+                    console.error(`Error al inicializar CKEditor 5 para ${el.key}`, error);
+                });
+        }
+    });
+}
+
+// FUNCIÓN CKEDITOR 5: Destrucción
+function destroyCKEditorInstances(index, type = null) {
+    const keysToDestroy = [];
+    
+    if (type === 'question' || type === null) {
+        keysToDestroy.push(`question-${index}`);
+    }
+
+    const answerTypes = (type && type !== 'question') ? [type] : ['correct', 'wrong1', 'wrong2', 'wrong3'];
+    answerTypes.forEach(answerType => {
+        keysToDestroy.push(`${answerType}-${index}`);
+    });
+    
+    keysToDestroy.forEach(key => {
+        if (ckeditorInstances[key]) {
+            try { 
+                ckeditorInstances[key].destroy(); 
+                console.log(`CKEditor 5 destruido: ${key}`);
+            } catch(e) {
+                console.warn(`No se pudo destruir CKEditor 5 para ${key}:`, e);
+            }
+            delete ckeditorInstances[key];
+        }
+    });
+}
+
+// FUNCIONES MATHJAX
+function createMathPreviews() {
+    document.querySelectorAll('.question-card').forEach(card => {
+        const index = card.dataset.index;
+        
+        // Para pregunta
+        createMathPreviewElement(`question-${index}`);
+        
+        // Para respuestas
+        ['correct', 'wrong1', 'wrong2', 'wrong3'].forEach(answerType => {
+            createMathPreviewElement(`${answerType}-${index}`);
+        });
+    });
+}
+
+function createMathPreviewElement(elementKey) {
+    const editorContainer = document.getElementById(`editor-${elementKey}`)?.parentNode;
+    if (editorContainer && !document.getElementById(`math-preview-${elementKey}`)) {
+        const previewDiv = document.createElement('div');
+        previewDiv.id = `math-preview-${elementKey}`;
+        previewDiv.className = 'math-preview-container';
+        previewDiv.innerHTML = `
+            <div class="math-preview-header">
+                <small class="text-muted">Vista previa:</small>
+                <button type="button" class="btn-toggle-preview" onclick="togglePreview('${elementKey}')">
+                    <i class="bi bi-eye"></i> Ocultar vista previa
+                </button>
+            </div>
+            <div class="math-preview-content" id="math-content-${elementKey}"></div>
+        `;
+        editorContainer.appendChild(previewDiv);
+    }
+}
+
+function updateMathPreview(elementKey) {
+    const editor = ckeditorInstances[elementKey];
+    const previewContent = document.getElementById(`math-content-${elementKey}`);
+    
+    if (editor && previewContent) {
+        const content = editor.getData();
+        previewContent.innerHTML = content;
+        
+        // Reprocesar MathJax si está disponible
+        if (window.MathJax && MathJax.typesetPromise) {
+            MathJax.typesetPromise([previewContent]).catch(error => {
+                console.warn('Error procesando MathJax:', error);
+            });
+        }
+    }
+}
+
+function togglePreview(elementKey) {
+    const editorElement = document.getElementById(`editor-${elementKey}`);
+    const previewElement = document.getElementById(`math-preview-${elementKey}`);
+    const toggleButton = previewElement?.querySelector('.btn-toggle-preview');
+    
+    if (editorElement && previewElement && toggleButton) {
+        const isPreviewVisible = previewElement.style.display !== 'none';
+        
+        if (isPreviewVisible) {
+            // Ocultar previsualización, mostrar editor
+            previewElement.style.display = 'none';
+            editorElement.style.display = 'block';
+            toggleButton.innerHTML = '<i class="bi bi-eye"></i> Mostrar vista previa';
+        } else {
+            // Mostrar previsualización, ocultar editor
+            editorElement.style.display = 'none';
+            previewElement.style.display = 'block';
+            toggleButton.innerHTML = '<i class="bi bi-eye-slash"></i> Ocultar vista previa';
+            updateMathPreview(elementKey);
+        }
+    }
+}
+
+function updateAllMathPreviews() {
+    Object.keys(ckeditorInstances).forEach(key => {
+        updateMathPreview(key);
+    });
+}
+
+function setupVisibilityObserver() {
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const target = mutation.target;
+                if (target.classList.contains('active') && target.classList.contains('text-input')) {
+                    const textarea = target.querySelector('textarea[id^="editor-"]');
+                    if (textarea) {
+                        const id = textarea.id;
+                        const match = id.match(/editor-(question|correct|wrong[123])-(\d+)/);
+                        if (match) {
+                            const type = match[1];
+                            const index = match[2];
+                            
+                            setTimeout(() => {
+                                initializeCKEditor(parseInt(index), type === 'question' ? 'question' : type);
+                                createMathPreviews();
+                            }, 200);
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    document.querySelectorAll('.text-input').forEach(el => {
+        observer.observe(el, { attributes: true });
+    });
+}
+
 </script>
 @endsection

@@ -139,6 +139,11 @@ class InformationController extends Controller{
         $validated['name'] = $request->institution_name;
         $validated['recommended_courses'] = json_encode($request->recommended_courses ?? []);
 
+        if ($request->has('block_order') && !empty($request->block_order)) {
+            $blockOrder = json_decode($request->block_order, true);
+            $this->updateBlockOrder($course, $blockOrder);
+        }
+
         if ($request->hasFile('image_path')) {
             if ($info->image_path && Storage::disk('public')->exists($info->image_path)) {
                 Storage::disk('public')->delete($info->image_path);
@@ -149,6 +154,36 @@ class InformationController extends Controller{
         $info->update($validated);
 
         return redirect()->route('admin.information.index')->with('success', 'Información actualizada correctamente.');
+    }
+
+    private function updateBlockOrder(Course $course, array $blockOrder){
+        $position = 1;
+        $lastWeekId = null;
+        
+        foreach ($blockOrder as $block) {
+            if ($block['type'] === 'week') {
+                // Actualizar semana normal
+                $week = Week::find($block['id']);
+                if ($week) {
+                    $week->update([
+                        'number' => $position,
+                        'order' => $position
+                    ]);
+                    $lastWeekId = $week->id;
+                }
+                $position++;
+            } elseif ($block['type'] === 'evaluation') {
+                // Actualizar bloque de evaluación
+                $evaluation = EvaluationBlock::find($block['id']);
+                if ($evaluation && $lastWeekId) {
+                    $evaluation->update([
+                        'after_week_id' => $lastWeekId,
+                        'order' => $position
+                    ]);
+                }
+                $position++;
+            }
+        }
     }
 
     public function destroy($id){

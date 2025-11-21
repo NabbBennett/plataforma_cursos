@@ -38,9 +38,6 @@ window.MathJax = {
                 <div class="question-header">
                     <div class="question-title">
                         <strong class="question-number">Pregunta {{ $index + 1 }}</strong>
-                        @if($question->theme)
-                            <span class="question-theme">- {{ $question->theme }}</span>
-                        @endif
                     </div>
                 </div>
                 
@@ -50,15 +47,14 @@ window.MathJax = {
                             <img src="{{ $question->getImageUrl() }}" 
                                  alt="Imagen de pregunta {{ $index + 1 }}" 
                                  class="img-fluid rounded question-img"
-                                 onerror="this.style.display='none'">
-                            <div class="image-path text-muted small mt-1">
-                                <i class="bi bi-image"></i> {{ $question->image_path }}
-                            </div>
+                                 onerror="this.style.display='none'">             
                         </div>
                     @endif
                     
                     <div class="question-text math-content">
-                        {!! $question->text !!}
+                        @if($question->theme)
+                            <span class="question-theme">- {{ $question->theme }}</span>
+                        @endif
                     </div>
                 </div>
 
@@ -74,9 +70,6 @@ window.MathJax = {
                                                  alt="Imagen de respuesta {{ $answerIndex + 1 }}" 
                                                  class="img-fluid rounded answer-img"
                                                  onerror="this.style.display='none'">
-                                            <div class="image-path text-muted small mt-1">
-                                                <i class="bi bi-image"></i> {{ $answer->image_path }}
-                                            </div>
                                         </div>
                                     @endif
                                     <div class="answer-text math-content">
@@ -106,12 +99,6 @@ window.MathJax = {
         <a href="{{ route('admin.exams.index') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Volver a Exámenes
         </a>
-        <button onclick="window.print()" class="btn btn-primary">
-            <i class="bi bi-printer"></i> Imprimir Vista Previa
-        </button>
-        <button onclick="checkImages()" class="btn btn-info">
-            <i class="bi bi-eye"></i> Verificar Imágenes
-        </button>
     </div>
 </div>
 

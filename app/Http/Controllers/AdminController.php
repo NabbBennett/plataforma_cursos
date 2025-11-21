@@ -276,4 +276,118 @@ class AdminController extends Controller
             ]
         );
     }
+
+    // Agregar estos métodos para exámenes
+    public function createExam(Request $request) {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'duration_minutes' => 'required|integer|min:1',
+            'week_id' => 'nullable|exists:weeks,id',
+            'evaluation_block_id' => 'nullable|exists:evaluation_blocks,id',
+        ]);
+
+        $exam = Exam::create([
+            'title' => $request->title,
+            'duration_minutes' => $request->duration_minutes,
+            'week_id' => $request->week_id,
+            'evaluation_block_id' => $request->evaluation_block_id,
+        ]);
+
+        // Procesar preguntas si existen
+        if ($request->has('questions')) {
+            foreach ($request->questions as $index => $questionData) {
+                $questionImagePath = null;
+                
+                // Manejar imagen de pregunta
+                if (isset($questionData['image']) && is_file($questionData['image'])) {
+                    $questionImagePath = $questionData['image']->store('uploads/exams/questions', 'public');
+                }
+
+                $question = $exam->questions()->create([
+                    'text' => $questionData['text'] ?? '',
+                    'theme' => $questionData['theme'] ?? '',
+                    'order' => $index + 1,
+                    'has_image' => !empty($questionImagePath),
+                    'image_path' => $questionImagePath,
+                ]);
+
+                // Procesar respuestas
+                if (isset($questionData['answers'])) {
+                    foreach ($questionData['answers'] as $answerIndex => $answerData) {
+                        $answerImagePath = null;
+                        
+                        // Manejar imagen de respuesta
+                        if (isset($answerData['image']) && is_file($answerData['image'])) {
+                            $answerImagePath = $answerData['image']->store('uploads/exams/answers', 'public');
+                        }
+
+                        $question->answers()->create([
+                            'text' => $answerData['text'] ?? '',
+                            'is_correct' => isset($answerData['is_correct']) && $answerData['is_correct'] == '1',
+                            'has_image' => !empty($answerImagePath),
+                            'image_path' => $answerImagePath,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return redirect()->route('admin.exams.index')->with('success', 'Examen creado correctamente.');
+    }
+
+    public function updateExam(Request $request, $id) {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'duration_minutes' => 'required|integer|min:1',
+        ]);
+
+        $exam = Exam::findOrFail($id);
+        $exam->update([
+            'title' => $request->title,
+            'duration_minutes' => $request->duration_minutes,
+        ]);
+
+        // Eliminar preguntas existentes y crear nuevas
+        $exam->questions()->delete();
+
+        if ($request->has('questions')) {
+            foreach ($request->questions as $index => $questionData) {
+                $questionImagePath = null;
+                
+                // Manejar imagen de pregunta
+                if (isset($questionData['image']) && is_file($questionData['image'])) {
+                    $questionImagePath = $questionData['image']->store('uploads/exams/questions', 'public');
+                }
+
+                $question = $exam->questions()->create([
+                    'text' => $questionData['text'] ?? '',
+                    'theme' => $questionData['theme'] ?? '',
+                    'order' => $index + 1,
+                    'has_image' => !empty($questionImagePath),
+                    'image_path' => $questionImagePath,
+                ]);
+
+                // Procesar respuestas
+                if (isset($questionData['answers'])) {
+                    foreach ($questionData['answers'] as $answerIndex => $answerData) {
+                        $answerImagePath = null;
+                        
+                        // Manejar imagen de respuesta
+                        if (isset($answerData['image']) && is_file($answerData['image'])) {
+                            $answerImagePath = $answerData['image']->store('uploads/exams/answers', 'public');
+                        }
+
+                        $question->answers()->create([
+                            'text' => $answerData['text'] ?? '',
+                            'is_correct' => isset($answerData['is_correct']) && $answerData['is_correct'] == '1',
+                            'has_image' => !empty($answerImagePath),
+                            'image_path' => $answerImagePath,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return redirect()->route('admin.exams.index')->with('success', 'Examen actualizado correctamente.');
+    }
 }

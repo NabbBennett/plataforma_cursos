@@ -469,7 +469,7 @@
                 </a>
                 <a href="{{ route('admin.courses.index') }}" class="nav-link {{ request()->routeIs('admin.courses.*') ? 'active' : '' }}">
                     <i class="bi bi-briefcase"></i>
-                    <span>Servicios</span>
+                    <span>Cursos</span>
                 </a>
                 <a href="{{ route('admin.exams.index') }}" class="nav-link {{ request()->routeIs('admin.exams.*') ? 'active' : '' }}">
                     <i class="bi bi-file-text"></i>

@@ -121,6 +121,7 @@ Route::get('/admin/courses/{id}/edit', [AdminController::class, 'edit'])->name('
 Route::put('/admin/courses/{id}/update', [AdminController::class, 'updateCourse'])->name('admin.courses.update');
 
 Route::post('/admin/courses/{id}/delete', [AdminController::class, 'deleteCourse'])->name('admin.courses.delete');
+Route::get('admin/courses/week-block', [AdminController::class, 'getWeekBlock'])->name('admin.courses.week-block');
 
 // Exámenes - Admin
 Route::prefix('admin/exams')->name('admin.exams.')->middleware('auth')->group(function () {

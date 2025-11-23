@@ -11,13 +11,13 @@ class Resource extends Model
 
     protected $fillable = [
         'title',
-        'file_path', 
+        'file_path',
         'type'
     ];
 
-    // Accessor para la URL del archivo
-    public function getUrlAttribute()
+    // Relación muchos a muchos con semanas
+    public function weeks()
     {
-        return Storage::url($this->file_path);
+        return $this->belongsToMany(Week::class, 'resource_week');
     }
 }

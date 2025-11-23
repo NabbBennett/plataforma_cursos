@@ -112,22 +112,28 @@
         margin-bottom: 1rem;
         transition: all 0.3s ease;
         position: relative;
+        cursor: move; /* Indicar que es arrastrable */
     }
 
     .week-block:hover {
         border-color: var(--btn-primary-bg);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
     }
 
     .week-block.dragging {
-        opacity: 0.6;
-        transform: rotate(5deg);
+        opacity: 0.8;
+        transform: rotate(2deg) scale(1.02);
         border: 2px dashed var(--btn-primary-bg);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        background-color: var(--bg-secondary);
     }
 
     .week-block.drag-over {
-        border: 2px dashed #28a745;
+        border: 2px solid #28a745;
         background-color: var(--hover-bg);
+        transform: scale(1.02);
     }
 
     .evaluation-block {
@@ -166,19 +172,50 @@
         padding: 0.5rem;
         color: var(--text-secondary);
         transition: color 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
     }
 
     .drag-handle:hover {
         color: var(--text-primary);
+        background: var(--hover-bg);
+        cursor: grab;
     }
 
     .drag-handle:active {
         cursor: grabbing;
     }
 
+    /* Indicador visual de zona de drop */
     .weeks-container {
         min-height: 100px;
         transition: all 0.3s ease;
+        border: 2px dashed transparent;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    .weeks-container.drag-active {
+        border-color: var(--btn-primary-bg);
+        background-color: var(--hover-bg);
+    }
+
+    /* Línea indicadora de posición */
+    .drop-indicator {
+        height: 4px;
+        background-color: #28a745;
+        border-radius: 2px;
+        margin: 5px 0;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .drop-indicator.active {
+        opacity: 1;
     }
 
     .empty-blocks-state {
@@ -319,6 +356,19 @@
     background-color: var(--bg-primary);
 }
 
+/* Contenedores ocultos para items eliminados */
+#deletedWeeksContainer,
+#deletedEvaluationBlocksContainer {
+    display: none;
+}
+
+/* Animación al eliminar */
+.week-block.removing {
+    opacity: 0.5;
+    transform: scale(0.95);
+    transition: all 0.3s ease;
+}
+
 /* Mejoras para móviles */
 @media (max-width: 768px) {
     .week-block-header {
@@ -380,10 +430,17 @@
 
         <!-- Formulario -->
         <div class="form-container">
-            <form method="POST" action="{{ route('admin.courses.update', $course->id) }}" enctype="multipart/form-data" id="courseForm">
+            <form method="POST" action="{{ route('admin.courses.update', $course->id) }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-
+                
+                <!-- Input para el orden de los bloques -->
+                <input type="hidden" name="block_order" id="blockOrderContainer" value="">
+                
+                <!-- Contenedores para items eliminados -->
+                <div id="deletedWeeksContainer"></div>
+                <div id="deletedEvaluationBlocksContainer"></div>
+                
                 <!-- Información Básica -->
                 <div class="form-section">
                     <h3 class="section-title">
@@ -463,45 +520,36 @@
                     </div>
 
                     <div id="weeks-container" class="weeks-container">
-                        @if(count($combined) > 0)
-                            @foreach($combined as $index => $item)
-                                @php
-                                    $isEvaluation = $item['type'] === 'evaluation';
-                                @endphp
-
-                                @if ($isEvaluation)
-                                    @include('admin.courses.partials.evaluation-block', [
-                                        'week' => $item['data'],
-                                        'index' => $index,
-                                        'isEvaluation' => true,
-                                        'course_id' => $course->id,
-                                        'resources' => $resources,
-                                        'allExams' => $allExams,
-                                        'after_week_id' => $item['data']->after_week_id ?? null
-                                    ])
-                                @else
-                                    @include('admin.courses.partials.week-block', [
-                                        'week' => $item['data'],
-                                        'index' => $index,
-                                        'isEvaluation' => false,
-                                        'course_id' => $course->id,
-                                        'resources' => $resources,
-                                        'allExams' => $allExams
-                                    ])
-                                @endif
-                            @endforeach
-                        @else
-                            <div class="empty-blocks-state">
-                                <i class="bi bi-layout-text-window-reverse"></i>
-                                <h5 class="text-secondary-custom">No hay semanas configuradas</h5>
-                                <p class="text-secondary-custom">Comienza añadiendo semanas o bloques de evaluación</p>
+                        @forelse($combined as $index => $item)
+                            @if($item['type'] === 'week')
+                                @include('admin.courses.partials.week-block', [
+                                    'week' => $item['data'],
+                                    'index' => $index,
+                                    'course_id' => $course->id,
+                                    'allExams' => $allExams,
+                                    'resources' => $resources
+                                ])
+                            @else
+                                @include('admin.courses.partials.evaluation-block', [
+                                    'evaluationBlock' => $item['data'],
+                                    'index' => $index,
+                                    'course_id' => $course->id,
+                                    'after_week_id' => $item['data']->after_week_id ?? 0,
+                                    'allExams' => $allExams,
+                                    'resources' => $resources
+                                ])
+                            @endif
+                        @empty
+                            <div id="empty-blocks-state" class="empty-blocks-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>No hay semanas ni bloques de evaluación configurados</p>
+                                <small>Usa los botones de arriba para comenzar</small>
                             </div>
-                        @endif
+                        @endforelse
                     </div>
 
                     <input type="hidden" name="deleted_weeks[]" id="deletedWeeksContainer">
                     <input type="hidden" name="deleted_evaluation_blocks[]" id="deletedEvaluationBlocksContainer">
-                    <input type="hidden" name="block_order[]" id="blockOrderContainer">
 
                     <div class="d-flex gap-2 mt-3 mobile-stack">
                         <button type="button" class="btn-action btn-success-custom" onclick="addWeek()">
@@ -532,305 +580,471 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    let weekIndex = document.querySelectorAll('.week-block').length;
-    let draggedItem = null;
+// Mover estas variables y funciones FUERA del DOMContentLoaded para que sean globales
+let weekIndex = 0;
+let draggedItem = null;
 
+// Funciones globales para añadir bloques
+window.addWeek = function() {
+    fetch(`{{ route('admin.courses.week-block') }}?index=${weekIndex}`)
+        .then(response => response.text())
+        .then(html => {
+            const container = document.getElementById('weeks-container');
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            
+            const newBlock = div.firstElementChild;
+            
+            // Asegurar que el bloque tenga el atributo de tipo
+            newBlock.setAttribute('data-block-type', 'week');
+            
+            container.appendChild(newBlock);
+            setupDragAndDropForElement(newBlock);
+            
+            weekIndex++;
+            hideEmptyState();
+            updateBlockOrder();
+        })
+        .catch(error => {
+            console.error('Error al añadir semana:', error);
+        });
+}
+
+window.addEvaluationBlock = function(afterWeekId = 0) {
+    fetch(`{{ route('admin.courses.week-block') }}?index=${weekIndex}&evaluation=1&after_week_id=${afterWeekId}&course_id={{ $course->id }}`)
+        .then(response => response.text())
+        .then(html => {
+            const container = document.getElementById('weeks-container');
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            
+            const newBlock = div.firstElementChild;
+            
+            // Asegurar que el bloque tenga el atributo de tipo
+            newBlock.setAttribute('data-block-type', 'evaluation');
+            
+            container.appendChild(newBlock);
+            setupDragAndDropForElement(newBlock);
+            
+            weekIndex++;
+            hideEmptyState();
+            updateBlockOrder();
+        })
+        .catch(error => {
+            console.error('Error al añadir bloque de evaluación:', error);
+        });
+}
+
+window.removeEvaluation = function(button, blockId = 0) {
+    const block = button.closest('.week-block');
+    if (confirm('¿Estás seguro de que deseas eliminar este bloque de evaluación?')) {
+        // Si tiene ID (ya existe en BD), agregarlo a la lista de eliminados
+        if (blockId > 0) {
+            // Buscar o crear el contenedor de bloques eliminados
+            let deletedContainer = document.getElementById('deletedEvaluationBlocksContainer');
+            
+            if (!deletedContainer) {
+                // Crear el contenedor si no existe
+                deletedContainer = document.createElement('div');
+                deletedContainer.id = 'deletedEvaluationBlocksContainer';
+                document.querySelector('form').appendChild(deletedContainer);
+            }
+            
+            // Crear el input hidden con el ID del bloque a eliminar
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'deleted_evaluation_blocks[]';
+            input.value = blockId;
+            deletedContainer.appendChild(input);
+            
+            console.log('Bloque de evaluación marcado para eliminar:', blockId);
+        }
+        
+        // Eliminar el bloque del DOM
+        block.remove();
+        
+        // Verificar si quedan bloques
+        checkEmptyState();
+        
+        // Actualizar el orden de bloques
+        updateBlockOrder();
+    }
+}
+
+window.removeWeek = function(button, weekId = 0) {
+    const block = button.closest('.week-block');
+    if (confirm('¿Estás seguro de que deseas eliminar esta semana?')) {
+        // Si tiene ID (ya existe en BD), agregarlo a la lista de eliminados
+        if (weekId > 0) {
+            // Buscar o crear el contenedor de semanas eliminadas
+            let deletedContainer = document.getElementById('deletedWeeksContainer');
+            
+            if (!deletedContainer) {
+                // Crear el contenedor si no existe
+                deletedContainer = document.createElement('div');
+                deletedContainer.id = 'deletedWeeksContainer';
+                document.querySelector('form').appendChild(deletedContainer);
+            }
+            
+            // Crear el input hidden con el ID de la semana a eliminar
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'deleted_weeks[]';
+            input.value = weekId;
+            deletedContainer.appendChild(input);
+            
+            console.log('Semana marcada para eliminar:', weekId);
+        }
+        
+        // Eliminar el bloque del DOM
+        block.remove();
+        
+        // Verificar si quedan bloques
+        checkEmptyState();
+        
+        // Actualizar el orden de bloques
+        updateBlockOrder();
+    }
+}
+
+window.getLastWeekId = function() {
+    const weekBlocks = document.querySelectorAll('.week-block:not(.evaluation-block)');
+    if (weekBlocks.length === 0) return 0;
+    
+    const lastWeek = weekBlocks[weekBlocks.length - 1];
+    const idInput = lastWeek.querySelector('input[name*="weeks"][name*="[id]"]');
+    return idInput ? (idInput.value || 0) : 0;
+}
+
+window.previewImage = function(input) {
+    const preview = input.parentElement.querySelector('.image-preview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">`;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+window.toggleLive = function(index) {
+    const container = document.getElementById(`live-container-${index}`);
+    const checkbox = document.getElementById(`has-live-${index}`);
+    if (container) {
+        container.style.display = checkbox.checked ? 'block' : 'none';
+    }
+}
+
+window.toggleRecorded = function(index) {
+    const container = document.getElementById(`recorded-container-${index}`);
+    const checkbox = document.getElementById(`has-recorded-${index}`);
+    if (container) {
+        container.style.display = checkbox.checked ? 'block' : 'none';
+    }
+}
+
+window.toggleRecordedDays = function(index) {
+    const checkbox = document.getElementById(`recorded_checkbox_${index}`);
+    const container = document.getElementById(`recorded_days_block_${index}`);
+    
+    if (container && checkbox) {
+        container.style.display = checkbox.checked ? 'block' : 'none';
+    }
+}
+
+window.toggleDayDetails = function(checkbox) {
+    const dayNumber = checkbox.dataset.day;
+    const weekIndex = checkbox.dataset.weekIndex;
+    const detailsDiv = document.getElementById(`day-${weekIndex}-${dayNumber}-details`);
+    
+    if (detailsDiv) {
+        detailsDiv.style.display = checkbox.checked ? 'block' : 'none';
+    }
+}
+
+window.previewExam = function(weekId) {
+    window.open(`/admin/weeks/${weekId}/exam`, '_blank');
+}
+
+// Función para configurar drag and drop en un elemento específico
+function setupDragAndDropForElement(element) {
+    element.setAttribute('draggable', 'true');
+    
+    element.addEventListener('dragstart', function(e) {
+        draggedItem = this;
+        setTimeout(() => this.classList.add('dragging'), 0);
+        e.dataTransfer.effectAllowed = 'move';
+    });
+    
+    element.addEventListener('dragend', function() {
+        this.classList.remove('dragging');
+        document.querySelectorAll('.week-block').forEach(block => {
+            block.classList.remove('drag-over');
+        });
+        updateBlockOrder();
+    });
+    
+    element.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    });
+    
+    element.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+        if (this !== draggedItem) {
+            this.classList.add('drag-over');
+        }
+    });
+    
+    element.addEventListener('dragleave', function(e) {
+        if (!this.contains(e.relatedTarget)) {
+            this.classList.remove('drag-over');
+        }
+    });
+    
+    element.addEventListener('drop', function(e) {
+        e.preventDefault();
+        if (this !== draggedItem) {
+            const container = document.getElementById('weeks-container');
+            const rect = this.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            
+            if (e.clientY < midY) {
+                container.insertBefore(draggedItem, this);
+            } else {
+                container.insertBefore(draggedItem, this.nextSibling);
+            }
+        }
+        this.classList.remove('drag-over');
+    });
+}
+
+function updateBlockOrder() {
+    const orderContainer = document.getElementById('blockOrderContainer');
+    
+    if (!orderContainer) {
+        console.error('❌ No se encontró el contenedor blockOrderContainer');
+        return;
+    }
+    
+    const blocks = document.querySelectorAll('.week-block');
+    const order = [];
+    
+    console.log(`📊 Total de bloques encontrados: ${blocks.length}`);
+    
+    blocks.forEach((block, index) => {
+        let idInput = null;
+        let blockId = null;
+        let type = '';
+        
+        // Determinar el tipo de bloque
+        if (block.classList.contains('evaluation-block') || block.dataset.blockType === 'evaluation') {
+            type = 'evaluation';
+            idInput = block.querySelector('input[name*="evaluation_blocks"][name*="[id]"]');
+        } else {
+            type = 'week';
+            idInput = block.querySelector('input[name*="weeks"][name*="[id]"]');
+        }
+        
+        // Obtener el ID del bloque
+        if (idInput) {
+            blockId = idInput.value && idInput.value !== '0' && idInput.value !== '' 
+                ? idInput.value 
+                : `new_${type}_${index}`;
+        } else {
+            blockId = `new_${type}_${index}`;
+        }
+        
+        order.push({
+            id: blockId,
+            type: type,
+            position: index + 1
+        });
+        
+        // Actualizar los nombres de los inputs para reflejar el nuevo índice
+        updateBlockInputNames(block, index, type);
+    });
+    
+    // Convertir a JSON string
+    const jsonString = JSON.stringify(order);
+    
+    // Asignar al input hidden
+    orderContainer.value = jsonString;
+    
+    console.log('✅ Orden actualizado:', order);
+    console.log('📤 JSON enviado:', jsonString);
+    console.log('📝 Valor del input:', orderContainer.value);
+}
+
+function updateBlockInputNames(block, newIndex, type) {
+    const prefix = type === 'evaluation' ? 'evaluation_blocks' : 'weeks';
+    const inputs = block.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(input => {
+        if (input.name && input.name.includes(prefix)) {
+            const regex = new RegExp(`${prefix}\\[\\d+\\]`, 'g');
+            input.name = input.name.replace(regex, `${prefix}[${newIndex}]`);
+        }
+    });
+    
+    const labels = block.querySelectorAll('label[for]');
+    labels.forEach(label => {
+        if (label.getAttribute('for')) {
+            const forAttr = label.getAttribute('for');
+            label.setAttribute('for', forAttr.replace(/_\d+/, `_${newIndex}`));
+        }
+    });
+    
+    inputs.forEach(input => {
+        if (input.id) {
+            input.id = input.id.replace(/_\d+/, `_${newIndex}`);
+        }
+    });
+}
+
+function hideEmptyState() {
+    const emptyState = document.getElementById('empty-blocks-state');
+    if (emptyState) {
+        emptyState.style.display = 'none';
+    }
+}
+
+function checkEmptyState() {
+    const blocks = document.querySelectorAll('.week-block');
+    const emptyState = document.getElementById('empty-blocks-state');
+    if (emptyState) {
+        emptyState.style.display = blocks.length === 0 ? 'block' : 'none';
+    }
+}
+
+function initializeDragAndDrop() {
+    document.querySelectorAll('.week-block').forEach(block => {
+        setupDragAndDropForElement(block);
+    });
+}
+
+function initializeCharacterCounters() {
+    const textarea = document.querySelector('textarea[name="description"]');
+    if (textarea) {
+        const counter = document.getElementById('descriptionCounter');
+        if (counter) {
+            textarea.addEventListener('input', function() {
+                counter.textContent = this.value.length;
+            });
+        }
+    }
+}
+
+// Función para buscar recursos
+window.searchResources = function(weekIndex) {
+    const searchInput = document.querySelector(`.resource-search[data-week-index="${weekIndex}"]`);
+    const searchTerm = searchInput.value.toLowerCase();
+    const container = document.getElementById(`resources-container-${weekIndex}`);
+    const resourceItems = container.querySelectorAll('.resource-item');
+    
+    let visibleCount = 0;
+    
+    resourceItems.forEach(item => {
+        const title = item.dataset.resourceTitle;
+        const type = item.dataset.resourceType;
+        
+        if (title.includes(searchTerm) || type.includes(searchTerm)) {
+            item.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            item.classList.add('hidden');
+        }
+    });
+    
+    // Mostrar mensaje si no hay resultados
+    const noResultsMsg = container.querySelector('.no-results-message');
+    if (visibleCount === 0 && !noResultsMsg) {
+        const msg = document.createElement('div');
+        msg.className = 'no-results-message text-center text-secondary-custom py-3';
+        msg.innerHTML = '<i class="bi bi-search"></i><p class="mb-0">No se encontraron recursos</p>';
+        container.appendChild(msg);
+    } else if (visibleCount > 0 && noResultsMsg) {
+        noResultsMsg.remove();
+    }
+}
+
+// Función para actualizar el contador de recursos seleccionados
+function updateResourceCount(weekIndex) {
+    const checkboxes = document.querySelectorAll(`input[name="weeks[${weekIndex}][resource_ids][]"]:checked`);
+    const counter = document.getElementById(`selected-count-${weekIndex}`);
+    
+    if (counter) {
+        counter.textContent = checkboxes.length;
+    }
+    
+    // Actualizar la lista de badges
+    updateSelectedResourcesList(weekIndex);
+}
+
+// Función para actualizar la lista visual de recursos seleccionados
+function updateSelectedResourcesList(weekIndex) {
+    const container = document.getElementById(`selected-resources-${weekIndex}`);
+    const checkboxes = document.querySelectorAll(`input[name="weeks[${weekIndex}][resource_ids][]"]:checked`);
+    
+    if (checkboxes.length > 0) {
+        let html = `
+            <strong class="small text-primary-custom d-block mb-2">
+                <i class="bi bi-bookmarks me-1"></i>Recursos seleccionados:
+            </strong>
+            <div class="selected-resources-list">
+        `;
+        
+        checkboxes.forEach(checkbox => {
+            const label = document.querySelector(`label[for="${checkbox.id}"]`);
+            const title = label.querySelector('.fw-bold').textContent;
+            html += `<div class="badge bg-primary me-1 mb-1">${title}</div>`;
+        });
+        
+        html += '</div>';
+        
+        if (!container) {
+            const newContainer = document.createElement('div');
+            newContainer.id = `selected-resources-${weekIndex}`;
+            newContainer.className = 'mt-2 p-2 bg-var-secondary rounded';
+            newContainer.innerHTML = html;
+            
+            const parent = document.getElementById(`resources-container-${weekIndex}`).parentElement;
+            parent.appendChild(newContainer);
+        } else {
+            container.innerHTML = html;
+            container.style.display = 'block';
+        }
+    } else {
+        if (container) {
+            container.style.display = 'none';
+        }
+    }
+}
+
+// Inicializar event listeners cuando se carga el DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar listeners a los checkboxes de recursos
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('input[name*="[resource_ids][]"]')) {
+            const weekIndex = e.target.closest('.week-block').querySelector('input[name*="[id]"]').name.match(/\[(\d+)\]/)[1];
+            updateResourceCount(weekIndex);
+        }
+    });
+    
+    // Inicializar contadores al cargar
+    document.querySelectorAll('.week-block').forEach((block, index) => {
+        updateResourceCount(index);
+    });
+    
+    // Inicializar el índice de semanas basado en bloques existentes
+    weekIndex = document.querySelectorAll('.week-block').length;
+    
     // Inicializar drag and drop
     initializeDragAndDrop();
-
+    
     // Contador de caracteres
     initializeCharacterCounters();
-
-    // Función para inicializar drag and drop
-    function initializeDragAndDrop() {
-        const container = document.getElementById('weeks-container');
-        
-        // Hacer todos los bloques arrastrables
-        document.querySelectorAll('.week-block').forEach(block => {
-            block.setAttribute('draggable', 'true');
-            
-            block.addEventListener('dragstart', function(e) {
-                draggedItem = this;
-                setTimeout(() => this.classList.add('dragging'), 0);
-                e.dataTransfer.effectAllowed = 'move';
-            });
-            
-            block.addEventListener('dragend', function() {
-                this.classList.remove('dragging');
-                updateBlockOrder();
-            });
-        });
-
-        // Configurar el contenedor para recibir elementos arrastrados
-        container.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            const afterElement = getDragAfterElement(container, e.clientY);
-            const draggable = document.querySelector('.dragging');
-            
-            if (afterElement == null) {
-                container.appendChild(draggable);
-            } else {
-                container.insertBefore(draggable, afterElement);
-            }
-        });
-
-        container.addEventListener('dragenter', function(e) {
-            e.preventDefault();
-            this.style.backgroundColor = 'var(--hover-bg)';
-        });
-
-        container.addEventListener('dragleave', function() {
-            this.style.backgroundColor = '';
-        });
-
-        container.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.style.backgroundColor = '';
-        });
-    }
-
-    // Función para determinar la posición del arrastre
-    function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.week-block:not(.dragging)')];
-        
-        return draggableElements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
-            }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
-    // Actualizar el orden de los bloques
-    function updateBlockOrder() {
-        const orderContainer = document.getElementById('blockOrderContainer');
-        const blocks = document.querySelectorAll('.week-block');
-        const order = [];
-        
-        blocks.forEach((block, index) => {
-            const blockId = block.querySelector('input[name*="[id]"]')?.value;
-            const isEvaluation = block.classList.contains('evaluation-block');
-            const type = isEvaluation ? 'evaluation' : 'week';
-            
-            if (blockId) {
-                order.push({
-                    id: blockId,
-                    type: type,
-                    position: index
-                });
-            }
-        });
-        
-        orderContainer.value = JSON.stringify(order);
-    }
-
-    // Inicializar contadores de caracteres
-    function initializeCharacterCounters() {
-        const titleInput = document.getElementById('title');
-        const titleCount = document.getElementById('titleCount');
-        const descriptionInput = document.getElementById('description');
-        const descriptionCount = document.getElementById('descriptionCount');
-        
-        if (titleInput && titleCount) {
-            titleInput.addEventListener('input', function() {
-                updateCharacterCounter(this, titleCount, 255);
-            });
-        }
-        
-        if (descriptionInput && descriptionCount) {
-            descriptionInput.addEventListener('input', function() {
-                updateCharacterCounter(this, descriptionCount, 1000);
-            });
-        }
-    }
-
-    function updateCharacterCounter(input, counter, max) {
-        const length = input.value.length;
-        counter.textContent = `${length}/${max} caracteres`;
-        counter.className = 'character-count' + (length > max * 0.9 ? ' text-danger' : length > max * 0.75 ? ' text-warning' : '');
-    }
-
-    // Funciones existentes con mejoras
-    window.addWeek = function() {
-        fetch(`{{ route('admin.courses.week-block') }}?index=${weekIndex}`)
-            .then(response => response.text())
-            .then(html => {
-                const container = document.getElementById('weeks-container');
-                const div = document.createElement('div');
-                div.innerHTML = html;
-                container.appendChild(div);
-                
-                // Actualizar drag and drop para el nuevo elemento
-                const newBlock = container.lastElementChild;
-                newBlock.setAttribute('draggable', 'true');
-                initializeDragAndDrop();
-                
-                weekIndex++;
-                hideEmptyState();
-            });
-    }
-
-    window.addEvaluationBlock = function(afterWeekId = 0) {
-        fetch(`{{ route('admin.courses.week-block') }}?index=${weekIndex}&evaluation=1&after_week_id=${afterWeekId}&course_id={{ $course->id }}`)
-            .then(response => response.text())
-            .then(html => {
-                const container = document.getElementById('weeks-container');
-                const div = document.createElement('div');
-                div.innerHTML = html;
-                container.appendChild(div);
-                
-                // Actualizar drag and drop para el nuevo elemento
-                const newBlock = container.lastElementChild;
-                newBlock.setAttribute('draggable', 'true');
-                initializeDragAndDrop();
-                
-                weekIndex++;
-                hideEmptyState();
-            });
-    }
-
-    window.removeWeek = function(button, weekId = 0) {
-        if (confirm("¿Estás seguro de eliminar esta semana?")) {
-            const block = button.closest('.week-block');
-            if (weekId && weekId !== 0) {
-                const container = document.getElementById('deletedWeeksContainer');
-                const input = document.createElement("input");
-                input.type = "hidden";
-                input.name = "deleted_weeks[]";
-                input.value = weekId;
-                container.parentNode.appendChild(input);
-            }
-            block.remove();
-            checkEmptyState();
-            updateBlockOrder();
-        }
-    }
-
-    window.removeEvaluation = function(button, blockId = 0) {
-        if (confirm("¿Eliminar bloque de evaluación?")) {
-            const block = button.closest('.week-block');
-            if (blockId && blockId !== 0) {
-                const container = document.getElementById('deletedEvaluationBlocksContainer');
-                const input = document.createElement("input");
-                input.type = "hidden";
-                input.name = "deleted_evaluation_blocks[]";
-                input.value = blockId;
-                container.parentNode.appendChild(input);
-            }
-            block.remove();
-            checkEmptyState();
-            updateBlockOrder();
-        }
-    }
-
-    window.getLastWeekId = function() {
-        const weeks = document.querySelectorAll('.week-block');
-        let lastId = 0;
-
-        weeks.forEach(w => {
-            const idInput = w.querySelector('input[name*="[id]"]');
-            if (idInput && !w.classList.contains('evaluation-block')) {
-                const id = parseInt(idInput.value);
-                if (!isNaN(id)) {
-                    lastId = id;
-                }
-            }
-        });
-
-        return lastId;
-    }
-
-    // Funciones para mostrar/ocultar estado vacío
-    function hideEmptyState() {
-        const emptyState = document.querySelector('.empty-blocks-state');
-        if (emptyState) {
-            emptyState.style.display = 'none';
-        }
-    }
-
-    function checkEmptyState() {
-        const container = document.getElementById('weeks-container');
-        const blocks = container.querySelectorAll('.week-block');
-        
-        if (blocks.length === 0) {
-            let emptyState = container.querySelector('.empty-blocks-state');
-            if (!emptyState) {
-                emptyState = document.createElement('div');
-                emptyState.className = 'empty-blocks-state';
-                emptyState.innerHTML = `
-                    <i class="bi bi-layout-text-window-reverse"></i>
-                    <h5 class="text-secondary-custom">No hay semanas configuradas</h5>
-                    <p class="text-secondary-custom">Comienza añadiendo semanas o bloques de evaluación</p>
-                `;
-                container.appendChild(emptyState);
-            }
-            emptyState.style.display = 'block';
-        }
-    }
-
-    // Previsualización de imagen
-    window.previewImage = function(input) {
-        const file = input.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                let preview = input.parentNode.querySelector('.image-preview');
-                if (!preview) {
-                    preview = document.createElement('img');
-                    preview.className = 'image-preview';
-                    input.parentNode.appendChild(preview);
-                }
-                preview.src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-
-    // Funciones existentes para toggles
-    window.toggleLive = function(index) {
-        const block = document.getElementById(`live_link_block_${index}`);
-        const checkbox = document.getElementById(`live_checkbox_${index}`);
-        if (block && checkbox) {
-            block.style.display = checkbox.checked ? 'block' : 'none';
-        }
-    }
-
-    window.toggleRecorded = function(index) {
-        const block = document.getElementById(`recorded_days_block_${index}`);
-        const checkbox = document.getElementById(`recorded_checkbox_${index}`);
-        if (block && checkbox) {
-            block.style.display = checkbox.checked ? 'block' : 'none';
-        }
-    }
-
-    window.toggleDayDetails = function(checkbox) {
-        const details = checkbox.closest('.col-md-12').querySelector('.day-details');
-        if (details) {
-            details.style.display = checkbox.checked ? 'block' : 'none';
-        }
-    }
-
-    window.previewExam = function(weekId) {
-        fetch(`/admin/exams/preview/${weekId}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => {
-            if (response.status === 404) {
-                alert('⚠ No hay examen creado para esta semana.');
-            } else {
-                window.location.href = `/admin/exams/preview/${weekId}`;
-            }
-        })
-        .catch(() => {
-            alert('⚠ Error al intentar cargar el examen.');
-        });
-    }
-
+    
     // Inicializar el orden al cargar
     updateBlockOrder();
 });

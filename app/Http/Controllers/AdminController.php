@@ -115,20 +115,45 @@ class AdminController extends Controller
     }
 
     public function edit($id) {
-        $course = Course::with('weeks', 'evaluationBlocks')->findOrFail($id);
-        $weeks = $course->weeks()->orderBy('number')->get();
-        $evals = $course->evaluationBlocks()->get();
+        $course = Course::with(['weeks.resources', 'weeks.weekDays', 'evaluationBlocks'])->findOrFail($id);
+        
+        // Cargar semanas ordenadas con sus recursos
+        $weeks = $course->weeks()
+                       ->with(['weekDays', 'resources'])
+                       ->orderBy('order', 'asc')
+                       ->orderBy('number', 'asc')
+                       ->get();
+        
+        // Cargar bloques de evaluación ordenados
+        $evals = $course->evaluationBlocks()
+                       ->orderBy('order', 'asc')
+                       ->orderBy('id', 'asc')
+                       ->get();
+        
         $allExams = Exam::withCount('questions')->get();
         $resources = Resource::all();
 
-        $combined = [];
+        // Combinar y ordenar todos los bloques por el campo order
+        $combined = collect();
+        
         foreach ($weeks as $week) {
-            $combined[] = ['type' => 'week', 'data' => $week];
-            $block = $evals->firstWhere('after_week_id', $week->id);
-            if ($block) {
-                $combined[] = ['type' => 'evaluation', 'data' => $block];
-            }
+            $combined->push([
+                'type' => 'week', 
+                'data' => $week,
+                'order' => $week->order ?: 999
+            ]);
         }
+        
+        foreach ($evals as $block) {
+            $combined->push([
+                'type' => 'evaluation', 
+                'data' => $block,
+                'order' => $block->order ?: 999
+            ]);
+        }
+        
+        // Ordenar por el campo order
+        $combined = $combined->sortBy('order')->values()->toArray();
 
         return view('admin.courses.edit', compact('course', 'combined', 'resources', 'allExams'));
     }
@@ -139,33 +164,87 @@ class AdminController extends Controller
             'description' => 'required|string',
             'start_date' => 'nullable|date',
             'price_per_week' => 'required|numeric|min:0',
+            'block_order' => 'nullable|string'
         ]);
 
         $course = Course::findOrFail($id);
         $course->update($request->only(['title', 'description', 'price_per_week', 'start_date']));
 
+        // Debug: Ver qué datos llegan
+        \Log::info('Datos de semanas recibidos:', $request->input('weeks'));
+
+        // Procesar orden de bloques
+        $blockOrder = [];
+        if ($request->filled('block_order')) {
+            $blockOrderJson = $request->input('block_order');
+            $blockOrder = json_decode($blockOrderJson, true);
+            
+            if (json_last_error() === JSON_ERROR_NONE && is_array($blockOrder)) {
+                $this->updateBlockOrder($course, $blockOrder);
+            }
+        }
+
+        // Procesar semanas
         $weeksData = $request->input('weeks', []);
-        $evalsData = $request->input('evaluation_blocks', []);
         $realWeekCounter = 1;
-        $lastWeekId = null;
 
         foreach ($weeksData as $index => $data) {
-            $hasValidContent = !empty($data['title']) || !empty($data['live_meet_link']) || !empty($data['has_live']) || !empty($data['has_recorded']) || !empty($data['exam_id']) || !empty($data['resource_id']);
+            $hasValidContent = !empty($data['title']) || 
+                              !empty($data['live_meet_link']) || 
+                              !empty($data['has_live']) || 
+                              !empty($data['has_recorded']) || 
+                              !empty($data['exam_id']) || 
+                              !empty($data['resource_ids']);
+            
             if (!isset($data['id']) && !$hasValidContent) continue;
 
-            $week = isset($data['id']) && $data['id'] != 0 ? Week::find($data['id']) : new Week();
-            if (!$week) continue;
+            if (isset($data['id']) && $data['id'] != 0) {
+                $week = Week::where('id', $data['id'])
+                           ->where('course_id', $course->id)
+                           ->first();
+                
+                if (!$week) {
+                    $week = new Week();
+                }
+            } else {
+                $week = new Week();
+            }
+
+            $order = $this->getOrderFromBlockOrder($blockOrder, 'week', (int)$index, $data['id'] ?? null);
 
             $week->course_id = $course->id;
             $week->number = $realWeekCounter++;
+            $week->order = $order;
             $week->title = $data['title'] ?? 'Semana ' . $week->number;
             $week->live_meet_link = !empty($data['live_meet_link']) ? $this->convertDriveToPreview($data['live_meet_link']) : null;
             $week->exam_id = $data['exam_id'] ?? null;
-            $week->resource_id = $data['resource_id'] ?? null;
             $week->save();
 
-            $lastWeekId = $week->id;
+            // Debug: Ver recursos que llegan
+            \Log::info("Recursos para semana {$week->id}:", [
+                'resource_ids' => $data['resource_ids'] ?? 'No hay'
+            ]);
 
+            // Sincronizar recursos (múltiples) - IMPORTANTE
+            if (isset($data['resource_ids']) && is_array($data['resource_ids'])) {
+                // Filtrar valores vacíos y convertir a enteros
+                $resourceIds = array_filter(array_map('intval', $data['resource_ids']));
+                
+                \Log::info("Sincronizando recursos para semana {$week->id}:", $resourceIds);
+                
+                // Sincronizar recursos
+                $week->resources()->sync($resourceIds);
+                
+                // Verificar que se sincronizaron
+                $syncedResources = $week->resources()->pluck('resources.id')->toArray();
+                \Log::info("Recursos sincronizados verificados:", $syncedResources);
+            } else {
+                // Si no hay recursos seleccionados, desvincular todos
+                \Log::info("Desvinculando todos los recursos de semana {$week->id}");
+                $week->resources()->detach();
+            }
+
+            // Procesar días grabados
             WeekDay::where('week_id', $week->id)->delete();
             $firstDayId = null;
 
@@ -191,35 +270,83 @@ class AdminController extends Controller
             $week->save();
         }
 
+        // Procesar bloques de evaluación (solo exam_id)
+        $evalsData = $request->input('evaluation_blocks', []);
+        $processedEvalIds = [];
+        
         foreach ($evalsData as $evalKey => $evalData) {
-            $eval = isset($evalData['id']) && $evalData['id'] != 0
-                ? EvaluationBlock::find($evalData['id'])
-                : new EvaluationBlock();
+            if (!isset($evalData['exam_id']) || empty($evalData['exam_id'])) {
+                continue;
+            }
+
+            $eval = null;
+            if (isset($evalData['id']) && $evalData['id'] != 0) {
+                $eval = EvaluationBlock::where('id', $evalData['id'])
+                                      ->where('course_id', $course->id)
+                                      ->first();
+                
+                if ($eval) {
+                    $processedEvalIds[] = $eval->id;
+                }
+            }
+            
+            if (!$eval) {
+                $eval = new EvaluationBlock();
+            }
+
+            $order = $this->getOrderFromBlockOrder($blockOrder, 'evaluation', (int)$evalKey, $evalData['id'] ?? null);
 
             $eval->course_id = $course->id;
+            $eval->order = $order;
             $afterWeekId = $evalData['after_week_id'] ?? null;
             $eval->after_week_id = $afterWeekId > 0 ? $afterWeekId : null;
-            $eval->live_meet_link = !empty($evalData['live_meet_link']) ? $this->convertDriveToPreview($evalData['live_meet_link']) : null;
-            $eval->recording_link = !empty($evalData['recording_link']) ? $this->convertDriveToPreview($evalData['recording_link']) : null;
-            $eval->exam_id = $evalData['exam_id'] ?? null;
-            $eval->resource_id = $evalData['resource_id'] ?? null;
-
+            $eval->exam_id = $evalData['exam_id'];
+            $eval->live_meet_link = null;
+            $eval->recording_link = null;
+            $eval->resource_id = null;
             $eval->save();
+            
+            if (!in_array($eval->id, $processedEvalIds)) {
+                $processedEvalIds[] = $eval->id;
+            }
         }
 
-
+        // Eliminar semanas marcadas para eliminar
         if ($request->has('deleted_weeks')) {
-            foreach ($request->deleted_weeks as $weekId) {
-                $week = Week::find($weekId);
-                if ($week) {
-                    $week->weekDays()->delete();
-                    $week->delete();
+            $deletedWeeks = array_filter($request->deleted_weeks);
+            
+            \Log::info('Semanas a eliminar:', $deletedWeeks);
+            
+            foreach ($deletedWeeks as $weekId) {
+                if ($weekId && $weekId > 0) {
+                    $week = Week::find($weekId);
+                    if ($week && $week->course_id == $course->id) {
+                        \Log::info('Eliminando semana:', ['id' => $weekId]);
+                        $week->weekDays()->delete();
+                        $week->resources()->detach();
+                        $week->delete();
+                    }
                 }
             }
         }
 
+        // Eliminar bloques de evaluación marcados para eliminar
         if ($request->has('deleted_evaluation_blocks')) {
-            EvaluationBlock::whereIn('id', $request->deleted_evaluation_blocks)->delete();
+            $deletedBlocks = array_filter($request->deleted_evaluation_blocks);
+            
+            \Log::info('Bloques de evaluación a eliminar:', $deletedBlocks);
+            
+            if (!empty($deletedBlocks)) {
+                foreach ($deletedBlocks as $blockId) {
+                    if ($blockId && $blockId > 0) {
+                        $block = EvaluationBlock::find($blockId);
+                        if ($block && $block->course_id == $course->id) {
+                            \Log::info('Eliminando bloque de evaluación:', ['id' => $blockId]);
+                            $block->delete();
+                        }
+                    }
+                }
+            }
         }
 
         $course->number_of_weeks = $course->weeks()->count();
@@ -264,17 +391,29 @@ class AdminController extends Controller
         $allExams = Exam::withCount('questions')->get();
         $resources = Resource::all();
 
-        return view(
-            $isEvaluation ? 'admin.courses.partials.evaluation-block' : 'admin.courses.partials.week-block',
-            [
-                'week' => new Week(),
+        if ($isEvaluation) {
+            // Crear un objeto EvaluationBlock para el bloque de evaluación
+            $evaluationBlock = new EvaluationBlock();
+            $evaluationBlock->after_week_id = $after_week_id;
+            
+            return view('admin.courses.partials.evaluation-block', [
+                'evaluationBlock' => $evaluationBlock,
                 'index' => $index,
                 'course_id' => $course_id,
                 'after_week_id' => $after_week_id,
                 'allExams' => $allExams,
                 'resources' => $resources
-            ]
-        );
+            ]);
+        } else {
+            // Crear un objeto Week para el bloque de semana
+            return view('admin.courses.partials.week-block', [
+                'week' => new Week(),
+                'index' => $index,
+                'course_id' => $course_id,
+                'allExams' => $allExams,
+                'resources' => $resources
+            ]);
+        }
     }
 
     // Agregar estos métodos para exámenes
@@ -389,5 +528,55 @@ class AdminController extends Controller
         }
 
         return redirect()->route('admin.exams.index')->with('success', 'Examen actualizado correctamente.');
+    }
+
+    private function updateBlockOrder($course, array $blockOrder) {
+        foreach ($blockOrder as $item) {
+            $id = $item['id'];
+            $type = $item['type'];
+            $position = $item['position'];
+
+            if (strpos($id, 'new_') === 0) {
+                // Saltar elementos nuevos, se procesarán después
+                continue;
+            }
+
+            if ($type === 'week') {
+                Week::where('id', $id)
+                    ->where('course_id', $course->id)
+                    ->update(['order' => $position]);
+            } elseif ($type === 'evaluation') {
+                EvaluationBlock::where('id', $id)
+                    ->where('course_id', $course->id)
+                    ->update(['order' => $position]);
+            }
+        }
+    }
+
+    private function getOrderFromBlockOrder(array $blockOrder, string $type, $index, $blockId = null) {
+        // Convertir el índice a int para asegurar el tipo correcto
+        $index = (int) $index;
+        
+        foreach ($blockOrder as $item) {
+            // Verificar por ID exacto primero
+            if ($blockId && $blockId != 0 && $item['id'] == $blockId && $item['type'] === $type) {
+                return $item['position'];
+            }
+            
+            // Verificar por patrón de nuevo elemento
+            if ($item['type'] === $type && strpos($item['id'], "new_{$type}_") === 0) {
+                // Extraer el índice del ID generado
+                $pattern = "/new_{$type}_(\d+)/";
+                if (preg_match($pattern, $item['id'], $matches)) {
+                    $itemIndex = (int)$matches[1];
+                    if ($itemIndex === $index) {
+                        return $item['position'];
+                    }
+                }
+            }
+        }
+        
+        // Si no se encuentra, usar la posición basada en el índice
+        return $index + 1;
     }
 }

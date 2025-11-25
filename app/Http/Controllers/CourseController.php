@@ -13,9 +13,8 @@ class CourseController extends Controller
 {
     public function show($id)
     {
-
-        $course = Course::findOrFail($id); // $id es el curso
-        $userId = auth()->id(); // usuario autenticado
+        $course = Course::findOrFail($id);
+        $userId = auth()->id();
 
         $purchase = Purchase::where('user_id', $userId)
             ->where('course_id', $id)
@@ -57,61 +56,6 @@ class CourseController extends Controller
             }
         }
 
-        // Obtén todos los exámenes del curso
-        $course = Course::with('exams')->findOrFail($id);
-        $exams = $course->exams ?? collect();
-        //$exams = $exams->unique('id');
-
-        // Depuración: obtén todos los exámenes relacionados a este curso por week y evaluation block
-        $exams = collect();
-        // Obtén los exámenes de las semanas en orden
-        foreach ($course->weeks as $week) {
-            if (method_exists($week, 'exams')) {
-                foreach ($week->exams as $exam) {
-                    $exams->push([
-                        'type' => 'week',
-                        'week' => $week,
-                        'exam' => $exam
-                    ]);
-                }
-            }
-        }
-
-        // Luego, agrega los exámenes de los bloques de evaluación en el orden que aparecen en el curso
-        foreach ($course->evaluationBlocks as $block) {
-            if (method_exists($block, 'exams')) {
-                foreach ($block->exams as $exam) {
-                    $exams->push([
-                        'type' => 'evaluation',
-                        'block' => $block,
-                        'exam' => $exam
-                    ]);
-                }
-            }
-            if ($block->exam_id) {
-                $exam = \App\Models\Exam::find($block->exam_id);
-                if ($exam) {
-                    $exams->push([
-                        'type' => 'evaluation',
-                        'block' => $block,
-                        'exam' => $exam
-                    ]);
-                }
-            }
-        }
-
-        // Elimina duplicados por id de examen
-        $exams = $exams->unique(function($item) {
-            return $item['exam']->id;
-        });
-
-        // Obtén los resultados del usuario para esos exámenes
-        $examIds = $exams->pluck('exam.id');
-        $examResults = \App\Models\ExamResult::where('user_id', auth()->id())
-            ->whereIn('exam_id', $examIds)
-            ->get()
-            ->keyBy('exam_id');
-
         // Prepara los datos para la tabla y gráficas
         $tabla = [];
         $labels = [];
@@ -119,7 +63,8 @@ class CourseController extends Controller
         $averageTimes = [];
         $correctAnswers = [];
         $totalQuestions = [];
-        $examenesAgregados = []; // Para evitar duplicados
+        $examTypes = []; // AGREGAR ESTE ARRAY
+        $examenesAgregados = [];
 
         // 1. Exámenes de las semanas
         foreach ($course->weeks as $week) {
@@ -143,6 +88,7 @@ class CourseController extends Controller
                     $averageTimes[] = $result->average_time ?? 0;
                     $correctAnswers[] = $result->correct_answers ?? 0;
                     $totalQuestions[] = $result->total_questions ?? 0;
+                    $examTypes[] = 'week'; // AGREGAR TIPO
                     $examenesAgregados[] = $exam->id;
                 }
             }
@@ -171,6 +117,7 @@ class CourseController extends Controller
                     $averageTimes[] = $result->average_time ?? 0;
                     $correctAnswers[] = $result->correct_answers ?? 0;
                     $totalQuestions[] = $result->total_questions ?? 0;
+                    $examTypes[] = 'evaluation'; // AGREGAR TIPO
                     $examenesAgregados[] = $exam->id;
                 }
             }
@@ -195,6 +142,7 @@ class CourseController extends Controller
                         $averageTimes[] = $result->average_time ?? 0;
                         $correctAnswers[] = $result->correct_answers ?? 0;
                         $totalQuestions[] = $result->total_questions ?? 0;
+                        $examTypes[] = 'evaluation'; // AGREGAR TIPO
                         $examenesAgregados[] = $exam->id;
                     }
                 }
@@ -210,7 +158,8 @@ class CourseController extends Controller
             'scores',
             'averageTimes',
             'correctAnswers',
-            'totalQuestions'
+            'totalQuestions',
+            'examTypes' // AGREGAR ESTA VARIABLE
         ));
     }
 

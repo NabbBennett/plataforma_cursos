@@ -270,7 +270,7 @@
     }
     
     .chart-container {
-        margin-bottom: 2.5rem;
+        margin-bottom: 5rem;
         position: relative;
         height: 250px;
     }
@@ -431,6 +431,176 @@
             gap: 0.75rem;
         }
     }
+    
+    .progress-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .progress-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    
+    .progress-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        border-color: var(--btn-primary-bg);
+    }
+    
+    .progress-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .progress-card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .progress-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .icon-score {
+        background: rgba(54, 162, 235, 0.2);
+        color: rgba(54, 162, 235, 1);
+    }
+    
+    .icon-time {
+        background: rgba(255, 206, 86, 0.2);
+        color: rgba(255, 206, 86, 1);
+    }
+    
+    .icon-correct {
+        background: rgba(75, 192, 192, 0.2);
+        color: rgba(75, 192, 192, 1);
+    }
+    
+    .progress-card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+    
+    .progress-card-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    .btn-view-chart {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        color: var(--btn-primary-bg);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        padding: 2rem;
+        max-width: 900px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+    
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .modal-close {
+        background: transparent;
+        border: none;
+        font-size: 2rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+    
+    .modal-close:hover {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+    
+    .modal-chart-container {
+        height: 400px;
+        position: relative;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
 
 <div class="course-container">
@@ -569,26 +739,118 @@
             <span class="filter-label">Filtrar por:</span>
             <select id="chart-filter" class="filter-select">
                 <option value="all">Todos los exámenes</option>
-                <option value="week">Solo semanas</option>
-                <option value="evaluation">Solo bloques de evaluación</option>
+                <option value="week">Semanas normales</option>
+                <option value="evaluation">Bloques de evaluación</option>
             </select>
         </div>
         
-        <div class="charts-container">
-            <div class="chart-container">
-                <h4 class="chart-title">Puntaje (%)</h4>
-                <canvas id="scoreChart"></canvas>
+        <!-- Tarjetas de progreso -->
+        <div class="progress-cards">
+            <div class="progress-card" onclick="openModal('scoreModal')">
+                <div class="progress-card-header">
+                    <div class="progress-card-title">Puntaje Promedio</div>
+                    <div class="progress-card-icon icon-score">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                </div>
+                <div class="progress-card-value" id="avg-score">--</div>
+                <div class="progress-card-label">Porcentaje</div>
+                <div class="btn-view-chart">
+                    <i class="bi bi-eye"></i>
+                    Ver gráfica
+                </div>
             </div>
             
-            <div class="chart-container">
-                <h4 class="chart-title">Tiempo Promedio (s)</h4>
-                <canvas id="timeChart"></canvas>
+            <div class="progress-card" onclick="openModal('timeModal')">
+                <div class="progress-card-header">
+                    <div class="progress-card-title">Tiempo Promedio</div>
+                    <div class="progress-card-icon icon-time">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                </div>
+                <div class="progress-card-value" id="avg-time">--</div>
+                <div class="progress-card-label">Segundos</div>
+                <div class="btn-view-chart">
+                    <i class="bi bi-eye"></i>
+                    Ver gráfica
+                </div>
             </div>
             
-            <div class="chart-container">
-                <h4 class="chart-title">Respuestas Correctas</h4>
-                <canvas id="correctChart"></canvas>
+            <div class="progress-card" onclick="openModal('correctModal')">
+                <div class="progress-card-header">
+                    <div class="progress-card-title">Respuestas Correctas</div>
+                    <div class="progress-card-icon icon-correct">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                </div>
+                <div class="progress-card-value" id="avg-correct">-- /10</div>
+                <div class="progress-card-label">Promedio</div>
+                <div class="btn-view-chart">
+                    <i class="bi bi-eye"></i>
+                    Ver gráfica
+                </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modales -->
+<div id="scoreModal" class="modal" onclick="closeModalOnBackdrop(event, 'scoreModal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 class="modal-title">Gráfica de Puntajes</h3>
+            <button class="modal-close" onclick="closeModal('scoreModal')">&times;</button>
+        </div>
+        <div class="filter-section">
+            <span class="filter-label">Filtrar por:</span>
+            <select id="chart-filter-score" class="filter-select">
+                <option value="all">Todos los exámenes</option>
+                <option value="week">Semanas normales</option>
+                <option value="evaluation">Bloques de evaluación</option>
+            </select>
+        </div>
+        <div class="modal-chart-container">
+            <canvas id="scoreChartModal"></canvas>
+        </div>
+    </div>
+</div>
+
+<div id="timeModal" class="modal" onclick="closeModalOnBackdrop(event, 'timeModal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 class="modal-title">Gráfica de Tiempos</h3>
+            <button class="modal-close" onclick="closeModal('timeModal')">&times;</button>
+        </div>
+        <div class="filter-section">
+            <span class="filter-label">Filtrar por:</span>
+            <select id="chart-filter-time" class="filter-select">
+                <option value="all">Todos los exámenes</option>
+                <option value="week">Semanas normales</option>
+                <option value="evaluation">Bloques de evaluación</option>
+            </select>
+        </div>
+        <div class="modal-chart-container">
+            <canvas id="timeChartModal"></canvas>
+        </div>
+    </div>
+</div>
+
+<div id="correctModal" class="modal" onclick="closeModalOnBackdrop(event, 'correctModal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 class="modal-title">Gráfica de Respuestas Correctas</h3>
+            <button class="modal-close" onclick="closeModal('correctModal')">&times;</button>
+        </div>
+        <div class="filter-section">
+            <span class="filter-label">Filtrar por:</span>
+            <select id="chart-filter-correct" class="filter-select">
+                <option value="all">Todos los exámenes</option>
+                <option value="week">Semanas normales</option>
+                <option value="evaluation">Bloques de evaluación</option>
+            </select>
+        </div>
+        <div class="modal-chart-container">
+            <canvas id="correctChartModal"></canvas>
         </div>
     </div>
 </div>
@@ -601,7 +863,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const originalScores = @json($scores);
     const originalAverageTimes = @json($averageTimes);
     const originalCorrectAnswers = @json($correctAnswers);
-    const examTypes = @json($examTypes ?? []); // Usa el array de tipos
+    const examTypes = @json($examTypes ?? []);
+    
+    // DEBUG: Verifica los datos
+    console.log('Labels:', originalLabels);
+    console.log('Exam Types:', examTypes);
+    console.log('Scores:', originalScores);
     
     // Configuración del carrusel
     const track = document.getElementById('carousel-track');
@@ -648,7 +915,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     // Configuración de gráficas
-    let scoreChart, timeChart, correctChart;
+    let scoreChartModal, timeChartModal, correctChartModal;
+    let currentGlobalFilter = 'all'; // Almacenar el filtro global actual
     
     const chartOptions = {
         responsive: true,
@@ -712,97 +980,238 @@ document.addEventListener('DOMContentLoaded', function () {
         return { filteredLabels, filteredScores, filteredTimes, filteredCorrect };
     }
     
-    function updateCharts(filterType) {
+    function calculateAverage(arr) {
+        if (arr.length === 0) return 0;
+        const sum = arr.reduce((a, b) => a + b, 0);
+        return (sum / arr.length).toFixed(1);
+    }
+    
+    function updateStats(filterType) {
+        const { filteredScores, filteredTimes, filteredCorrect } = filterData(filterType);
+        
+        document.getElementById('avg-score').textContent = filteredScores.length > 0 ? calculateAverage(filteredScores) + '%' : '--';
+        document.getElementById('avg-time').textContent = filteredTimes.length > 0 ? calculateAverage(filteredTimes) + 's' : '--';
+        document.getElementById('avg-correct').textContent = filteredCorrect.length > 0 ? calculateAverage(filteredCorrect) + ' / 10' : '-- / 10';
+    }
+    
+    function updateChart(chart, filterType) {
         const { filteredLabels, filteredScores, filteredTimes, filteredCorrect } = filterData(filterType);
         
-        // Actualizar gráfica de puntaje
-        scoreChart.data.labels = filteredLabels;
-        scoreChart.data.datasets[0].data = filteredScores;
-        scoreChart.update();
+        if (chart === scoreChartModal) {
+            chart.data.labels = filteredLabels;
+            chart.data.datasets[0].data = filteredScores;
+        } else if (chart === timeChartModal) {
+            chart.data.labels = filteredLabels;
+            chart.data.datasets[0].data = filteredTimes;
+        } else if (chart === correctChartModal) {
+            chart.data.labels = filteredLabels;
+            chart.data.datasets[0].data = filteredCorrect;
+        }
         
-        // Actualizar gráfica de tiempo
-        timeChart.data.labels = filteredLabels;
-        timeChart.data.datasets[0].data = filteredTimes;
-        timeChart.update();
+        chart.update();
+    }
+    
+    function syncFilters(filterValue) {
+        // Actualizar todos los selectores de filtro
+        document.getElementById('chart-filter').value = filterValue;
+        document.getElementById('chart-filter-score').value = filterValue;
+        document.getElementById('chart-filter-time').value = filterValue;
+        document.getElementById('chart-filter-correct').value = filterValue;
         
-        // Actualizar gráfica de respuestas correctas
-        correctChart.data.labels = filteredLabels;
-        correctChart.data.datasets[0].data = filteredCorrect;
-        correctChart.update();
+        // Actualizar todas las gráficas
+        updateChart(scoreChartModal, filterValue);
+        updateChart(timeChartModal, filterValue);
+        updateChart(correctChartModal, filterValue);
+        
+        // Actualizar estadísticas
+        updateStats(filterValue);
+        
+        // Guardar el filtro actual
+        currentGlobalFilter = filterValue;
     }
     
     // Inicializar gráficas
     function initializeCharts() {
         const initialData = filterData('all');
+        const isMobile = window.innerWidth <= 768;
         
-        // Gráfica de Puntaje
-        scoreChart = new Chart(document.getElementById('scoreChart'), {
-            type: 'bar',
+        // Configuración base de gráficas con detección de móvil
+        const getChartOptions = (maxY = null) => {
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'var(--text-secondary)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'var(--text-secondary)',
+                            display: !isMobile // Ocultar etiquetas en móvil
+                        }
+                    }
+                }
+            };
+            
+            if (maxY) {
+                options.scales.y.max = maxY;
+            }
+            
+            return options;
+        };
+        
+        // Gráfica de Puntaje en Modal
+        scoreChartModal = new Chart(document.getElementById('scoreChartModal'), {
+            type: 'line',
             data: {
                 labels: initialData.filteredLabels,
                 datasets: [{
                     label: 'Puntaje (%)',
                     data: initialData.filteredScores,
-                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
                     borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1,
-                    borderRadius: 4
+                    borderWidth: 3,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    tension: 0.4,
+                    fill: true
                 }]
             },
-            options: {
-                ...chartOptions,
-                scales: {
-                    ...chartOptions.scales,
-                    y: {
-                        ...chartOptions.scales.y,
-                        max: 100
-                    }
-                }
-            }
+            options: getChartOptions(100)
         });
         
-        // Gráfica de Tiempo promedio
-        timeChart = new Chart(document.getElementById('timeChart'), {
-            type: 'bar',
+        // Gráfica de Tiempo en Modal
+        timeChartModal = new Chart(document.getElementById('timeChartModal'), {
+            type: 'line',
             data: {
                 labels: initialData.filteredLabels,
                 datasets: [{
                     label: 'Tiempo promedio (s)',
                     data: initialData.filteredTimes,
-                    backgroundColor: 'rgba(255, 206, 86, 0.8)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
                     borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1,
-                    borderRadius: 4
+                    borderWidth: 3,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: 'rgba(255, 206, 86, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    tension: 0.4,
+                    fill: true
                 }]
             },
-            options: chartOptions
+            options: getChartOptions()
         });
         
-        // Gráfica de Respuestas correctas
-        correctChart = new Chart(document.getElementById('correctChart'), {
-            type: 'bar',
+        // Gráfica de Respuestas correctas en Modal
+        correctChartModal = new Chart(document.getElementById('correctChartModal'), {
+            type: 'line',
             data: {
                 labels: initialData.filteredLabels,
                 datasets: [{
                     label: 'Respuestas correctas',
                     data: initialData.filteredCorrect,
-                    backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1,
-                    borderRadius: 4
+                    borderWidth: 3,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    tension: 0.4,
+                    fill: true
                 }]
             },
-            options: chartOptions
+            options: getChartOptions()
         });
+        
+        // Inicializar estadísticas
+        updateStats('all');
     }
     
     // Inicializar gráficas
     initializeCharts();
     
-    // Event listener para el filtro
-    document.getElementById('chart-filter').addEventListener('change', function(e) {
-        updateCharts(e.target.value);
+    // Reinicializar gráficas cuando cambie el tamaño de ventana
+    let resizeChartTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeChartTimeout);
+        resizeChartTimeout = setTimeout(() => {
+            // Destruir gráficas existentes
+            if (scoreChartModal) scoreChartModal.destroy();
+            if (timeChartModal) timeChartModal.destroy();
+            if (correctChartModal) correctChartModal.destroy();
+            
+            // Reinicializar con nueva configuración
+            initializeCharts();
+            
+            // Aplicar el filtro actual
+            syncFilters(currentGlobalFilter);
+        }, 500);
     });
+    
+    // Event listener para el filtro GLOBAL (fuera de los modales)
+    document.getElementById('chart-filter').addEventListener('change', function(e) {
+        syncFilters(e.target.value);
+    });
+    
+    // Event listeners para los filtros INDIVIDUALES (dentro de los modales)
+    document.getElementById('chart-filter-score').addEventListener('change', function(e) {
+        syncFilters(e.target.value);
+    });
+    
+    document.getElementById('chart-filter-time').addEventListener('change', function(e) {
+        syncFilters(e.target.value);
+    });
+    
+    document.getElementById('chart-filter-correct').addEventListener('change', function(e) {
+        syncFilters(e.target.value);
+    });
+});
+
+// Funciones para los modales
+function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+function closeModalOnBackdrop(event, modalId) {
+    if (event.target.classList.contains('modal')) {
+        closeModal(modalId);
+    }
+}
+
+// Cerrar modal con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.active').forEach(modal => {
+            modal.classList.remove('active');
+        });
+        document.body.style.overflow = 'auto';
+    }
 });
 </script>
 @endsection

@@ -78,7 +78,8 @@ class AdminController extends Controller
             'start_date' => 'nullable|date',
             'price_per_week' => 'required|numeric|min:0',
             "number_of_weeks" => "required|integer|min:1",
-            "image" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048"
+            "image" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048",
+            'capacity' => 'nullable|integer|min:1|max:1000'
         ]);
 
         $imagePath = $request->hasFile('image')
@@ -92,6 +93,7 @@ class AdminController extends Controller
             'price_per_week' => $request->price_per_week,
             'number_of_weeks' => $request->number_of_weeks,
             'image' => $imagePath,
+            'capacity' => $request->capacity,
         ]);
 
         for ($i = 1; $i <= $request->number_of_weeks; $i++) {
@@ -115,7 +117,12 @@ class AdminController extends Controller
     }
 
     public function edit($id) {
-        $course = Course::with(['weeks.resources', 'weeks.weekDays', 'evaluationBlocks'])->findOrFail($id);
+        $course = Course::with([
+            'weeks.resources', 
+            'weeks.weekDays',
+            'weeks.exam',
+            'evaluationBlocks'
+        ])->findOrFail($id);
         
         // Cargar semanas ordenadas con sus recursos
         $weeks = $course->weeks()
@@ -164,12 +171,19 @@ class AdminController extends Controller
             'description' => 'required|string',
             'start_date' => 'nullable|date',
             'price_per_week' => 'required|numeric|min:0',
-            'block_order' => 'nullable|string'
+            'block_order' => 'nullable|string',
+            'capacity' => 'nullable|integer|min:1|max:1000'
         ]);
 
         $course = Course::findOrFail($id);
-        $course->update($request->only(['title', 'description', 'price_per_week', 'start_date']));
-
+        $course->update($request->only([
+            'title', 
+            'description', 
+            'price_per_week', 
+            'start_date', 
+            'capacity'
+        ]));
+        
         // Debug: Ver qué datos llegan
         \Log::info('Datos de semanas recibidos:', $request->input('weeks'));
 

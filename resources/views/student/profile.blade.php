@@ -81,7 +81,7 @@
                         <div class="course-content">
                             <h3 class="course-title">{{ $curso->title }}</h3>
                             <div class="course-actions">
-                                <a href="{{ route('courses.show', $curso->id) }}" class="btn btn-outline-primary">Saber Más</a>
+                                <a href="{{ route('store.courses.show', $curso->id) }}" class="btn btn-outline-primary">Saber Más</a>
                             </div>
                         </div>
                     </div>

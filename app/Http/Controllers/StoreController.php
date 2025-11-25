@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Course;
 use App\Models\CourseReview;
+use App\Models\Coupon;
+use Illuminate\Support\Carbon;
 
 class StoreController extends Controller
 {
@@ -75,8 +77,7 @@ class StoreController extends Controller
         return view('general.store.store', compact('courses', 'userWeeks'));
     }
 
-    public function cart()
-    {
+    public function cart(){
         $cart = session()->get('cart', []);
         $user = auth()->user();
         $userCourses = $user->purchases->pluck('course_id')->toArray();
@@ -108,50 +109,158 @@ class StoreController extends Controller
         return view('general.car.car', compact('cart', 'userCourses'));
     }
 
-    public function applyCoupon(Request $request)
-    {
-        $coupon = trim($request->input('coupon'));
-        $user = auth()->user();
+    public function applyCoupon(Request $request){
+    $couponCode = trim($request->input('coupon'));
+    $user = auth()->user();
+    $cart = session()->get('cart', []);
+    
+    // Validar que hay productos en el carrito
+    if (empty($cart)) {
+        session([
+            'discount' => 0,
+            'coupon_error' => 'El carrito está vacío. Agrega productos antes de aplicar un cupón.',
+            'coupon_success' => null,
+            'applied_coupon' => null
+        ]);
+        return redirect()->route('cart.view');
+    }
 
-        // Solo este cupón es válido
-        $firstPurchaseCoupon = 'TORETO1309';
+    // Buscar el cupón en la base de datos
+    $coupon = Coupon::where('code', $couponCode)->first();
 
-        // Si ya usó el cupón, no permitirlo de nuevo
-        if ($coupon === $firstPurchaseCoupon) {
-            // Si ya usó el cupón (puedes usar un campo en la base de datos)
-            if ($user->used_first_coupon ?? false) {
-                session(['discount' => 0, 'coupon_error' => 'Este cupón solo puede usarse una vez.', 'coupon_success' => null]);
-                return redirect()->route('cart.view');
-            }
+    // Validar el cupón
+    if (!$coupon) {
+        session([
+            'discount' => 0,
+            'coupon_error' => 'Cupón no válido.',
+            'coupon_success' => null,
+            'applied_coupon' => null
+        ]);
+        return redirect()->route('cart.view');
+    }
 
-            // Calcula el extra actual
-            $cart = session('cart', []);
-            $userCourses = $user->purchases->pluck('course_id')->toArray();
-            $extra = 0;
-            foreach ($cart as $courseId => $item) {
-                if (!in_array($courseId, $userCourses)) $extra += 200;
-            }
+    // Validar si el cupón está activo
+    if (!$coupon->is_active) {
+        session([
+            'discount' => 0,
+            'coupon_error' => 'Este cupón no está activo.',
+            'coupon_success' => null,
+            'applied_coupon' => null
+        ]);
+        return redirect()->route('cart.view');
+    }
 
-            if ($extra > 0) {
-                // Marca el cupón como usado (requiere campo en la tabla users)
-                $user->used_first_coupon = true;
-                $user->save();
+    // Validar fecha de expiración
+    if ($coupon->expires_at && Carbon::now()->gt($coupon->expires_at)) {
+        session([
+            'discount' => 0,
+            'coupon_error' => 'Este cupón ha expirado.',
+            'coupon_success' => null,
+            'applied_coupon' => null
+        ]);
+        return redirect()->route('cart.view');
+    }
 
-                session([
-                    'discount' => $extra,
-                    'coupon_success' => 'Cupón aplicado correctamente. El cobro extra por curso nuevo ha sido eliminado.',
-                    'coupon_error' => null
-                ]);
-            } else {
-                session([
-                    'discount' => 0,
-                    'coupon_error' => 'Este cupón solo aplica si compras un curso nuevo.',
-                    'coupon_success' => null
-                ]);
-            }
-        } else {
-            session(['discount' => 0, 'coupon_error' => 'CUPON INVALIDO', 'coupon_success' => null]);
+    // Validar límite de usos
+    if ($coupon->max_uses && $coupon->used_count >= $coupon->max_uses) {
+        session([
+            'discount' => 0,
+            'coupon_error' => 'Este cupón ha alcanzado su límite de usos.',
+            'coupon_success' => null,
+            'applied_coupon' => null
+        ]);
+        return redirect()->route('cart.view');
+    }
+
+    // Calcular el subtotal del carrito (SOLO SEMANAS) - CON DEBUG DETALLADO
+    $subtotal = 0;
+    $extra = 0;
+    $userCourses = $user->purchases->pluck('course_id')->toArray();
+    
+    \Log::info('=== DEBUG CARRITO DETALLADO ===');
+    foreach ($cart as $courseId => $item) {
+        // Si $item['weeks'] es un array, contar cuántas semanas hay
+        $weeksCount = is_array($item['weeks']) ? count($item['weeks']) : $item['weeks'];
+        $cursoSubtotal = $item['price_per_week'] * $weeksCount;
+        $subtotal += $cursoSubtotal;
+        
+        // Calcular inscripción ($200 por curso nuevo)
+        $esCursoNuevo = !in_array($courseId, $userCourses);
+        if ($esCursoNuevo) {
+            $extra += 200;
         }
+
+        \Log::info('Curso ID: ' . $courseId, [
+            'titulo' => $item['title'],
+            'precio_por_semana' => $item['price_per_week'],
+            'semanas' => $weeksCount,
+            'subtotal_curso' => $cursoSubtotal,
+            'es_curso_nuevo' => $esCursoNuevo,
+            'inscripcion' => $esCursoNuevo ? 200 : 0
+        ]);
+    }
+
+    \Log::info('=== TOTALES ===', [
+        'subtotal_semanas' => $subtotal,
+        'extra_inscripcion' => $extra,
+        'total_sin_descuento' => $subtotal + $extra
+    ]);
+
+    // Aplicar el descuento solo al SUBTOTAL (semanas)
+    $discountAmount = 0;
+    
+    if ($coupon->discount_type === 'percentage') {
+        // Descuento por porcentaje sobre el SUBTOTAL
+        $discountAmount = ($subtotal * $coupon->discount_value) / 100;
+        $discountMessage = "¡Cupón aplicado! {$coupon->discount_value}% de descuento sobre semanas = $" . number_format($discountAmount, 2);
+    } else {
+        // Descuento por monto fijo sobre el SUBTOTAL
+        $discountAmount = min($coupon->discount_value, ($subtotal + $extra));
+        $discountMessage = "¡Cupón aplicado! Descuento de $" . number_format($discountAmount, 2) . " sobre semanas";
+    }
+
+    // Debug final
+    \Log::info('=== CUPÓN APLICADO ===', [
+        'cupon_codigo' => $coupon->code,
+        'cupon_tipo' => $coupon->discount_type,
+        'cupon_valor_original' => $coupon->discount_value,
+        'descuento_aplicado' => $discountAmount,
+        'subtotal_semanas' => $subtotal,
+        'puede_aplicar_completo' => ($subtotal >= $coupon->discount_value) ? 'SÍ' : 'NO',
+        'total_final' => ($subtotal + $extra - $discountAmount)
+    ]);
+
+    // Incrementar el contador de usos del cupón
+    $coupon->increment('used_count');
+
+    // Guardar información del cupón en la sesión
+    session([
+        'discount' => $discountAmount,
+        'coupon_success' => $discountMessage,
+        'coupon_error' => null,
+        'applied_coupon' => [
+            'code' => $coupon->code,
+            'type' => $coupon->discount_type,
+            'value' => $coupon->discount_value,
+            'discount_amount' => $discountAmount,
+            'subtotal' => $subtotal,
+            'extra' => $extra
+        ]
+    ]);
+
+    return redirect()->route('cart.view');
+}
+
+    // Método para remover cupón
+    public function removeCoupon()
+    {
+        session([
+            'discount' => 0,
+            'coupon_success' => null,
+            'coupon_error' => null,
+            'applied_coupon' => null
+        ]);
+
         return redirect()->route('cart.view');
     }
 }

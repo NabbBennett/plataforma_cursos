@@ -8,9 +8,10 @@ class Purchase extends Model
 {
     protected $fillable = [
         'user_id',
-        'course_id',
+        'course_id', 
         'type',
         'weeks_unlocked',
+        'paid_weeks'
     ];
      
     public function user()

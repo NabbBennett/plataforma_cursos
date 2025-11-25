@@ -19,6 +19,7 @@ use App\Http\Controllers\ExamStudentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\ExamImageUploadController;
+use App\Http\Controllers\StoreCourseController;
 
 use App\Models\Course;
 use App\Models\WeekDay;
@@ -41,7 +42,8 @@ Route::post('/contacto', [ContactController::class, 'contactSubmit'])->name('con
 Route::get('/store', [StoreController::class, 'store'])->name('store');
 Route::get('/store/course/{id}', [StoreController::class, 'show'])->name('store.course');
 Route::post('/store/course/{id}/review', [StoreController::class, 'storeReview'])->name('course.review.store')->middleware('auth');
-Route::post('/cart/coupon', [StoreController::class, 'applyCoupon'])->name('cart.coupon');
+Route::post('/cart/coupon', [StoreController::class, 'applyCoupon'])->name('coupon.apply');
+Route::post('/cart/remove-coupon', [StoreController::class, 'removeCoupon'])->name('coupon.remove');
 
 //Carrito de compras
 Route::prefix('cart')->name('cart.')->middleware('auth')->group(function () {
@@ -53,7 +55,7 @@ Route::prefix('cart')->name('cart.')->middleware('auth')->group(function () {
 });
 
 //Ticket de compra
-Route::get('/ticket', [CartController::class, 'ticket'])->name('cart.ticket');
+Route::get('/ticket', [CartController::class, 'ticket'])->name('ticket.view');
 
 //Informacion Institucional
 Route::get('/information', [InformationController::class, 'index'])->name('information.index');
@@ -161,6 +163,7 @@ Route::prefix('admin/purchases')->name('admin.purchases.')->middleware('auth')->
     Route::get('/sales', [PurchasesController::class, 'ventasGlobales'])->name('sales');
     Route::post('/manual', [PurchasesController::class, 'guardarAccesoManual'])->name('manual.store');
     Route::post('/update-field', [PurchasesController::class, 'actualizarCampos'])->name('updateField'); // <- AJAX
+    Route::delete('/{purchase}', [PurchasesController::class, 'destroy'])->name('destroy'); // <- NUEVA RUTA
 });
 
 // Ruta API para cargar semanas
@@ -235,3 +238,6 @@ Route::get('/student/courses/{course}/progress', [ExamStudentController::class, 
 
 Route::post('admin/exams/upload-image', [ExamImageUploadController::class, 'upload'])
     ->name('admin.exams.uploadImage');
+
+Route::get('/store/courses/{course}', [PurchasesController::class, 'store'])
+    ->name('store.courses.show');

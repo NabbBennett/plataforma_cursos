@@ -11,8 +11,7 @@ use App\Models\WeekDay;
 
 class PurchasesController extends Controller
 {
-    public function ventasGlobales()
-    {
+    public function ventasGlobales(){
         $ventas = Purchase::with(['user', 'course'])->get();
 
         foreach ($ventas as $venta) {
@@ -31,8 +30,7 @@ class PurchasesController extends Controller
         return view('admin.purchases.sales', compact('ventas', 'users', 'courses'));
     }
 
-    public function guardarAccesoManual(Request $request)
-    {
+    public function guardarAccesoManual(Request $request){
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'course_id' => 'required|exists:courses,id',
@@ -57,6 +55,18 @@ class PurchasesController extends Controller
             ])->withInput();
         }
 
+        // ✅ NUEVO: Verificar si es una nueva compra
+        $existingPurchase = Purchase::where('user_id', $request->user_id)
+                                    ->where('course_id', $request->course_id)
+                                    ->first();
+
+        // ✅ NUEVO: Verificar capacidad solo para nuevas compras
+        if (!$existingPurchase && $course->capacity && $course->available_capacity <= 0) {
+            return back()->withErrors([
+                'course_id' => "El curso '{$course->title}' no tiene cupos disponibles.",
+            ])->withInput();
+        }
+
         Purchase::updateOrCreate(
             ['user_id' => $request->user_id, 'course_id' => $request->course_id],
             [
@@ -67,11 +77,16 @@ class PurchasesController extends Controller
             ]
         );
 
+        // ✅ NUEVO: Disminuir capacidad solo para nuevas compras
+        if (!$existingPurchase && $course->capacity) {
+            $course->decrement('available_capacity');
+            \Log::info("Capacidad disminuida manualmente para curso {$course->title}. Nueva capacidad: {$course->available_capacity}");
+        }
+
         return back()->with('success', 'Acceso registrado correctamente.');
     }
 
-    public function actualizarCampos(Request $request)
-    {
+    public function actualizarCampos(Request $request){
         $request->validate([
             'purchase_id' => 'required|exists:purchases,id',
             'field' => 'required|in:weeks_unlocked,paid_weeks',
@@ -104,4 +119,72 @@ class PurchasesController extends Controller
         return view('student.courses.recorded', compact('day'));
     }
 
+    public function destroy(Purchase $purchase){
+        try {
+            // Guardar referencia al curso antes de eliminar
+            $course = $purchase->course;
+            
+            // Verificar si esta es la única compra de este usuario para este curso
+            $otherPurchasesCount = Purchase::where('user_id', $purchase->user_id)
+                ->where('course_id', $purchase->course_id)
+                ->where('id', '!=', $purchase->id)
+                ->count();
+
+            // Eliminar la purchase
+            $purchase->delete();
+
+            // ✅ NUEVO: Restaurar capacidad solo si no hay otras compras del mismo usuario para el mismo curso
+            if ($otherPurchasesCount === 0 && $course->capacity) {
+                $course->increment('available_capacity');
+                \Log::info("Capacidad restaurada para curso {$course->title}. Nueva capacidad: {$course->available_capacity}");
+            }
+
+            return redirect()->route('admin.purchases.sales')->with('success', 'Venta eliminada correctamente' . ($otherPurchasesCount === 0 && $course->capacity ? ' y capacidad del curso restaurada.' : '.'));
+        } catch (\Exception $e) {
+            return redirect()->route('admin.purchases.sales')->with('error', 'Error al eliminar la venta: ' . $e->getMessage());
+        }
+    }
+
+    public function store(Request $request){
+        $request->validate([
+            'course_id' => 'required|exists:courses,id',
+            'type' => 'required|in:full,weekly'
+        ]);
+
+        $course = Course::findOrFail($request->course_id);
+
+        // ✅ MEJORADO: Verificar cupos disponibles usando available_capacity
+        if ($course->capacity && $course->available_capacity <= 0) {
+            return back()->with('error', 'Lo sentimos, este curso ya no tiene cupos disponibles.');
+        }
+
+        $user = auth()->user();
+
+        // Verificar si ya compró el curso
+        $existingPurchase = Purchase::where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->first();
+
+        if ($existingPurchase) {
+            return back()->with('error', 'Ya has comprado este curso.');
+        }
+
+        // Crear la compra
+        $purchase = Purchase::create([
+            'user_id' => $user->id,
+            'course_id' => $course->id,
+            'type' => $request->type,
+            'weeks_unlocked' => $request->type === 'full' ? $course->number_of_weeks : 1,
+            'paid_weeks' => $request->type === 'full' ? $course->number_of_weeks : 1
+        ]);
+
+        // ✅ NUEVO: Disminuir capacidad disponible
+        if ($course->capacity) {
+            $course->decrement('available_capacity');
+            \Log::info("Capacidad disminuida para curso {$course->title}. Nueva capacidad: {$course->available_capacity}");
+        }
+
+        return redirect()->route('courses.show', $course->id)
+            ->with('success', 'Compra realizada exitosamente.');
+    }
 }

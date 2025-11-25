@@ -487,10 +487,6 @@
                     <i class="bi bi-graph-up"></i>
                     <span>Ventas</span>
                 </a>
-                <a href="{{ route('admin.information.index') }}" class="nav-link {{ request()->routeIs('admin.information.*') ? 'active' : '' }}">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Información</span>
-                </a>
             </div>
         </nav>
     </aside>

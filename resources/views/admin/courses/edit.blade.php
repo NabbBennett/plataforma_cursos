@@ -491,6 +491,15 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
+                            <label for="capacity" class="form-label">Cupos Disponibles</label>
+                            <input type="number" class="form-control" id="capacity" name="capacity" 
+                                   min="1" max="1000" 
+                                   value="{{ old('capacity', $course->capacity) }}"
+                                   placeholder="Ilimitado">
+                            <small class="text-secondary-custom">Dejar vacío para cupos ilimitados</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Imagen del Curso</label>
                             <input type="file" class="form-control" name="image" accept="image/*" onchange="previewImage(this)">
                             @if($course->image)

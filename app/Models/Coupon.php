@@ -24,7 +24,7 @@ class Coupon extends Model
         'is_active' => 'boolean'
     ];
 
-    public function isValid()
+    public function canBeUsed()
     {
         if (!$this->is_active) {
             return false;
@@ -41,10 +41,10 @@ class Coupon extends Model
         return true;
     }
 
-    public function calculateDiscount($amount)
+    public function applyDiscount($amount)
     {
         if ($this->discount_type === 'percentage') {
-            return $amount * ($this->discount_value / 100);
+            return ($amount * $this->discount_value) / 100;
         }
 
         return min($this->discount_value, $amount);

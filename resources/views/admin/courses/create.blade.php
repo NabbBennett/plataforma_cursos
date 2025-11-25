@@ -314,6 +314,15 @@
                             <small class="text-secondary-custom">Seleccione la fecha de inicio del curso</small>
                         </div>
 
+                        <div class="col-md-4 mb-3">
+                            <label for="capacity" class="form-label">Cupos Disponibles</label>
+                            <input type="number" class="form-control" id="capacity" name="capacity" 
+                                   min="1" max="1000" 
+                                   value="{{ old('capacity') }}"
+                                   placeholder="Ilimitado">
+                            <small class="text-secondary-custom">Dejar vacío para cupos ilimitados</small>
+                        </div>
+
                         <div class="col-md-6 mb-3">
                             <label for="number_of_weeks" class="form-label">Duración en Semanas *</label>
                             <input type="number" class="form-control" id="number_of_weeks" name="number_of_weeks" 

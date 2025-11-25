@@ -221,6 +221,64 @@
         border: none;
     }
     
+    .coupon-applied {
+        background: var(--success-color);
+        color: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .coupon-info {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .coupon-details {
+        flex: 1;
+    }
+    
+    .coupon-code {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .coupon-type {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .btn-remove-coupon {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-remove-coupon:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+    }
+
+    .coupon-amount {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-top: 0.25rem;
+}
+
+.summary-line strong {
+    color: var(--text-primary);
+}
+
+.btn-remove-coupon:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
     /* Estilos para móvil */
     @media (max-width: 768px) {
         .cart-item {
@@ -263,6 +321,12 @@
         
         .cart-header h2 {
             font-size: 1.5rem;
+        }
+        
+        .coupon-info {
+            flex-direction: column;
+            text-align: center;
+            gap: 0.5rem;
         }
     }
     
@@ -312,9 +376,6 @@
 </style>
 
 <div class="container mt-4 mb-5 cart-section" style="max-width: 1200px;">
-    <div class="cart-header">
-        <h2 class="fw-bold mb-0">Mi Carrito</h2>
-    </div>
     
     @if (empty($cart) || count($cart) === 0)
         <!-- Estado vacío -->
@@ -418,20 +479,27 @@
                     @php
                         $subtotal = 0;
                         $extra = 0;
+                        $userCourses = auth()->user()->purchases->pluck('course_id')->toArray();
+                        
                         foreach($cart as $courseId => $item) {
                             $weeks = count($item['weeks']);
                             $subtotal += $item['price_per_week'] * $weeks;
-                            if (!in_array($courseId, $userCourses ?? [])) $extra += 200;
+                            
+                            if (!in_array($courseId, $userCourses)) $extra += 200;
                         }
+                        
+                        // Obtener información del cupón aplicado
+                        $appliedCoupon = session('applied_coupon');
                         $discount = session('discount') ?? 0;
                         $total = $subtotal + $extra - $discount;
                     @endphp
-                    
+
                     <div class="summary-line">
-                        <span>Subtotal:</span>
+                        <span>Semanas:</span>
                         <span>${{ number_format($subtotal, 2) }}</span>
                     </div>
                     
+                    @if($extra > 0)
                     <div class="summary-line">
                         <span>
                             <i class="bi bi-plus-circle me-1"></i>
@@ -439,23 +507,24 @@
                         </span>
                         <span>${{ number_format($extra, 2) }}</span>
                     </div>
+                    @endif
                     
                     @if($discount > 0)
                         <div class="summary-line text-success">
                             <span>
                                 <i class="bi bi-tag me-1"></i>
-                                Descuento cupón:
+                                Descuento (sobre semanas):
                             </span>
                             <span>- ${{ number_format($discount, 2) }}</span>
                         </div>
                     @endif
                     
                     <div class="summary-line summary-total">
-                        <span>Total:</span>
+                        <span>Total a pagar:</span>
                         <span>${{ number_format($total, 2) }}</span>
                     </div>
                     
-                    <!-- Cupón -->
+                    <!-- Sección de Cupones -->
                     <div class="coupon-form">
                         @if(session('coupon_error'))
                             <div class="alert alert-danger alert-coupon">
@@ -472,28 +541,71 @@
                             </div>
                         @endif
                         
-                        <form action="{{ route('cart.coupon') }}" method="POST">
-                            @csrf
-                            <label class="form-label small fw-medium mb-2">¿Tienes un cupón?</label>
-                            <div class="input-group">
-                                <input type="text" 
-                                       name="coupon" 
-                                       class="form-control coupon-input" 
-                                       placeholder="Ingresa tu código"
-                                       required>
-                                <button class="btn btn-outline-secondary" type="submit">
-                                    <i class="bi bi-ticket-perforated"></i>
-                                </button>
+                        @if($appliedCoupon)
+                            <!-- Cupón aplicado -->
+                            <div class="coupon-applied">
+                                <div class="coupon-info">
+                                    <div class="coupon-details">
+                                        <div class="coupon-code">
+                                            <i class="bi bi-ticket-perforated me-2"></i>
+                                            {{ $appliedCoupon['code'] }}
+                                        </div>
+                                        <div class="coupon-type">
+                                            @if($appliedCoupon['type'] === 'percentage')
+                                                {{ $appliedCoupon['value'] }}% de descuento sobre semanas
+                                            @else
+                                                Cupón de ${{ number_format($appliedCoupon['value'], 2) }} sobre semanas
+                                            @endif
+                                        </div>
+                                        <div class="coupon-amount small">
+                                            <strong>Descuento aplicado: ${{ number_format($appliedCoupon['discount_amount'], 2) }}</strong>
+                                        </div>
+                                        @if($appliedCoupon['type'] === 'fixed' && $appliedCoupon['discount_amount'] < $appliedCoupon['value'])
+                                            <div class="coupon-note small text-warning">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                El descuento se ajustó al subtotal de semanas disponible
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <form action="{{ route('coupon.remove') }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn-remove-coupon" title="Remover cupón">
+                                            <i class="bi bi-x-lg me-1"></i>Remover
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                        </form>
+                        @else
+                            <!-- Formulario para aplicar cupón -->
+                            <form action="{{ route('coupon.apply') }}" method="POST">
+                                @csrf
+                                <label class="form-label small fw-medium mb-2">
+                                    <i class="bi bi-ticket-perforated me-1"></i>
+                                    ¿Tienes un cupón?
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" 
+                                        name="coupon" 
+                                        class="form-control coupon-input" 
+                                        placeholder="Ingresa tu código"
+                                        value="{{ old('coupon') }}"
+                                        required>
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted mt-1">
+                                    El descuento se aplica sobre el total de semanas
+                                </small>
+                            </form>
+                        @endif
                     </div>
                     
                     <!-- Checkout -->
-                    <form action="{{ route('cart.checkout') }}" method="POST">
+                    <form method="POST" action="{{ route('cart.checkout') }}">
                         @csrf
-                        <button type="submit" class="btn btn-primary btn-checkout">
-                            <i class="bi bi-lock-fill me-2"></i>
-                            Proceder al Pago
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-credit-card me-2"></i>Proceder al Pago
                         </button>
                     </form>
                 </div>
@@ -531,6 +643,24 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.transform = 'scale(1)';
         });
     });
+    
+    // Auto-ocultar mensajes después de 5 segundos
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const fadeEffect = setInterval(() => {
+                if (!alert.style.opacity) {
+                    alert.style.opacity = 1;
+                }
+                if (alert.style.opacity > 0) {
+                    alert.style.opacity -= 0.1;
+                } else {
+                    clearInterval(fadeEffect);
+                    alert.style.display = 'none';
+                }
+            }, 50);
+        });
+    }, 5000);
 });
 </script>
 @endsection

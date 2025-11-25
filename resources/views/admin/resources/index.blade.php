@@ -11,8 +11,9 @@
                 <h1 class="mb-2 d-inline"><i class="bi bi-file-earmark me-2"></i>Gestión de Recursos</h1>
             </div>
             <div class="col-md-4 text-md-end">
-                <a href="{{ route('admin.resources.create') }}" class="btn btn-primary-custom btn-lg shadow-sm">
-                <i class="bi bi-cloud-upload me-2"></i>Subir Nuevo Recurso                    </a>
+                <a href="{{ route('admin.resources.create') }}" class="btn-create">
+                    <i class="bi bi-plus-circle"></i>Subir Recurso
+                </a>
             </div>
          </div>
     </div>
@@ -165,6 +166,26 @@
 </div>
 
 <style>
+    .btn-create {
+        background-color: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-create:hover {
+        background-color: var(--btn-outline-hover-bg);
+        color: var(--btn-outline-hover-text);
+        transform: translateY(-2px);
+    }
+
 .page-header {
     background-color: var(--bg-secondary);
     border-radius: 15px;
@@ -408,6 +429,13 @@
         border-bottom-left-radius: 6px !important;
         border-bottom-right-radius: 6px !important;
         border-top-right-radius: 0 !important;
+    }
+
+    @media (max-width: 576px) {
+        .btn-create {
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+        }
     }
 }
 </style>

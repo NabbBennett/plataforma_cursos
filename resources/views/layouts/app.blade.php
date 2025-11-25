@@ -469,9 +469,11 @@
                         <li class="nav-item mx-2">
                             <a class="nav-link" href="{{ route('store') }}">Tienda</a>
                         </li>
+                        <!--
                         <li class="nav-item mx-2">
                             <a class="nav-link" href="{{ route('information.index') }}">Información</a>
                         </li>
+                        -->
                     </ul>
                 </div>
                 
@@ -543,7 +545,9 @@
                 <li><a href="{{ route('welcome') }}">Inicio</a></li>
                 <li><a href="{{ route('contact') }}">Contactanos</a></li>
                 <li><a href="{{ route('store') }}">Tienda</a></li>
+                <!--
                 <li><a href="{{ route('information.index') }}">Información</a></li>
+                -->
                 <li><a href="{{ route('cart.view') }}">Carrito</a></li>
             </ul>
         </div>

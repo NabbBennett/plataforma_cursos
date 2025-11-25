@@ -32,7 +32,12 @@ class Week extends Model
 
     public function exam()
     {
-        return $this->belongsTo(Exam::class);
+        return $this->belongsTo(Exam::class, 'exam_id');
+    }
+
+    public function exams()
+    {
+        return $this->hasMany(\App\Models\Exam::class);
     }
 
     // Relación muchos a muchos con recursos (LA QUE FALTABA)

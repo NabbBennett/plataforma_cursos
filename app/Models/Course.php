@@ -13,13 +13,38 @@ class Course extends Model
         'title',
         'description',
         'start_date',
+        'capacity',
         'price_per_week',
         'number_of_weeks',
-        'image'
+        'image',
+        'enrolled_count'
     ];
 
     public function weeks(){
         return $this->hasMany(Week::class);
+    }
+
+    public function hasAvailableSpots(){
+        if (is_null($this->capacity)) {
+            return true; 
+        }
+        
+        return $this->enrolled_count < $this->capacity;
+    }
+
+    public function getAvailableCapacityAttribute()
+    {
+        if (is_null($this->capacity)) return null;
+        return max(0, (int)$this->capacity - (int)$this->enrolled_count);
+    }
+
+    // Verificar si está lleno
+    public function isFullAttribute(){
+        if (is_null($this->capacity)) {
+            return false;
+        }
+        
+        return $this->enrolled_count >= $this->capacity;
     }
 
     public function purchases() {

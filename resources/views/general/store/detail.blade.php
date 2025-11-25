@@ -222,9 +222,51 @@
         <div class="col-md-7">
             <h1 class="mb-3">{{ $course->title }}</h1>
             
+            @php
+                $capacity   = $course->capacity;
+                $enrolled   = $course->enrolled_count ?? 0;
+                $available  = $course->available_capacity; // en lugar de $available_numeric
+                $progress   = ($capacity) ? round(($enrolled / $capacity) * 100) : 0;
+            @endphp
+
             <div class="price-section">
                 <h5>Precio del curso</h5>
-                <div class="fs-4 text-success mb-2">${{ number_format($course->price_per_week, 2) }} <small class="text">por semana</small></div>
+                <div class="fs-4 text-success mb-2">
+                    ${{ number_format($course->price_per_week, 2) }} <small class="text">por semana</small>
+                </div>
+
+                {{-- Cupos --}}
+                @if($capacity)
+                    @if($available > 0)
+                        <div class="progress my-2" style="height:18px;">
+                            <div class="progress-bar {{ $available <= 5 ? 'bg-warning' : 'bg-success' }}"
+                                 role="progressbar"
+                                 style="width: {{ $progress }}%;"
+                                 aria-valuenow="{{ $enrolled }}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="{{ $capacity }}">
+                                {{ $enrolled }} / {{ $capacity }} inscritos
+                            </div>
+                        </div>
+                        <small class="text-muted d-block">
+                            @if($available <= 5)
+                                <i class="bi bi-exclamation-triangle text-warning"></i>
+                                Quedan {{ $available }} cupos
+                            @else
+                                <i class="bi bi-check-circle text-success"></i>
+                                {{ $available }} cupos disponibles
+                            @endif
+                        </small>
+                    @else
+                        <div class="alert alert-danger mb-0 mt-2 p-2 text-center">
+                            <i class="bi bi-x-circle me-1"></i> Curso lleno ({{ $capacity }} / {{ $capacity }})
+                        </div>
+                    @endif
+                @else
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-infinity text-primary"></i> Cupos ilimitados
+                    </small>
+                @endif
             </div>
             
             <div class="mb-4">
@@ -232,13 +274,22 @@
                 <div class="weeks-selector">
                     <form method="POST" action="{{ route('cart.add', $course->id) }}" class="d-flex align-items-center gap-2 flex-wrap">
                         @csrf
-                        <button type="button" class="btn btn-outline-secondary" onclick="changeWeeks(-1)">-</button>
-                        <input type="number" name="weeks_count" id="weeks_count" class="form-control text-center weeks-input" value="1" min="1" max="{{ $course->weeks->count() }}" style="width:70px;" required>
-                        <button type="button" class="btn btn-outline-secondary" onclick="changeWeeks(1)">+</button>
+                        {{-- CORRECCIÓN: Usar $available en lugar de $available_numeric --}}
+                        <button type="button" class="btn btn-outline-secondary" onclick="changeWeeks(-1)" {{ ($capacity && $available !== null && $available <= 0) ? 'disabled' : '' }}>-</button>
+                        <input type="number" name="weeks_count" id="weeks_count" class="form-control text-center weeks-input" value="1" min="1" max="{{ $course->weeks->count() }}" style="width:70px;" required {{ ($capacity && $available !== null && $available <= 0) ? 'disabled' : '' }}>
+                        <button type="button" class="btn btn-outline-secondary" onclick="changeWeeks(1)" {{ ($capacity && $available !== null && $available <= 0) ? 'disabled' : '' }}>+</button>
                         <span class="ms-2 text">de {{ $course->weeks->count() }} semana(s)</span>
-                        <button type="submit" class="btn btn-primary ms-3 btn-add-cart">
-                            <i class="bi bi-cart-plus me-2"></i>Añadir al carrito
-                        </button>
+                        
+                        {{-- CORRECCIÓN PRINCIPAL: Verificar correctamente la disponibilidad --}}
+                        @if($capacity && $available !== null && $available <= 0)
+                            <button type="button" class="btn btn-secondary ms-3 btn-add-cart" disabled>
+                                <i class="bi bi-lock-fill me-2"></i>No disponible
+                            </button>
+                        @else
+                            <button type="submit" class="btn btn-primary ms-3 btn-add-cart">
+                                <i class="bi bi-cart-plus me-2"></i>Añadir al carrito
+                            </button>
+                        @endif
                     </form>
                 </div>
             </div>

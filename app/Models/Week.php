@@ -11,13 +11,15 @@ class Week extends Model
 
     protected $fillable = [
         'course_id',
+        'exam_id',
         'number',
         'order',
         'title',
+        'live_type',
         'live_meet_link',
         'recording_link',
-        'exam_id',
-        'resource_id'
+        'resource_id',
+        'schedule_id',
     ];
 
     public function course()
@@ -49,6 +51,6 @@ class Week extends Model
     // Mantener relación singular para compatibilidad (si la usabas antes)
     public function resource()
     {
-        return $this->belongsTo(Resource::class);
+        return $this->belongsTo(Resource::class, 'resource_id');
     }
 }

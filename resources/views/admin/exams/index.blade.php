@@ -327,6 +327,9 @@
                                                 <i class="bi bi-pencil"></i>
                                                 <span class="mobile-hidden">Editar</span>
                                             </a>
+                                            <a href="{{ route('admin.exams.doings', $exam->id) }}" class="btn-action btn-edit" title="Realizados">
+                                                <i class="bi bi-check2-circle"></i><span class="mobile-hidden">Realizados</span>
+                                            </a>
                                             <form action="{{ route('admin.exams.destroy', $exam->id) }}" 
                                                   method="POST" 
                                                   class="d-inline"

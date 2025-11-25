@@ -161,18 +161,17 @@ class AdminController extends Controller
         $this->checkPermission(['admin', 'maestro']);
 
         $course = Course::with([
-            'weeks.resources', 
+            'weeks.resource',
             'weeks.weekDays',
             'weeks.exam',
             'evaluationBlocks'
         ])->findOrFail($id);
-        
-        // Cargar semanas ordenadas con sus recursos
+
         $weeks = $course->weeks()
-                       ->with(['weekDays', 'resources'])
-                       ->orderBy('order', 'asc')
-                       ->orderBy('number', 'asc')
-                       ->get();
+            ->with(['weekDays','resource'])
+            ->orderBy('order','asc')
+            ->orderBy('number','asc')
+            ->get();
         
         // Cargar bloques de evaluación ordenados
         $evals = $course->evaluationBlocks()
@@ -277,31 +276,8 @@ class AdminController extends Controller
             $week->title = $data['title'] ?? 'Semana ' . $week->number;
             $week->live_meet_link = !empty($data['live_meet_link']) ? $this->convertDriveToPreview($data['live_meet_link']) : null;
             $week->exam_id = $data['exam_id'] ?? null;
+            $week->resource_id = $data['resource_id'] ?? null;
             $week->save();
-
-            // Debug: Ver recursos que llegan
-            \Log::info("Recursos para semana {$week->id}:", [
-                'resource_ids' => $data['resource_ids'] ?? 'No hay'
-            ]);
-
-            // Sincronizar recursos (múltiples) - IMPORTANTE
-            if (isset($data['resource_ids']) && is_array($data['resource_ids'])) {
-                // Filtrar valores vacíos y convertir a enteros
-                $resourceIds = array_filter(array_map('intval', $data['resource_ids']));
-                
-                \Log::info("Sincronizando recursos para semana {$week->id}:", $resourceIds);
-                
-                // Sincronizar recursos
-                $week->resources()->sync($resourceIds);
-                
-                // Verificar que se sincronizaron
-                $syncedResources = $week->resources()->pluck('resources.id')->toArray();
-                \Log::info("Recursos sincronizados verificados:", $syncedResources);
-            } else {
-                // Si no hay recursos seleccionados, desvincular todos
-                \Log::info("Desvinculando todos los recursos de semana {$week->id}");
-                $week->resources()->detach();
-            }
 
             // Procesar días grabados
             WeekDay::where('week_id', $week->id)->delete();
@@ -382,7 +358,6 @@ class AdminController extends Controller
                     if ($week && $week->course_id == $course->id) {
                         \Log::info('Eliminando semana:', ['id' => $weekId]);
                         $week->weekDays()->delete();
-                        $week->resources()->detach();
                         $week->delete();
                     }
                 }

@@ -1,7 +1,9 @@
 <div class="week-block" draggable="true" data-block-type="week">
     <!-- Input de ID para semanas -->
     <input type="hidden" name="weeks[{{ $index }}][id]" value="{{ isset($week) && $week->id ? $week->id : 0 }}">
-    
+    @php
+        $selectedResourceId = isset($week) && isset($week->resource_id) ? $week->resource_id : 0;
+    @endphp
     <div class="week-block-header">
         <div class="d-flex align-items-center gap-2 flex-grow-1">
             <div class="drag-handle">
@@ -151,94 +153,29 @@
             @endif
         </div>
 
-        {{-- Recursos (Múltiples con checkboxes) --}}
+        {{-- Recursos (Único recurso con radios) --}}
         <div class="col-md-6 mb-3">
             <label class="form-label">
-                <i class="bi bi-file-earmark me-1"></i>Recursos Adicionales
+                <i class="bi bi-file-earmark me-1"></i>Recurso (solo uno)
             </label>
-            
-            {{-- Buscador de recursos --}}
-            <div class="input-group mb-2">
-                <span class="input-group-text bg-var-primary border-var-secondary">
-                    <i class="bi bi-search"></i>
-                </span>
-                <input type="text" 
-                       class="form-control resource-search" 
-                       data-week-index="{{ $index }}"
-                       placeholder="Buscar recursos..."
-                       onkeyup="searchResources({{ $index }})">
-            </div>
-
-            {{-- Contenedor de recursos con scroll --}}
-            <div class="resources-container border rounded p-4 bg-var-primary" 
-                 id="resources-container-{{ $index }}"
-                 style="max-height: 250px; overflow-y: auto;">
-                @php
-                    // Verificar si week tiene recursos cargados
-                    $selectedResources = [];
-                    if (isset($week) && $week->id) {
-                        try {
-                            $selectedResources = $week->resources()->pluck('resources.id')->toArray();
-                        } catch (\Exception $e) {
-                            // Si hay error, dejar el array vacío
-                            $selectedResources = [];
-                        }
-                    }
-                @endphp
-                
-                @forelse ($resources as $res)
-                    <div class="form-check resource-item mb-2 p-2 rounded hover-bg" 
-                         data-week-index="{{ $index }}"
-                         data-resource-title="{{ strtolower($res->title) }}"
-                         data-resource-type="{{ strtolower($res->type) }}">
-                        <input class="form-check-input" 
-                               type="checkbox" 
-                               name="weeks[{{ $index }}][resource_ids][]" 
-                               value="{{ $res->id }}"
+            <div class="border rounded p-2" style="max-height:230px;overflow-y:auto;">
+                @forelse($resources as $res)
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="weeks[{{ $index }}][resource_id]"
                                id="resource_{{ $index }}_{{ $res->id }}"
-                               {{ in_array($res->id, $selectedResources) ? 'checked' : '' }}
-                               onchange="updateResourceCount({{ $index }})">
-                        <label class="form-check-label w-100" for="resource_{{ $index }}_{{ $res->id }}">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-file-earmark-{{ $res->type == 'pdf' ? 'pdf' : ($res->type == 'video' ? 'play' : 'fill') }} me-2 text-primary-custom"></i>
-                                <div class="flex-grow-1">
-                                    <div class="fw-bold">{{ $res->title }}</div>
-                                    <small class="text-secondary-custom">{{ ucfirst($res->type) }}</small>
-                                </div>
-                            </div>
+                               value="{{ $res->id }}"
+                               {{ $res->id == $selectedResourceId ? 'checked' : '' }}>
+                        <label class="form-check-label" for="resource_{{ $index }}_{{ $res->id }}">
+                            {{ $res->title }}
+                            <small class="text-muted ms-1">({{ $res->type }})</small>
                         </label>
                     </div>
                 @empty
-                    <div class="text-center text-secondary-custom py-3">
-                        <i class="bi bi-inbox"></i>
-                        <p class="mb-0">No hay recursos disponibles</p>
-                    </div>
+                    <div class="text-muted">Sin recursos disponibles.</div>
                 @endforelse
             </div>
-
-            {{-- Contador de seleccionados --}}
-            <div class="mt-2">
-                <small class="text-secondary-custom">
-                    <i class="bi bi-check-circle me-1"></i>
-                    <span id="selected-count-{{ $index }}">{{ count($selectedResources) }}</span> recursos seleccionados
-                </small>
-            </div>
-
-            {{-- Lista de seleccionados --}}
-            @if(count($selectedResources) > 0)
-                <div class="mt-2 p-2 bg-var-secondary rounded" id="selected-resources-{{ $index }}">
-                    <strong class="small text-primary-custom d-block mb-2">
-                        <i class="bi bi-bookmarks me-1"></i>Recursos seleccionados:
-                    </strong>
-                    <div class="selected-resources-list">
-                        @foreach($resources->whereIn('id', $selectedResources) as $resource)
-                            <div class="badge bg-primary me-1 mb-1">
-                                {{ $resource->title }}
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
         </div>
     </div>
 </div>

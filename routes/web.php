@@ -241,3 +241,15 @@ Route::post('admin/exams/upload-image', [ExamImageUploadController::class, 'uplo
 
 Route::get('/store/courses/{course}', [PurchasesController::class, 'store'])
     ->name('store.courses.show');
+
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+    // Resultados por examen
+    Route::get('/exams/{exam}/results', [\App\Http\Controllers\ExamController::class,'results'])
+        ->name('admin.exams.results');
+    // Resultados en curso (quien está haciendo el examen)
+    Route::get('/exams/{exam}/doings', [\App\Http\Controllers\ExamController::class,'doings'])
+        ->name('admin.exams.doings');
+    // Reset (reiniciar intento)
+    Route::post('/exams/{exam}/results/{examResult}/reset', [\App\Http\Controllers\ExamController::class,'resetResult'])
+        ->name('admin.exams.results.reset');
+});

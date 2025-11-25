@@ -1030,6 +1030,25 @@ function updateSelectedResourcesList(weekIndex) {
     }
 }
 
+// Funciones para búsqueda y selección de recursos (versión simplificada)
+function searchResourcesSingle(weekIndex){
+    const term = document.querySelector('.resource-search[data-week-index="'+weekIndex+'"]').value.toLowerCase();
+    document.querySelectorAll('#resources-container-'+weekIndex+' .resource-item').forEach(item=>{
+        const title = item.getAttribute('data-resource-title');
+        item.style.display = title.includes(term) ? '' : 'none';
+    });
+}
+function updateSingleResourceSelected(weekIndex){
+    const checked = document.querySelector('#resources-container-'+weekIndex+' input.form-check-input:checked');
+    const labelSpan = document.getElementById('selected-single-'+weekIndex);
+    if(checked){
+        const text = checked.closest('.resource-item').querySelector('.fw-bold').textContent.trim();
+        labelSpan.textContent = text;
+    } else {
+        labelSpan.textContent = 'Ninguno';
+    }
+}
+
 // Inicializar event listeners cuando se carga el DOM
 document.addEventListener('DOMContentLoaded', function() {
     // Agregar listeners a los checkboxes de recursos

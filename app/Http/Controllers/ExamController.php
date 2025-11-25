@@ -8,6 +8,9 @@ use App\Models\Answer;
 use Illuminate\Http\Request;
 use Purifier;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ExamResult;
+use App\Models\ExamAnswer;
+use App\Models\User;
 
 class ExamController extends Controller
 {
@@ -363,5 +366,39 @@ public function edit(Exam $exam){
         $exam->delete();
 
         return back()->with('success', 'Examen eliminado correctamente.');
+    }
+
+    public function doings(Exam $exam)
+    {
+        $results = ExamResult::with('user')
+            ->where('exam_id', $exam->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('admin.exams.doings', compact('exam','results'));
+    }
+
+    public function results(Exam $exam)
+    {
+        // Cargar resultados con usuario
+        $results = ExamResult::with('user')
+            ->where('exam_id', $exam->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('admin.exams.results', compact('exam','results'));
+    }
+
+    public function resetResult(Exam $exam, ExamResult $examResult)
+    {
+        if ($examResult->exam_id !== $exam->id) {
+            return back()->with('error','Resultado no corresponde al examen.');
+        }
+        // Borrar respuestas
+        ExamAnswer::where('exam_result_id', $examResult->id)->delete();
+        // Borrar resultado
+        $examResult->delete();
+
+        return back()->with('success','Intento reiniciado correctamente.');
     }
 }

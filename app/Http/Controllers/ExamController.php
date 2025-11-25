@@ -14,6 +14,16 @@ use App\Models\User;
 
 class ExamController extends Controller
 {
+
+     private function checkPermission($allowedRoles)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !in_array($user->role, $allowedRoles)) {
+            abort(403, 'No tienes permisos para acceder a esta sección.');
+        }
+    }
+
     public function index(){
         $exams = Exam::withCount('questions')->latest()->get();
         return view('admin.exams.index', compact('exams'));
@@ -343,6 +353,8 @@ public function edit(Exam $exam){
     }
 
     public function destroy(Exam $exam){
+        $this->checkPermission(['admin']);
+        
         if ($exam->week_id || $exam->evaluation_block_id) {
             return back()->with('error', 'No puedes eliminar un examen asignado.');
         }
@@ -370,6 +382,9 @@ public function edit(Exam $exam){
 
     public function doings(Exam $exam)
     {
+        $this->checkPermission(['admin', 'maestro', 'ayudante']);
+
+
         $results = ExamResult::with('user')
             ->where('exam_id', $exam->id)
             ->orderByDesc('created_at')

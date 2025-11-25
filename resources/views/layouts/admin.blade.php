@@ -476,10 +476,14 @@
             <i class="bi bi-briefcase"></i>
             <span>Cursos</span>
         </a>
+        @endif
+        @if(auth()->user()->isAdmin() || auth()->user()->isMaestro() || auth()->user()->isAyudante()) 
         <a href="{{ route('admin.exams.index') }}" class="nav-link {{ request()->routeIs('admin.exams.*') ? 'active' : '' }}">
             <i class="bi bi-file-text"></i>
             <span>Exámenes</span>
         </a>
+        @endif
+        @if(auth()->user()->isAdmin() || auth()->user()->isMaestro())
         <a href="{{ route('admin.resources.index') }}" class="nav-link {{ request()->routeIs('admin.resources.*') ? 'active' : '' }}">
             <i class="bi bi-folder"></i>
             <span>Recursos</span>

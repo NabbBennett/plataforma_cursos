@@ -150,6 +150,13 @@ class ExamStudentController extends Controller
             'wrong_answers' => $wrong,
         ]);
 
+        // Recargar relaciones necesarias
+        $examResult->load([
+            'examAnswers.question',
+            'examAnswers.selectedAnswer',
+            'examAnswers.correctAnswer',
+        ]);
+
         session()->forget("exam_{$examId}");
 
         return view('student.courses.exams.result', compact('course', 'exam', 'examResult', 'totalDuration'));
@@ -159,15 +166,15 @@ class ExamStudentController extends Controller
         $exam = Exam::with('questions.answers')->findOrFail($examId);
         $course = Course::findOrFail($courseId);
 
-        $examResult = ExamResult::with('examAnswers.question', 'examAnswers.selectedAnswer', 'examAnswers.correctAnswer')
-            ->where('user_id', Auth::id())
-            ->where('exam_id', $examId)
-            ->latest()
-            ->first();
-
-        if (!$examResult) {
-            abort(404, 'No has realizado este examen.');
-        }
+        $examResult = ExamResult::with([
+            'examAnswers.question',
+            'examAnswers.selectedAnswer',
+            'examAnswers.correctAnswer'
+        ])->where('exam_id', $examId)
+          ->where('course_id', $courseId)
+          ->where('user_id', Auth::id())
+          ->latest()
+          ->firstOrFail();
 
         return view('student.courses.exams.result', compact('course', 'exam', 'examResult'));
     }

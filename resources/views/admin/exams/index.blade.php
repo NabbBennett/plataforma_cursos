@@ -260,11 +260,13 @@
                 <div class="col-md-8">
                     <h1 class="mb-2 d-inline"><i class="bi bi-file-text me-2"></i>Gestión de Exámenes</h1>
                 </div>
+                @if(auth()->user()->isAdmin() || auth()->user()->isMaestro())
                 <div class="col-md-4 text-md-end">
                     <a href="{{ route('admin.exams.create') }}" class="btn-create">
                         <i class="bi bi-plus-circle"></i> Crear Examen
                     </a>
                 </div>
+                @endif
             </div>
         </div>
 
@@ -321,15 +323,20 @@
                                                 <i class="bi bi-eye"></i>
                                                 <span class="mobile-hidden">Ver</span>
                                             </a>
+                                            @if(auth()->user()->isAdmin() || auth()->user()->isMaestro())
                                             <a href="{{ route('admin.exams.edit', $exam->id) }}" 
                                                class="btn-action btn-edit"
                                                title="Editar examen">
                                                 <i class="bi bi-pencil"></i>
                                                 <span class="mobile-hidden">Editar</span>
                                             </a>
+                                            @endif
+                                            @if(auth()->user()->isAdmin() || auth()->user()->isAyudante())
                                             <a href="{{ route('admin.exams.doings', $exam->id) }}" class="btn-action btn-edit" title="Realizados">
                                                 <i class="bi bi-check2-circle"></i><span class="mobile-hidden">Realizados</span>
                                             </a>
+                                            @endif
+                                            @if(auth()->user()->isAdmin())
                                             <form action="{{ route('admin.exams.destroy', $exam->id) }}" 
                                                   method="POST" 
                                                   class="d-inline"
@@ -341,6 +348,7 @@
                                                     <span class="mobile-hidden">Borrar</span>
                                                 </button>
                                             </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

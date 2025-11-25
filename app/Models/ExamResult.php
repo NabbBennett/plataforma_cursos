@@ -20,6 +20,10 @@ class ExamResult extends Model
     public function user()     { return $this->belongsTo(User::class); }
     public function exam()     { return $this->belongsTo(Exam::class); }
     public function answers()  { return $this->hasMany(ExamAnswer::class); }
+    public function examAnswers()
+    {
+        return $this->hasMany(ExamAnswer::class, 'exam_result_id');
+    }
 
     public function scorePercent(): float
     {

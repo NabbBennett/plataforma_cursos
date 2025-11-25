@@ -367,10 +367,12 @@
                                                   class="d-inline"
                                                   onsubmit="return confirm('¿Estás seguro de eliminar el curso \"{{ $course->title }}\"? Esta acción no se puede deshacer.');">
                                                 @csrf
+                                                @if(auth()->user()->isAdmin())
                                                 <button type="submit" class="btn-action btn-delete" title="Eliminar curso">
                                                     <i class="bi bi-trash"></i>
                                                     <span class="mobile-hidden">Eliminar</span>
                                                 </button>
+                                                @endif
                                             </form>
                                         </div>
                                     </td>

@@ -22,7 +22,7 @@
         </div>
         @endif
 
-        @if(auth()->user()->isAdmin() || auth()->user()->isMaestro())
+        @if(auth()->user()->isAdmin() || auth()->user()->isMaestro()) 
         <!-- Servicios -->
         <div class="col-xl-2 col-lg-4 col-md-6">
             <div class="card stats-card bg-services text-white">
@@ -36,7 +36,9 @@
                 </div>
             </div>
         </div>
+        @endif
 
+        @if(auth()->user()->isAdmin() || auth()->user()->isMaestro() || auth()->user()->isAyudante())
         <!-- Exámenes -->
         <div class="col-xl-2 col-lg-4 col-md-6">
             <div class="card stats-card bg-exams text-white">
@@ -50,7 +52,9 @@
                 </div>
             </div>
         </div>
+        @endif
 
+        @if(auth()->user()->isAdmin() || auth()->user()->isMaestro())
         <!-- Recursos -->
         <div class="col-xl-2 col-lg-4 col-md-6">
             <div class="card stats-card bg-resources text-white">

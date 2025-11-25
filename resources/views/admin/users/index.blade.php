@@ -392,6 +392,7 @@
                                 </td>
                                 <td>
                                     <div class="d-flex gap-2 mobile-stack">
+                                        @if(auth()->user()->isAdmin())
                                         <button type="button" 
                                                 class="btn btn-action btn-edit" 
                                                 data-bs-toggle="modal" 
@@ -404,7 +405,7 @@
                                                 title="Editar usuario">
                                             <i class="bi bi-pencil"></i> Editar
                                         </button>
-
+                                        
                                         <form action="{{ route('admin.users.delete', $user->id) }}" 
                                               method="POST" 
                                               class="d-inline"
@@ -417,6 +418,7 @@
                                                 <i class="bi bi-trash"></i> Eliminar
                                             </button>
                                         </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

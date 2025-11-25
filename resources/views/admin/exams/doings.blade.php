@@ -15,6 +15,66 @@
 .btn-reset { background:#dc3545; color:#fff; }
 .btn-reset:hover { background:#c82333; }
 .empty { text-align:center; padding:3rem; color:var(--text-secondary); }
+
+/* Modo oscuro (si usas clase en body) */
+body.dark-mode .results-container,
+body.dark-mode .results-table,
+body.dark-mode .results-table th,
+body.dark-mode .results-table td,
+body.dark-mode .results-container h1,
+body.dark-mode .results-container .empty {
+    color:#fff !important;
+}
+
+body.dark-mode .results-table th {
+    background: rgba(255,255,255,0.08);
+}
+
+body.dark-mode .results-table td {
+    background: transparent;
+}
+
+body.dark-mode .results-table .text-secondary {
+    color:#d0d0d0 !important;
+}
+
+/* Soporte si usas data-theme="dark" */
+[data-theme="dark"] .results-container,
+[data-theme="dark"] .results-table,
+[data-theme="dark"] .results-table th,
+[data-theme="dark"] .results-table td,
+[data-theme="dark"] .results-container h1,
+[data-theme="dark"] .results-container .empty {
+    color:#fff !important;
+}
+
+[data-theme="dark"] .results-table th {
+    background: rgba(255,255,255,0.08);
+}
+
+[data-theme="dark"] .results-table .text-secondary {
+    color:#d0d0d0 !important;
+}
+
+.btn-create {
+        background-color: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-create:hover {
+        background-color: var(--btn-outline-hover-bg);
+        color: var(--btn-outline-hover-text);
+        transform: translateY(-2px);
+    }
 </style>
 
 <div class="container-fluid py-4">

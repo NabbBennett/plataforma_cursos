@@ -404,7 +404,7 @@ class AdminController extends Controller
     }
 
     public function deleteCourse($id) {
-         $this->checkPermission(['admin']);
+        $this->checkPermission(['admin']);
         
         $course = Course::findOrFail($id);
         $course->delete();
@@ -455,7 +455,7 @@ class AdminController extends Controller
 
     // Agregar estos métodos para exámenes
     public function createExam(Request $request) {
-                $this->checkPermission(['admin', 'maestro']);
+        $this->checkPermission(['admin', 'maestro']);
 
         
         $request->validate([

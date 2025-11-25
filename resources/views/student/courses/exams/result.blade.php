@@ -106,21 +106,23 @@
     }
 
     .table-custom {
-        background-color: var(--bg-primary);
+        background-color: transparent; /* antes: var(--bg-primary) */
         border-radius: 10px;
         overflow: hidden;
         border: 1px solid var(--border-color);
     }
 
     .table-custom th {
-        background-color: var(--bg-secondary);
+        background-color: rgba(0,0,0,0.15); /* opcional ligero para contraste */
         color: var(--text-primary);
         border-color: var(--border-color);
         font-weight: 600;
         padding: 1rem;
+        backdrop-filter: blur(4px);
     }
 
     .table-custom td {
+        background-color: transparent; /* asegura celdas transparentes */
         border-color: var(--border-color);
         padding: 1rem;
         color: var(--text-primary);
@@ -311,6 +313,8 @@
                         $scoreClass = $score >= 80 ? 'score-excellent' : 
                                     ($score >= 60 ? 'score-good' : 
                                     ($score >= 40 ? 'score-average' : 'score-poor'));
+                        // Fallback seguro para respuestas
+                        $answers = ($examResult->examAnswers ?? collect());
                     @endphp
                     <div class="score-circle {{ $scoreClass }}">
                         {{ $score }}%
@@ -353,7 +357,7 @@
         <!-- Análisis de temas con errores -->
         @php
             $temasIncorrectos = [];
-            foreach ($examResult->examAnswers as $answer) {
+            foreach ($answers as $answer) {
                 if ($answer->selected_answer_id != $answer->correct_answer_id) {
                     $tema = $answer->topic ?? 'Sin tema';
                     if (!isset($temasIncorrectos[$tema])) {
@@ -398,13 +402,17 @@
                             </thead>
                             <tbody>
                                 @php $i = 1; @endphp
-                                @foreach ($examResult->examAnswers as $answer)
-                                    @if ($answer->selected_answer_id == $answer->correct_answer_id)
+                                @foreach ($answers as $answer)
+                                    @php
+                                        $isCorrect = $answer->selected_answer_id &&
+                                                     $answer->selected_answer_id == $answer->correct_answer_id;
+                                    @endphp
+                                    @if ($isCorrect)
                                         <tr>
                                             <td><strong>{{ $i++ }}</strong></td>
                                             <td><span class="topic-badge">{{ $answer->topic ?? '-' }}</span></td>
-                                            <td>{!! Str::limit(strip_tags($answer->question->text), 60) !!}</td>
-                                            <td>{!! Str::limit(strip_tags($answer->selectedAnswer->text ?? ''), 50) !!}</td>
+                                            <td>{!! Str::limit(strip_tags(optional($answer->question)->text), 60) !!}</td>
+                                            <td>{!! Str::limit(strip_tags(optional($answer->selectedAnswer)->text), 50) !!}</td>
                                         </tr>
                                     @endif
                                 @endforeach
@@ -429,20 +437,25 @@
                             </thead>
                             <tbody>
                                 @php $j = 1; @endphp
-                                @foreach ($examResult->examAnswers as $answer)
-                                    @if ($answer->selected_answer_id != $answer->correct_answer_id)
+                                @foreach ($answers as $answer)
+                                    @php
+                                        $isCorrect = $answer->selected_answer_id &&
+                                                     $answer->selected_answer_id == $answer->correct_answer_id;
+                                        $isIncorrect = !$isCorrect; // incluye no respondidas
+                                    @endphp
+                                    @if ($isIncorrect)
                                         <tr>
                                             <td><strong>{{ $j++ }}</strong></td>
                                             <td><span class="topic-badge">{{ $answer->topic ?? '-' }}</span></td>
-                                            <td>{!! Str::limit(strip_tags($answer->question->text), 60) !!}</td>
+                                            <td>{!! Str::limit(strip_tags(optional($answer->question)->text), 60) !!}</td>
                                             <td>
-                                                @if($answer->selectedAnswer)
-                                                    {!! Str::limit(strip_tags($answer->selectedAnswer->text), 40) !!}
+                                                @if($answer->selected_answer_id && $answer->selectedAnswer)
+                                                    {!! Str::limit(strip_tags(optional($answer->selectedAnswer)->text), 40) !!}
                                                 @else
                                                     <small class="incorrect-label">No respondiste</small>
                                                 @endif
-                                            </td>   
-                                            <td>{!! Str::limit(strip_tags($answer->correctAnswer->text ?? ''), 40) !!}</td>
+                                            </td>
+                                            <td>{!! Str::limit(strip_tags(optional($answer->correctAnswer)->text), 40) !!}</td>
                                         </tr>
                                     @endif
                                 @endforeach
@@ -455,8 +468,8 @@
 
         <!-- Botón de regreso -->
         <div class="text-center mt-4">
-            <a href="{{ url()->previous() }}" class="btn-custom me-3">
-                ← Volver Atrás
+            <a href="{{ route('courses.show', $course->id) }}" class="btn-custom me-3" id="goCourseBtn">
+                ← Volver al Curso
             </a>
         </div>
     </div>

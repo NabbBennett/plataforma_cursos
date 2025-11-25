@@ -7,7 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ResourceController extends Controller
-{
+{   
+     private function checkPermission($allowedRoles)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !in_array($user->role, $allowedRoles)) {
+            abort(403, 'No tienes permisos para acceder a esta sección.');
+        }
+    }
+    
     public function index()
     {
         $this->checkPermission(['admin', 'maestro']);

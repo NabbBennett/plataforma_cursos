@@ -458,37 +458,49 @@
         </div>
         
         <nav class="sidebar-menu">
-            <div class="nav flex-column">
-                <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="{{ route('admin.users') }}" class="nav-link {{ request()->routeIs('admin.users') ? 'active' : '' }}">
-                    <i class="bi bi-people"></i>
-                    <span>Usuarios</span>
-                </a>
-                <a href="{{ route('admin.courses.index') }}" class="nav-link {{ request()->routeIs('admin.courses.*') ? 'active' : '' }}">
-                    <i class="bi bi-briefcase"></i>
-                    <span>Cursos</span>
-                </a>
-                <a href="{{ route('admin.exams.index') }}" class="nav-link {{ request()->routeIs('admin.exams.*') ? 'active' : '' }}">
-                    <i class="bi bi-file-text"></i>
-                    <span>Exámenes</span>
-                </a>
-                <a href="{{ route('admin.resources.index') }}" class="nav-link {{ request()->routeIs('admin.resources.*') ? 'active' : '' }}">
-                    <i class="bi bi-folder"></i>
-                    <span>Recursos</span>
-                </a>
-                <a href="{{ route('admin.coupons.index') }}" class="nav-link {{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
-                    <i class="bi bi-tag"></i>
-                    <span>Cupones</span>
-                </a>
-                <a href="{{ route('admin.purchases.sales') }}" class="nav-link {{ request()->routeIs('admin.purchases.*') ? 'active' : '' }}">
-                    <i class="bi bi-graph-up"></i>
-                    <span>Ventas</span>
-                </a>
-            </div>
-        </nav>
+    <div class="nav flex-column">
+        <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </a>
+        
+        @if(auth()->user()->isAdmin() || auth()->user()->isAyudante())
+        <a href="{{ route('admin.users') }}" class="nav-link {{ request()->routeIs('admin.users') ? 'active' : '' }}">
+            <i class="bi bi-people"></i>
+            <span>Usuarios</span>
+        </a>
+        @endif
+        
+        @if(auth()->user()->isAdmin() || auth()->user()->isMaestro())
+        <a href="{{ route('admin.courses.index') }}" class="nav-link {{ request()->routeIs('admin.courses.*') ? 'active' : '' }}">
+            <i class="bi bi-briefcase"></i>
+            <span>Cursos</span>
+        </a>
+        <a href="{{ route('admin.exams.index') }}" class="nav-link {{ request()->routeIs('admin.exams.*') ? 'active' : '' }}">
+            <i class="bi bi-file-text"></i>
+            <span>Exámenes</span>
+        </a>
+        <a href="{{ route('admin.resources.index') }}" class="nav-link {{ request()->routeIs('admin.resources.*') ? 'active' : '' }}">
+            <i class="bi bi-folder"></i>
+            <span>Recursos</span>
+        </a>
+        @endif
+        
+        @if(auth()->user()->isAdmin())
+        <a href="{{ route('admin.coupons.index') }}" class="nav-link {{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
+            <i class="bi bi-tag"></i>
+            <span>Cupones</span>
+        </a>
+        @endif
+        
+        @if(auth()->user()->isAdmin() || auth()->user()->isAyudante())
+        <a href="{{ route('admin.purchases.sales') }}" class="nav-link {{ request()->routeIs('admin.purchases.*') ? 'active' : '' }}">
+            <i class="bi bi-graph-up"></i>
+            <span>Ventas</span>
+        </a>
+        @endif
+    </div>
+</nav>
     </aside>
 
     <!-- Main Content -->

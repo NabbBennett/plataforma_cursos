@@ -11,7 +11,17 @@ use App\Models\WeekDay;
 
 class PurchasesController extends Controller
 {
+    private function checkPermission($allowedRoles)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !in_array($user->role, $allowedRoles)) {
+            abort(403, 'No tienes permisos para acceder a esta sección.');
+        }
+    }
+    
     public function ventasGlobales(){
+        
         $ventas = Purchase::with(['user', 'course'])->get();
 
         foreach ($ventas as $venta) {

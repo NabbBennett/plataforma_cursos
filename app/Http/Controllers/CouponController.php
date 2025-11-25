@@ -9,6 +9,7 @@ class CouponController extends Controller
 {
     public function index()
     {   
+        $this->checkPermission(['admin']);
         $coupons = Coupon::paginate(10); 
         return view('admin.coupons.index', compact('coupons'));
     }

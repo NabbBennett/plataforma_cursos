@@ -69,7 +69,7 @@ class AuthController extends Controller {
             }
 
             //Redirección según rol
-            if ($user->role === 'admin') {
+            if ($user->role === 'admin' || $user->role === 'maestro' || $user->role === 'ayudante') {
                 return redirect()->route('admin.dashboard');
             }
 

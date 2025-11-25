@@ -15,31 +15,58 @@ use App\Models\Coupon;
 
 class AdminController extends Controller
 {
-    public function dashboard() {
-        if (auth()->user()->role !== 'admin') abort(403);
 
-        return view('admin.dashboard', [
+     private function checkPermission($allowedRoles)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !in_array($user->role, $allowedRoles)) {
+            abort(403, 'No tienes permisos para acceder a esta sección.');
+        }
+    }
+
+     public function dashboard() {
+        $this->checkPermission(['admin', 'ayudante', 'maestro']);
+
+        $stats = [
             'users' => User::count(),
             'courses' => Course::count(),
             'exams' => Exam::count(),
             'resources' => Resource::count(),
             'coupons' => Coupon::count(),
             'sales' => Purchase::count(),
-        ]);
+        ];
+
+        // Los maestros solo ven cursos, exámenes y recursos
+        if (auth()->user()->isMaestro()) {
+            $stats['users'] = 0;
+            $stats['coupons'] = 0;
+            $stats['sales'] = 0;
+        }
+
+        // Los ayudantes solo ven usuarios y ventas
+        if (auth()->user()->isAyudante()) {
+            $stats['courses'] = 0;
+            $stats['exams'] = 0;
+            $stats['resources'] = 0;
+            $stats['coupons'] = 0;
+        }
+
+        return view('admin.dashboard', $stats);
     }
 
     public function usersIndex(Request $request) {
+        $this->checkPermission(['admin', 'ayudante']);
+
         $role = $request->query('role');
         $search = $request->query('search');
         
         $query = User::query();
 
-        // Filtro por rol
         if ($role) {
             $query->where('role', $role);
         }
 
-        // Búsqueda por ID, nombre o correo
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('id', 'LIKE', "%{$search}%")
@@ -48,30 +75,53 @@ class AdminController extends Controller
             });
         }
 
-        // Paginación con 10 usuarios por página
         $users = $query->paginate(10);
-
         return view('admin.users.index', compact('users', 'role', 'search'));
     }
 
     public function editUser(User $user, Request $request) {
+        $this->checkPermission(['admin', 'ayudante']);
         $roleFilter = $request->query('role');
         return view('admin.users.edit', compact('user', 'roleFilter'));
     }
 
     public function updateUser(Request $request, $id) {
+        $this->checkPermission(['admin', 'ayudante']);
+
         $user = User::findOrFail($id);
-        $user->update($request->only(['name', 'email', 'role']));
+        
+        // Los ayudantes no pueden cambiar roles
+        $data = $request->only(['name', 'email']);
+        if (auth()->user()->isAdmin()) {
+            $data['role'] = $request->role;
+        }
+        
+        $user->update($data);
         return redirect()->route('admin.users')->with('success', 'Usuario actualizado correctamente');
     }
 
     public function deleteUser($id) {
+        $this->checkPermission(['admin']); // Solo admin puede eliminar
+
         $user = User::findOrFail($id);
         $user->delete();
         return redirect()->route('admin.users', ['role' => request('role')])->with('success', 'Usuario eliminado correctamente.');
     }
 
+    public function coursesIndex() {
+        $this->checkPermission(['admin', 'maestro']);
+        $courses = Course::all();
+        return view('admin.courses.index', compact('courses'));
+    }
+
+    public function showCreateCourseForm() {
+        $this->checkPermission(['admin', 'maestro']);
+        return view('admin.courses.create');
+    }
+
     public function createCourse(Request $request) {
+            $this->checkPermission(['admin', 'maestro']);
+    
         $request->validate([
             "title" => "required|string|max:255",
             "description" => "required|string",
@@ -107,16 +157,9 @@ class AdminController extends Controller
         return redirect()->route('admin.courses.index')->with("success", "Curso creado.");
     }
 
-    public function coursesIndex() {
-        $courses = Course::all();
-        return view('admin.courses.index', compact('courses'));
-    }
-
-    public function showCreateCourseForm() {
-        return view('admin.courses.create');
-    }
-
     public function edit($id) {
+        $this->checkPermission(['admin', 'maestro']);
+
         $course = Course::with([
             'weeks.resources', 
             'weeks.weekDays',
@@ -166,6 +209,8 @@ class AdminController extends Controller
     }
 
     public function updateCourse(Request $request, $id) {
+                $this->checkPermission(['admin', 'maestro']);
+
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -384,12 +429,15 @@ class AdminController extends Controller
     }
 
     public function deleteCourse($id) {
+         $this->checkPermission(['admin']);
+        
         $course = Course::findOrFail($id);
         $course->delete();
         return redirect()->route('admin.courses.index')->with("success", "Curso eliminado.");
     }
 
     public function showExamForm($weekId) {
+         $this->checkPermission(['admin', 'maestro']);
         $week = Week::findOrFail($weekId);
         $exam = $week->exam;
         return $exam
@@ -432,6 +480,9 @@ class AdminController extends Controller
 
     // Agregar estos métodos para exámenes
     public function createExam(Request $request) {
+                $this->checkPermission(['admin', 'maestro']);
+
+        
         $request->validate([
             'title' => 'required|string|max:255',
             'duration_minutes' => 'required|integer|min:1',
@@ -489,6 +540,8 @@ class AdminController extends Controller
     }
 
     public function updateExam(Request $request, $id) {
+                $this->checkPermission(['admin', 'maestro']);
+
         $request->validate([
             'title' => 'required|string|max:255',
             'duration_minutes' => 'required|integer|min:1',

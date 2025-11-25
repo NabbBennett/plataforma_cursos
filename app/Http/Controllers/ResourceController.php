@@ -10,6 +10,7 @@ class ResourceController extends Controller
 {
     public function index()
     {
+        $this->checkPermission(['admin', 'maestro']);
         try {
             $resources = Resource::latest()->paginate(10);
             return view('admin.resources.index', compact('resources'));

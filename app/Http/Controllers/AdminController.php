@@ -125,7 +125,7 @@ class AdminController extends Controller
         $request->validate([
             "title" => "required|string|max:255",
             "description" => "required|string",
-            'start_date' => 'nullable|date',
+            'start_date' => 'nullable|date|after_or_equal:today',
             'price_per_week' => 'required|numeric|min:0',
             "number_of_weeks" => "required|integer|min:1",
             "image" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048",

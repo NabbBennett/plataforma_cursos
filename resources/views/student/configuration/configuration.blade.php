@@ -68,13 +68,23 @@
                 @csrf
                 <div class="form-group">
                     <label for="current_password">Contraseña actual:</label>
-                    <input type="password" id="current_password" name="current_password" class="form-control" required>
+                    <div class="password-input-wrap">
+                        <input type="password" id="current_password" name="current_password" class="form-control" required>
+                        <button type="button" class="toggle-password" data-target="current_password" aria-label="Mostrar contraseña">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     <div class="error-message" id="current_passwordError"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="new_password">Nueva contraseña:</label>
-                    <input type="password" id="new_password" name="new_password" class="form-control" required minlength="6">
+                    <div class="password-input-wrap">
+                        <input type="password" id="new_password" name="new_password" class="form-control" required minlength="6">
+                        <button type="button" class="toggle-password" data-target="new_password" aria-label="Mostrar contraseña">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     <div class="password-requirements">
                         Mínimo 6 caracteres
                     </div>
@@ -83,7 +93,12 @@
                 
                 <div class="form-group">
                     <label for="confirm_password">Confirma contraseña:</label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                    <div class="password-input-wrap">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                        <button type="button" class="toggle-password" data-target="confirm_password" aria-label="Mostrar contraseña">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     <div class="error-message" id="confirm_passwordError"></div>
                 </div>
                 
@@ -635,6 +650,40 @@
         margin-bottom: 1rem;
     }
 }
+
+.password-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrap .form-control {
+    padding-right: 3.5rem;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.toggle-password:focus {
+    outline: 2px solid rgba(0,0,0,0.08);
+    outline-offset: 2px;
+}
+
+.toggle-password .bi {
+    font-size: 1.05rem;
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -859,26 +908,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
 
-            const data = await response.json();
-
-            if (data.success) {
-                showNotification('Contraseña actualizada correctamente', 'success');
-                document.getElementById('passwordForm').reset();
-            } else {
-                // Mostrar errores de validación
-                if (data.errors) {
-                    Object.keys(data.errors).forEach(field => {
-                        const errorElement = document.getElementById(field + 'Error');
-                        if (errorElement) {
-                            showError(errorElement, data.errors[field][0]);
-                        }
-                    });
+            const text = await response.text(); // siempre lee texto primero
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    showNotification('Contraseña actualizada correctamente', 'success');
+                    document.getElementById('passwordForm').reset();
                 } else {
-                    showNotification('Error al actualizar la contraseña', 'error');
+                    if (data.errors) {
+                        Object.keys(data.errors).forEach(field => {
+                            const errorElement = document.getElementById(field + 'Error');
+                            if (errorElement) {
+                                showError(errorElement, data.errors[field][0]);
+                            }
+                        });
+                    } else {
+                        showNotification('Error al actualizar la contraseña', 'error');
+                    }
                 }
+            } catch (jsonErr) {
+                // No es JSON: mostrar HTML devuelto por Laravel para debug
+                console.error('Respuesta no-JSON del servidor:', text);
+                showNotification('Error interno del servidor. Abre la consola para más detalles.', 'error');
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error fetch:', error);
             showNotification('Error al actualizar la contraseña', 'error');
         }
     }
@@ -907,6 +961,32 @@ document.addEventListener('DOMContentLoaded', function() {
             notification.remove();
         }, 3000);
     }
+
+    // Toggle visibility for password fields
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            const icon = this.querySelector('.bi');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.setAttribute('aria-label', 'Ocultar contraseña');
+                if (icon) {
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                }
+            } else {
+                input.type = 'password';
+                this.setAttribute('aria-label', 'Mostrar contraseña');
+                if (icon) {
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            }
+        });
+    });
 });
 </script>
 @endsection

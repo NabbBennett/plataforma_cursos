@@ -208,7 +208,7 @@ class AdminController extends Controller
     }
 
     public function updateCourse(Request $request, $id) {
-                $this->checkPermission(['admin', 'maestro']);
+                    $this->checkPermission(['admin', 'maestro']);
 
         $request->validate([
             'title' => 'required|string|max:255',

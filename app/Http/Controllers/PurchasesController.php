@@ -89,7 +89,7 @@ class PurchasesController extends Controller
 
         // ✅ NUEVO: Disminuir capacidad solo para nuevas compras
         if (!$existingPurchase && $course->capacity) {
-            $course->decrement('available_capacity');
+            $course->increment('enrolled_count');
             \Log::info("Capacidad disminuida manualmente para curso {$course->title}. Nueva capacidad: {$course->available_capacity}");
         }
 
@@ -145,7 +145,9 @@ class PurchasesController extends Controller
 
             // ✅ NUEVO: Restaurar capacidad solo si no hay otras compras del mismo usuario para el mismo curso
             if ($otherPurchasesCount === 0 && $course->capacity) {
-                $course->increment('available_capacity');
+                if ($course->enrolled_count > 0) {
+                    $course->decrement('enrolled_count');
+                }
                 \Log::info("Capacidad restaurada para curso {$course->title}. Nueva capacidad: {$course->available_capacity}");
             }
 
@@ -190,7 +192,7 @@ class PurchasesController extends Controller
 
         // ✅ NUEVO: Disminuir capacidad disponible
         if ($course->capacity) {
-            $course->decrement('available_capacity');
+            $course->increment('enrolled_count');
             \Log::info("Capacidad disminuida para curso {$course->title}. Nueva capacidad: {$course->available_capacity}");
         }
 

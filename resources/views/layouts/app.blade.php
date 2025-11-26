@@ -514,6 +514,9 @@
                         </a>
                         <div class="mobile-profile-dropdown" id="mobileProfileDropdown">
                             <a href="{{ route('student.profile') }}" class="dropdown-item">Ir a Cuenta</a>
+                            @if(auth()->user()->isAdmin() || auth()->user()->isMaestro() || auth()->user()->isAyudante()) 
+                                <a href="{{ route('admin.dashboard') }}" class="dropdown-item">Panel Admin</a>
+                            @endif
                             <form method="POST" action="{{ route('logout') }}" class="m-0">
                                 @csrf
                                 <button type="submit" class="dropdown-item">Cerrar Sesión</button>

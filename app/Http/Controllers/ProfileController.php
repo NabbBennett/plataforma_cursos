@@ -10,6 +10,8 @@ use App\Models\Course;
 use App\Models\Week;
 use App\Models\Exam;
 use App\Models\WeekDay;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
 {
@@ -90,44 +92,28 @@ class ProfileController extends Controller
     }
 
     public function updatePassword(Request $request){
-        $validator = Validator::make($request->all(), [
+        $validator = \Validator::make($request->all(), [
             'current_password' => 'required',
             'new_password' => 'required|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
         $user = auth()->user();
 
-        // Verificar contraseña actual
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (!\Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'success' => false,
                 'errors' => ['current_password' => ['La contraseña actual es incorrecta']]
             ], 422);
         }
 
-        // Verificar que la nueva contraseña no sea igual a la actual
-        if (Hash::check($request->new_password, $user->password)) {
-            return response()->json([
-                'success' => false,
-                'errors' => ['new_password' => ['La nueva contraseña no puede ser igual a la actual']]
-            ], 422);
-        }
-
-        // Actualizar contraseña
-        $user->password = Hash::make($request->new_password);
+        $user->password = \Hash::make($request->new_password);
         $user->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Contraseña actualizada correctamente'
-        ]);
+        return response()->json(['success' => true, 'message' => 'Contraseña actualizada correctamente'], 200);
     }
 
     public function showRecorded($dayId) {

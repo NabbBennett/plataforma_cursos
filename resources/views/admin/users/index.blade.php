@@ -290,7 +290,7 @@
                                 <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Administradores</option>
                                 <option value="ayudante" {{ request('role') === 'ayudante' ? 'selected' : '' }}>Ayudantes</option>
                                 <option value="maestro" {{ request('role') === 'maestro' ? 'selected' : '' }}>Maestros</option>
-                                <option value="alumno" {{ request('role') === 'alumno' ? 'selected' : '' }}>Alumnos</option>
+                                <option value="student" {{ request('role') === 'student' ? 'selected' : '' }}>Alumnos</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -383,7 +383,7 @@
                                             'admin' => 'Administrador',
                                             'ayudante' => 'Ayudante', 
                                             'maestro' => 'Maestro',
-                                            'alumno' => 'Alumno'
+                                            'student' => 'Alumno'
                                         ];
                                     @endphp
                                     <span class="role-badge {{ $roleClass }}">
@@ -465,6 +465,49 @@
 
 <!-- Incluir el modal de edición -->
 @include('admin.users.edit')
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const editUserModal = document.getElementById('editUserModal');
+    if (!editUserModal) return;
+
+    editUserModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        if (!button) return;
+
+        const id = button.getAttribute('data-user-id');
+        const name = button.getAttribute('data-user-name') || '';
+        const email = button.getAttribute('data-user-email') || '';
+        const phone = button.getAttribute('data-user-phone') || '';
+        const role = button.getAttribute('data-user-role') || '';
+
+        const form = editUserModal.querySelector('form');
+        if (!form) return;
+
+        // Ajusta la acción del formulario al usuario concreto
+        const baseUrl = "{{ url('/admin/users') }}";
+        form.action = baseUrl + '/' + id;
+
+        // Rellenar campos (asegúrate de que los name de los inputs coincidan)
+        const nameInput = form.querySelector('input[name="name"]');
+        const emailInput = form.querySelector('input[name="email"]');
+        const phoneInput = form.querySelector('input[name="phone_mobile"], input[name="phone"]');
+        const roleSelect = form.querySelector('select[name="role"]');
+
+        if (nameInput) nameInput.value = name;
+        if (emailInput) emailInput.value = email;
+        if (phoneInput) phoneInput.value = phone;
+
+        if (roleSelect) {
+            Array.from(roleSelect.options).forEach(opt => {
+                opt.selected = (opt.value === role);
+            });
+            // disparar cambio si hay listeners
+            roleSelect.dispatchEvent(new Event('change'));
+        }
+    });
+});
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

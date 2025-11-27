@@ -16,8 +16,7 @@ use App\Models\Coupon;
 class AdminController extends Controller
 {
 
-     private function checkPermission($allowedRoles)
-    {
+    private function checkPermission($allowedRoles){
         $user = auth()->user();
         
         if (!$user || !in_array($user->role, $allowedRoles)) {
@@ -85,19 +84,22 @@ class AdminController extends Controller
         return view('admin.users.edit', compact('user', 'roleFilter'));
     }
 
-    public function updateUser(Request $request, $id) {
-        $this->checkPermission(['admin', 'ayudante']);
+    public function updateUser(Request $request, $id)
+    {
+        $this->checkPermission(['admin']);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            // Asegúrate de usar los valores reales que acepta la columna role
+            'role' => 'required|in:admin,ayudante,maestro,student',
+        ]);
 
         $user = User::findOrFail($id);
-        
-        // Los ayudantes no pueden cambiar roles
-        $data = $request->only(['name', 'email']);
-        if (auth()->user()->isAdmin()) {
-            $data['role'] = $request->role;
-        }
-        
-        $user->update($data);
-        return redirect()->route('admin.users')->with('success', 'Usuario actualizado correctamente');
+        $user->fill($request->only(['name','email','role']));
+        $user->save();
+
+        return back()->with('success', 'Usuario actualizado correctamente');
     }
 
     public function deleteUser($id) {
@@ -125,7 +127,8 @@ class AdminController extends Controller
         $request->validate([
             "title" => "required|string|max:255",
             "description" => "required|string",
-            'start_date' => 'nullable|date|after_or_equal:today',
+            // permitir fechas pasadas al crear/actualizar
+            'start_date' => 'nullable|date',
             'price_per_week' => 'required|numeric|min:0',
             "number_of_weeks" => "required|integer|min:1",
             "image" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048",

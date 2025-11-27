@@ -309,8 +309,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="start_date" class="form-label">Fecha de Inicio</label>
                             <input type="date" class="form-control" id="start_date" name="start_date" 
-                                   value="{{ old('start_date') }}"
-                                   min="{{ date('Y-m-d') }}">
+                                   value="{{ old('start_date') }}">
                             <small class="text-secondary-custom">Seleccione la fecha de inicio del curso</small>
                         </div>
 

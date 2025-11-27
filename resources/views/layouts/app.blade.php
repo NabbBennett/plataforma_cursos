@@ -487,6 +487,9 @@
                     <div class="auth-buttons">
                         @auth
                             <a class="btn btn-outline-primary me-2" href="{{ route('student.profile') }}">Mi Cuenta</a>
+                            @if(auth()->user()->isAdmin() || auth()->user()->isMaestro() || auth()->user()->isAyudante()) 
+                            <a class="btn btn-outline-primary me-2" href="{{ route('admin.dashboard') }}">Panel Admin</a>
+                            @endif
                             <form method="POST" action="{{ route('logout') }}" class="d-inline m-0">
                                 @csrf
                                 <button type="submit" class="btn btn-outline-danger">Cerrar Sesión</button>

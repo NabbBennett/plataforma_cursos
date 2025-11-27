@@ -33,22 +33,8 @@
                                 <option value="admin">Administrador</option>
                                 <option value="ayudante">Ayudante</option>
                                 <option value="maestro">Maestro</option>
-                                <option value="alumno">Alumno</option>
+                                <option value="student">Alumno</option>
                             </select>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="alert alert-info mb-0">
-                                <small>
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    <strong>Información sobre roles:</strong><br>
-                                    • <strong>Administrador:</strong> Acceso completo al dashboard<br>
-                                    • <strong>Ayudante:</strong> Solo módulo de Ventas y Usuarios<br>
-                                    • <strong>Maestro:</strong> Solo Cursos, Exámenes y Materiales<br>
-                                    • <strong>Alumno:</strong> Sin acceso al dashboard
-                                </small>
-                            </div>
                         </div>
                     </div>
                 </div>

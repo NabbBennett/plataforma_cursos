@@ -477,12 +477,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
 
-    // Establecer fecha mínima para el campo de fecha
+    // Eliminar restricción de fecha mínima (permitir fechas pasadas)
     const startDateInput = document.getElementById('start_date');
-    if (!startDateInput.value) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        startDateInput.min = tomorrow.toISOString().split('T')[0];
+    if (startDateInput) {
+        startDateInput.removeAttribute('min');
     }
 });
 </script>

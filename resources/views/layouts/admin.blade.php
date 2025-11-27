@@ -422,7 +422,8 @@
                 <div class="col d-flex align-items-center">
                     <button class="row btn btn-light mobile-menu-btn" id="mobileMenuToggle">
                         <i class="bi bi-list"></i>
-                    </button>                </div>
+                    </button>                
+                </div>
                 <div class="col-auto d-flex align-items-center gap-2">
                     <button class="theme-toggle" id="themeToggle">
                         <i class="bi bi-sun"></i>

@@ -53,7 +53,10 @@ class ExamController extends Controller
 
         foreach ($request->questions as $i => $q) {
             $hasQuestionText = !empty(trim($q['text'] ?? ''));
-            $hasQuestionImage = $request->hasFile("questions.$i.image");
+            // Considerar: archivo nuevo subido OR imagen existente enviada en el array (existing_image / image_path)
+            $hasQuestionImage = $request->hasFile("questions.$i.image")
+                || !empty($q['existing_image'] ?? '')
+                || !empty($q['image_path'] ?? '');
 
             if (! $hasQuestionText && ! $hasQuestionImage) {
                 return back()->withErrors([
@@ -62,7 +65,9 @@ class ExamController extends Controller
             }
 
             $hasCorrectText = !empty(trim($q['correct'] ?? ''));
-            $hasCorrectImage = $request->hasFile("questions.$i.correct_image");
+            $hasCorrectImage = $request->hasFile("questions.$i.correct_image")
+                || !empty($q['correct_existing_image'] ?? '')
+                || !empty($q['correct_image_path'] ?? '');
 
             if (! $hasCorrectText && ! $hasCorrectImage) {
                 return back()->withErrors([
@@ -72,9 +77,9 @@ class ExamController extends Controller
 
             // Al menos una respuesta incorrecta (wrong1 es obligatoria por UI): text o image disponibles
             $wrongChecks = [
-                (!empty(trim($q['wrong1'] ?? '')) || $request->hasFile("questions.$i.wrong1_image")),
-                (!empty(trim($q['wrong2'] ?? '')) || $request->hasFile("questions.$i.wrong2_image")),
-                (!empty(trim($q['wrong3'] ?? '')) || $request->hasFile("questions.$i.wrong3_image")),
+                (!empty(trim($q['wrong1'] ?? '')) || $request->hasFile("questions.$i.wrong1_image") || !empty($q['wrong1_existing_image'] ?? '')),
+                (!empty(trim($q['wrong2'] ?? '')) || $request->hasFile("questions.$i.wrong2_image") || !empty($q['wrong2_existing_image'] ?? '')),
+                (!empty(trim($q['wrong3'] ?? '')) || $request->hasFile("questions.$i.wrong3_image") || !empty($q['wrong3_existing_image'] ?? '')),
             ];
 
             if (! $wrongChecks[0] && ! $wrongChecks[1] && ! $wrongChecks[2]) {
@@ -95,42 +100,51 @@ class ExamController extends Controller
                 ? $request->file("questions.$index.image")->store('exams/questions', 'public')
                 : null;
 
-            $question = Question::create([
-                'exam_id' => $exam->id,
-                'text' => Purifier::clean($q['text'] ?? '', [
+            // si hay imagen, usar '' en lugar de null para cumplir NOT NULL
+            $questionText = $questionImagePath
+                ? ''
+                : Purifier::clean($q['text'] ?? '', [
                     'HTML.Allowed' => 'p,b,strong,i,em,u,a[href],ul,ol,li,img[src|alt|width|height|style],br,span',
                     'CSS.AllowedProperties' => 'width,height,background-color,text-align',
                     'URI.AllowedSchemes' => ['http' => true, 'https' => true, 'data' => true],
-                ]),
-                'image_path' => $questionImagePath, // ✅ GUARDAR PATH COMO EN CURSOS
+                ]);
+
+            $question = Question::create([
+                'exam_id' => $exam->id,
+                'text' => $questionText,
+                'image_path' => $questionImagePath,
                 'theme' => $q['theme'] ?? null,
                 'order' => $index + 1,
             ]);
 
-            // Guardar imagen de respuesta correcta si existe
+            // Respuesta correcta
             $correctImagePath = $request->hasFile("questions.$index.correct_image")
                 ? $request->file("questions.$index.correct_image")->store('exams/answers', 'public')
                 : null;
 
+            $correctText = $correctImagePath ? '' : Purifier::clean($q['correct'] ?? '');
+
             Answer::create([
                 'question_id' => $question->id,
-                'text' => Purifier::clean($q['correct'] ?? ''),
-                'image_path' => $correctImagePath, // ✅ GUARDAR PATH
+                'text' => $correctText,
+                'image_path' => $correctImagePath,
                 'is_correct' => true,
             ]);
 
-            // Respuestas incorrectas: wrong1, wrong2, wrong3
+            // Respuestas incorrectas
             foreach (['wrong1', 'wrong2', 'wrong3'] as $key) {
-                // Guardar imagen de respuesta incorrecta si existe
                 $answerImagePath = $request->hasFile("questions.$index.{$key}_image")
                     ? $request->file("questions.$index.{$key}_image")->store('exams/answers', 'public')
                     : null;
 
-                if (!empty(trim($q[$key] ?? '')) || $answerImagePath) {
+                // si hay imagen, text = ''
+                $wrongText = $answerImagePath ? '' : Purifier::clean($q[$key] ?? '');
+
+                if (!empty(trim($wrongText)) || $answerImagePath) {
                     Answer::create([
                         'question_id' => $question->id,
-                        'text' => Purifier::clean($q[$key] ?? ''),
-                        'image_path' => $answerImagePath, // ✅ GUARDAR PATH
+                        'text' => $wrongText,
+                        'image_path' => $answerImagePath,
                         'is_correct' => false,
                     ]);
                 }
@@ -245,7 +259,10 @@ public function edit(Exam $exam){
         // Validaciones adicionales (misma lógica que en store)
         foreach ($request->questions as $i => $q) {
             $hasQuestionText = !empty(trim($q['text'] ?? ''));
-            $hasQuestionImage = $request->hasFile("questions.$i.image");
+            // Considerar: archivo nuevo subido OR imagen existente enviada en el array (existing_image / image_path)
+            $hasQuestionImage = $request->hasFile("questions.$i.image")
+                || !empty($q['existing_image'] ?? '')
+                || !empty($q['image_path'] ?? '');
 
             if (! $hasQuestionText && ! $hasQuestionImage) {
                 return back()->withErrors([
@@ -254,7 +271,9 @@ public function edit(Exam $exam){
             }
 
             $hasCorrectText = !empty(trim($q['correct'] ?? ''));
-            $hasCorrectImage = $request->hasFile("questions.$i.correct_image");
+            $hasCorrectImage = $request->hasFile("questions.$i.correct_image")
+                || !empty($q['correct_existing_image'] ?? '')
+                || !empty($q['correct_image_path'] ?? '');
 
             if (! $hasCorrectText && ! $hasCorrectImage) {
                 return back()->withErrors([
@@ -263,9 +282,9 @@ public function edit(Exam $exam){
             }
 
             $wrongChecks = [
-                (!empty(trim($q['wrong1'] ?? '')) || $request->hasFile("questions.$i.wrong1_image")),
-                (!empty(trim($q['wrong2'] ?? '')) || $request->hasFile("questions.$i.wrong2_image")),
-                (!empty(trim($q['wrong3'] ?? '')) || $request->hasFile("questions.$i.wrong3_image")),
+                (!empty(trim($q['wrong1'] ?? '')) || $request->hasFile("questions.$i.wrong1_image") || !empty($q['wrong1_existing_image'] ?? '')),
+                (!empty(trim($q['wrong2'] ?? '')) || $request->hasFile("questions.$i.wrong2_image") || !empty($q['wrong2_existing_image'] ?? '')),
+                (!empty(trim($q['wrong3'] ?? '')) || $request->hasFile("questions.$i.wrong3_image") || !empty($q['wrong3_existing_image'] ?? '')),
             ];
 
             if (! $wrongChecks[0] && ! $wrongChecks[1] && ! $wrongChecks[2]) {
@@ -280,64 +299,101 @@ public function edit(Exam $exam){
             'duration_minutes' => $request->duration_minutes,
         ]);
 
-        // Eliminar preguntas y respuestas existentes
+        // -------------------------------------------------------
+        // REEMPLAZAR bloque que eliminaba preguntas/archivos EXISTENTES
+        // -------------------------------------------------------
+        // Guardar rutas existentes para reutilizar si no se sube un nuevo archivo
+        $existingByIndex = [];
+        foreach ($exam->questions as $idx => $q) {
+            $existingByIndex[$idx] = [
+                'question_image' => $q->image_path,
+                'question_text' => $q->text,
+                'answers' => $q->answers->map(function ($a) {
+                    return [
+                        'id' => $a->id,
+                        'text' => $a->text,
+                        'image_path' => $a->image_path,
+                        'is_correct' => $a->is_correct
+                    ];
+                })->toArray()
+            ];
+        }
+
+        // Eliminar solo registros BD (no borrar archivos físicos aquí)
         $exam->questions()->each(function ($q) {
-            // Eliminar imágenes físicas si existen
-            if ($q->image_path && Storage::disk('public')->exists($q->image_path)) {
-                Storage::disk('public')->delete($q->image_path);
-            }
-            
-            $q->answers()->each(function ($answer) {
-                if ($answer->image_path && Storage::disk('public')->exists($answer->image_path)) {
-                    Storage::disk('public')->delete($answer->image_path);
-                }
-            });
-            
             $q->answers()->delete();
             $q->delete();
         });
+        // -------------------------------------------------------
 
         foreach ($request->questions as $index => $q) {
-            // Guardar imagen de pregunta si existe
-            $questionImagePath = $request->hasFile("questions.$index.image")
-                ? $request->file("questions.$index.image")->store('exams/questions', 'public')
-                : null;
+            // imagen pregunta
+            if ($request->hasFile("questions.$index.image")) {
+                $questionImagePath = $request->file("questions.$index.image")->store('exams/questions', 'public');
+            } else {
+                $questionImagePath = !empty($q['existing_image']) ? $q['existing_image'] : ($existingByIndex[$index]['question_image'] ?? null);
+            }
+
+            // usar '' si hay imagen
+            $rawQuestionText = $q['text'] ?? '';
+            $questionTextClean = $questionImagePath ? '' : Purifier::clean($rawQuestionText, [
+                'HTML.Allowed' => 'p,b,strong,i,em,u,a[href],ul,ol,li,img[src|alt|width|height|style],br,span',
+                'CSS.AllowedProperties' => 'width,height,background-color,text-align',
+                'URI.AllowedSchemes' => ['http' => true, 'https' => true, 'data' => true],
+            ]);
 
             $question = Question::create([
                 'exam_id' => $exam->id,
-                'text' => Purifier::clean($q['text'] ?? '', [
-                    'HTML.Allowed' => 'p,b,strong,i,em,u,a[href],ul,ol,li,img[src|alt|width|height|style],br,span',
-                    'CSS.AllowedProperties' => 'width,height,background-color,text-align',
-                    'URI.AllowedSchemes' => ['http' => true, 'https' => true, 'data' => true],
-                ]),
-                'image_path' => $questionImagePath, // ✅ GUARDAR PATH
+                'text' => $questionTextClean,
+                'image_path' => $questionImagePath,
                 'theme' => $q['theme'] ?? null,
                 'order' => $index + 1,
             ]);
 
-            // Guardar imagen de respuesta correcta si existe
-            $correctImagePath = $request->hasFile("questions.$index.correct_image")
-                ? $request->file("questions.$index.correct_image")->store('exams/answers', 'public')
-                : null;
+            // correcta
+            if ($request->hasFile("questions.$index.correct_image")) {
+                $correctImagePath = $request->file("questions.$index.correct_image")->store('exams/answers', 'public');
+            } else {
+                $correctImagePath = !empty($q['correct_existing_image']) ? $q['correct_existing_image'] : null;
+            }
 
-            Answer::create([
-                'question_id' => $question->id,
-                'text' => Purifier::clean($q['correct'] ?? ''),
-                'image_path' => $correctImagePath, // ✅ GUARDAR PATH
-                'is_correct' => true,
-            ]);
+            $correctTextClean = $correctImagePath ? '' : Purifier::clean($q['correct'] ?? '');
+            $createdAnswers = [];
+
+            if (!empty(trim($correctTextClean)) || $correctImagePath) {
+                $createdAnswers[] = ['text' => $correctTextClean, 'image' => $correctImagePath];
+                Answer::create([
+                    'question_id' => $question->id,
+                    'text' => $correctTextClean,
+                    'image_path' => $correctImagePath,
+                    'is_correct' => true,
+                ]);
+            }
 
             foreach (['wrong1', 'wrong2', 'wrong3'] as $key) {
-                // Guardar imagen de respuesta incorrecta si existe
-                $answerImagePath = $request->hasFile("questions.$index.{$key}_image")
-                    ? $request->file("questions.$index.{$key}_image")->store('exams/answers', 'public')
-                    : null;
+                if ($request->hasFile("questions.$index.{$key}_image")) {
+                    $answerImagePath = $request->file("questions.$index.{$key}_image")->store('exams/answers', 'public');
+                } else {
+                    $answerImagePath = !empty($q["{$key}_existing_image"]) ? $q["{$key}_existing_image"] : null;
+                }
 
-                if (!empty(trim($q[$key] ?? '')) || $answerImagePath) {
+                $rawWrongText = $q[$key] ?? '';
+                $wrongTextClean = $answerImagePath ? '' : Purifier::clean($rawWrongText);
+
+                $isDuplicate = false;
+                foreach ($createdAnswers as $a) {
+                    if (($a['text'] !== '' && $a['text'] === $wrongTextClean) || ($a['image'] && $a['image'] === $answerImagePath)) {
+                        $isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if ((!empty(trim($wrongTextClean)) || $answerImagePath) && ! $isDuplicate) {
+                    $createdAnswers[] = ['text' => $wrongTextClean, 'image' => $answerImagePath];
                     Answer::create([
                         'question_id' => $question->id,
-                        'text' => Purifier::clean($q[$key] ?? ''),
-                        'image_path' => $answerImagePath, // ✅ GUARDAR PATH
+                        'text' => $wrongTextClean,
+                        'image_path' => $answerImagePath,
                         'is_correct' => false,
                     ]);
                 }

@@ -446,7 +446,7 @@
                                     <button type="button" class="btn-weeks" onclick="changeWeeks('{{ $courseId }}', 1)">
                                         <i class="bi bi-plus"></i>
                                     </button>
-                                    <span class="ms-2 text-muted small">
+                                    <span class="ms-2 text small">
                                         Máx: {{ $item['max_weeks'] }}
                                     </span>
                                 </div>
@@ -513,7 +513,7 @@
                         <div class="summary-line text-success">
                             <span>
                                 <i class="bi bi-tag me-1"></i>
-                                Descuento (sobre semanas):
+                                Descuento:
                             </span>
                             <span>- ${{ number_format($discount, 2) }}</span>
                         </div>
@@ -552,9 +552,9 @@
                                         </div>
                                         <div class="coupon-type">
                                             @if($appliedCoupon['type'] === 'percentage')
-                                                {{ $appliedCoupon['value'] }}% de descuento sobre semanas
+                                                {{ $appliedCoupon['value'] }}% de descuento
                                             @else
-                                                Cupón de ${{ number_format($appliedCoupon['value'], 2) }} sobre semanas
+                                                Cupón de ${{ number_format($appliedCoupon['value'], 2) }} 
                                             @endif
                                         </div>
                                         <div class="coupon-amount small">
@@ -594,7 +594,7 @@
                                         <i class="bi bi-check-lg"></i>
                                     </button>
                                 </div>
-                                <small class="form-text text-muted mt-1">
+                                <small class="form-text text mt-1">
                                     El descuento se aplica sobre el total de semanas
                                 </small>
                             </form>

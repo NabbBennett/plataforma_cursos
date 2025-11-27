@@ -91,7 +91,6 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            // Asegúrate de usar los valores reales que acepta la columna role
             'role' => 'required|in:admin,ayudante,maestro,student',
         ]);
 
@@ -127,7 +126,6 @@ class AdminController extends Controller
         $request->validate([
             "title" => "required|string|max:255",
             "description" => "required|string",
-            // permitir fechas pasadas al crear/actualizar
             'start_date' => 'nullable|date',
             'price_per_week' => 'required|numeric|min:0',
             "number_of_weeks" => "required|integer|min:1",
@@ -156,6 +154,7 @@ class AdminController extends Controller
                 'title' => "Semana $i"
             ]);
         }
+
 
         return redirect()->route('admin.courses.index')->with("success", "Curso creado.");
     }
@@ -219,10 +218,12 @@ class AdminController extends Controller
             'start_date' => 'nullable|date',
             'price_per_week' => 'required|numeric|min:0',
             'block_order' => 'nullable|string',
-            'capacity' => 'nullable|integer|min:1|max:1000'
+            'capacity' => 'nullable|integer|min:1|max:1000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         $course = Course::findOrFail($id);
+        
         $course->update($request->only([
             'title', 
             'description', 

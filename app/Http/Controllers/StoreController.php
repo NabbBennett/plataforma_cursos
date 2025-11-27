@@ -212,11 +212,11 @@ class StoreController extends Controller
     if ($coupon->discount_type === 'percentage') {
         // Descuento por porcentaje sobre el SUBTOTAL
         $discountAmount = ($subtotal * $coupon->discount_value) / 100;
-        $discountMessage = "¡Cupón aplicado! {$coupon->discount_value}% de descuento sobre semanas = $" . number_format($discountAmount, 2);
+        $discountMessage = "¡Cupón aplicado! {$coupon->discount_value}% de descuento = $" . number_format($discountAmount, 2);
     } else {
         // Descuento por monto fijo sobre el SUBTOTAL
         $discountAmount = min($coupon->discount_value, ($subtotal + $extra));
-        $discountMessage = "¡Cupón aplicado! Descuento de $" . number_format($discountAmount, 2) . " sobre semanas";
+        $discountMessage = "¡Cupón aplicado! Descuento de $" . number_format($discountAmount, 2);
     }
 
     // Debug final

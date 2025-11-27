@@ -248,7 +248,7 @@
                                 {{ $enrolled }} / {{ $capacity }} inscritos
                             </div>
                         </div>
-                        <small class="text-muted d-block">
+                        <small class="text d-block">
                             @if($available <= 5)
                                 <i class="bi bi-exclamation-triangle text-warning"></i>
                                 Quedan {{ $available }} cupos

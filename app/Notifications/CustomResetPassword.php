@@ -40,12 +40,13 @@ class CustomResetPassword extends Notification
             'email' => $notifiable->getEmailForPasswordReset(),
         ], false));
 
+        // Usa la vista HTML completa para mantener el diseño como en verify code
         return (new MailMessage)
             ->subject('Restablecer Contraseña - Instituto Resiliencia')
-            ->line('Estás recibiendo este email porque se solicitó un restablecimiento de contraseña para tu cuenta.')
-            ->action('Restablecer Contraseña', $url)
-            ->line('Este enlace de restablecimiento expirará en 60 minutos.')
-            ->line('Si no solicitaste un restablecimiento de contraseña, no es necesario realizar ninguna acción.');
+            ->view('emails.reset-password', [
+                'user' => $notifiable,
+                'url' => $url,
+            ]);
     }
 
     /**

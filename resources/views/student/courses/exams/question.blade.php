@@ -2,6 +2,25 @@
 
 @section('content')
 
+<!-- Configuración de MathJax ANTES de cargar el script -->
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        },
+        svg: {
+            fontCache: 'global'
+        },
+        startup: {
+            pageReady: () => {
+                console.log('MathJax startup pageReady');
+                return MathJax.typesetPromise();
+            }
+        }
+    };
+</script>
+
 <style>
     .exam-bg {
         background-color: var(--bg-primary);
@@ -206,7 +225,11 @@
                     </div>
                     <div class="question-container" style="min-height: 180px;">
                         <div style="color: var(--text-primary);">
-                            {!! $question->text !!}
+                            @if($question->image_path)
+                                <img src="{{ asset('storage/' . $question->image_path) }}" alt="Pregunta" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain;">
+                            @else
+                                {!! $question->text !!}
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -227,8 +250,12 @@
                                        onchange="saveAnswer({{ $question->id }}, {{ $answer->id }})"
                                        {{ old("answers.{$question->id}", session("exam_{$exam->id}.answers.{$question->id}")) == $answer->id ? 'checked' : '' }}
                                        {{ session("exam_{$exam->id}.finished") ? 'disabled' : '' }}>
-                                <label class="form-check-label" for="answer_{{ $answer->id }}">
-                                    {!! $answer->text !!}
+                                <label class="form-check-label" for="answer_{{ $answer->id }}" style="display: flex; align-items: center; gap: 10px;">
+                                    @if($answer->image_path)
+                                        <img src="{{ asset('storage/' . $answer->image_path) }}" alt="Respuesta" style="max-width: 120px; max-height: 80px; border-radius: 4px; object-fit: contain;">
+                                    @else
+                                        {!! $answer->text !!}
+                                    @endif
                                 </label>
                             </div>
                         @endforeach
@@ -252,7 +279,8 @@
                         'questionNumber' => $i + 1
                     ]) }}"
                    class="nav-btn btn btn-sm {{ $active ? 'active' : '' }} {{ $answered ? 'answered' : '' }}"
-                   style="color: {{ $active ? 'var(--btn-primary-text)' : 'var(--text-primary)' }};">
+                   style="color: {{ $active ? 'var(--btn-primary-text)' : 'var(--text-primary)' }};"
+                   onclick="typesetMath();">
                     {{ $i + 1 }}
                 </a>
             @endforeach
@@ -309,12 +337,72 @@ function updateTimer() {
 const timerInterval = setInterval(updateTimer, 1000);
 updateTimer();
 
+// Procesar MathJax cuando carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DOMContentLoaded ===');
+    console.log('MathJax disponible:', !!window.MathJax);
+    console.log('MathJax.typesetPromise:', typeof window.MathJax?.typesetPromise);
+    
+    if (window.MathJax) {
+        console.log('Iniciando procesamiento de MathJax...');
+        
+        // Usar un timeout como fallback para asegurar que MathJax se procese
+        // aunque las imágenes no hayan terminado de cargar
+        setTimeout(() => {
+            console.log('Timeout 500ms - Procesando MathJax...');
+            MathJax.typesetPromise()
+                .then(() => console.log('✓ MathJax procesado exitosamente en timeout'))
+                .catch(err => console.error('✗ Error en MathJax timeout:', err));
+        }, 500);
+        
+        // También procesar cuando las imágenes carguen
+        const images = document.querySelectorAll('img');
+        console.log('Imágenes encontradas:', images.length);
+        
+        images.forEach((img, idx) => {
+            img.addEventListener('load', () => {
+                console.log(`✓ Imagen ${idx} cargada - Reprocesando MathJax...`);
+                MathJax.typesetPromise()
+                    .then(() => console.log('✓ MathJax procesado después de cargar imagen'))
+                    .catch(err => console.error('✗ Error en MathJax:', err));
+            });
+            
+            img.addEventListener('error', () => {
+                console.log(`✗ Imagen ${idx} falló en cargar`);
+            });
+        });
+    } else {
+        console.error('✗ MathJax no está disponible');
+    }
+});
+
+// Función para reprocesar MathJax cuando se navega a otra pregunta
+function typesetMath() {
+    console.log('=== typesetMath() llamado ===');
+    if (window.MathJax && MathJax.typesetPromise) {
+        // Procesar inmediatamente y también con delay para asegurar
+        console.log('Procesando MathJax inmediatamente...');
+        MathJax.typesetPromise()
+            .then(() => console.log('✓ MathJax procesado inmediatamente'))
+            .catch(err => console.error('✗ Error MathJax inmediato:', err));
+        
+        setTimeout(() => {
+            console.log('Procesando MathJax con delay 300ms...');
+            MathJax.typesetPromise()
+                .then(() => console.log('✓ MathJax procesado con delay'))
+                .catch(err => console.error('✗ Error MathJax delay:', err));
+        }, 300);
+    } else {
+        console.error('✗ MathJax no disponible en typesetMath()');
+    }
+}
+
 // Asegurar que los estilos se apliquen correctamente al cambiar de tema
 document.addEventListener('DOMContentLoaded', function() {
     const themeToggleButtons = document.querySelectorAll('.theme-toggle');
     themeToggleButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // Forzar actualización de estilos después del cambio de tema
+            // Forzar actualización de estilos después del cambiar de tema
             setTimeout(() => {
                 document.querySelectorAll('.question-container, .answer-container, .indicators-table').forEach(el => {
                     el.style.display = 'none';
@@ -326,4 +414,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- MathJax CDN - CARGADO AL FINAL -->
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
 @endsection

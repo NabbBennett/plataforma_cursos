@@ -35,22 +35,14 @@
         <select name="evaluation_blocks[{{ $index }}][exam_id]" class="form-select">
             <option value="">-- Seleccionar examen --</option>
             @foreach ($allExams as $exam)
+                @php $examLabel = $exam->title ? $exam->title : "Examen #{$exam->id}"; @endphp
                 <option value="{{ $exam->id }}"
                     {{ (isset($evaluationBlock) && $evaluationBlock->exam_id == $exam->id) ? 'selected' : '' }}>
-                    Examen #{{ $exam->id }} ({{ $exam->questions_count }} preguntas, {{ $exam->duration_minutes }} min)
+                    {{ $examLabel }} ({{ $exam->questions_count }} preguntas, {{ $exam->duration_minutes }} min)
                 </option>
             @endforeach
         </select>
         <small class="text-secondary-custom">Examen final de evaluación</small>
-
-        @if(isset($evaluationBlock) && $evaluationBlock->exam_id)
-            <div class="mt-2">
-                <button type="button" class="btn-action btn-info-custom btn-sm"
-                        onclick="previewExam({{ $evaluationBlock->exam_id }})">
-                    <i class="bi bi-eye me-1"></i>Vista previa
-                </button>
-            </div>
-        @endif
     </div>
 
     <div class="alert alert-info mt-3">

@@ -19,6 +19,7 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
         }
         .header {
             text-align: center;
@@ -34,6 +35,7 @@
             color: #004754;
             font-size: 20px;
             margin-bottom: 20px;
+            text-align: center;
         }
         .token {
             font-size: 36px;
@@ -64,13 +66,15 @@
         
         <h2 class="greeting">¡Hola {{ $user->name }}!</h2>
         
-        <p><strong>¡Recibiste este correo porque solicitaste restablecer tu contraseña!</strong></p>
+        <p style="text-align:center;"><strong>¡Recibiste este correo porque solicitaste restablecer tu contraseña!</strong></p>
         
-        <a href="{{ $url }}" style="background: #004754; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-            Restablecer contraseña
-        </a>
+        <p style="text-align:center;">
+            <a href="{{ $url }}" style="background: #004754; color: #fff; padding: 12px 22px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Restablecer contraseña
+            </a>
+        </p>
 
-        <div class="footer">
+        <div class="footer" style="text-align:center;">
             <p>Si no solicitaste el cambio, puedes ignorar este mensaje.</p>
             <p><strong>INSTITUTO RESILIENCIA</strong></p>
         </div>

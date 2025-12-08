@@ -135,47 +135,30 @@
             <select name="weeks[{{ $index }}][exam_id]" class="form-select">
                 <option value="">-- Sin examen --</option>
                 @foreach ($allExams as $exam)
+                    @php $examLabel = $exam->title ? $exam->title : "Examen #{$exam->id}"; @endphp
                     <option value="{{ $exam->id }}"
                         {{ (isset($week) && $week->exam_id == $exam->id) ? 'selected' : '' }}>
-                        Examen #{{ $exam->id }} ({{ $exam->questions_count }} preguntas, {{ $exam->duration_minutes }} min)
+                        {{ $examLabel }} ({{ $exam->questions_count }} preguntas, {{ $exam->duration_minutes }} min)
                     </option>
                 @endforeach
             </select>
             <small class="text-secondary-custom">Evaluación al final de esta semana</small>
-            
-            @if(isset($week) && $week->exam_id)
-                <div class="mt-2">
-                    <button type="button" class="btn-action btn-info-custom btn-sm" 
-                            onclick="previewExam({{ $week->id }})">
-                        <i class="bi bi-eye me-1"></i>Vista previa
-                    </button>
-                </div>
-            @endif
         </div>
 
-        {{-- Recursos (Único recurso con radios) --}}
+        {{-- Recursos (selector desplegable) --}}
         <div class="col-md-6 mb-3">
             <label class="form-label">
-                <i class="bi bi-file-earmark me-1"></i>Recurso (solo uno)
+                <i class="bi bi-file-earmark me-1"></i>Recurso
             </label>
-            <div class="border rounded p-2" style="max-height:230px;overflow-y:auto;">
-                @forelse($resources as $res)
-                    <div class="form-check mb-2">
-                        <input class="form-check-input"
-                               type="radio"
-                               name="weeks[{{ $index }}][resource_id]"
-                               id="resource_{{ $index }}_{{ $res->id }}"
-                               value="{{ $res->id }}"
-                               {{ $res->id == $selectedResourceId ? 'checked' : '' }}>
-                        <label class="form-check-label" for="resource_{{ $index }}_{{ $res->id }}">
-                            {{ $res->title }}
-                            <small class="text-muted ms-1">({{ $res->type }})</small>
-                        </label>
-                    </div>
-                @empty
-                    <div class="text-muted">Sin recursos disponibles.</div>
-                @endforelse
-            </div>
+            <select name="weeks[{{ $index }}][resource_id]" class="form-select">
+                <option value="">-- Sin recurso --</option>
+                @foreach ($resources as $res)
+                    <option value="{{ $res->id }}" {{ $res->id == $selectedResourceId ? 'selected' : '' }}>
+                        {{ $res->title }} ({{ $res->type }})
+                    </option>
+                @endforeach
+            </select>
+            <small class="text-secondary-custom">Selecciona un recurso relacionado con la semana</small>
         </div>
     </div>
 </div>

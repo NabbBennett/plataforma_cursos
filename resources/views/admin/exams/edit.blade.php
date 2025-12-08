@@ -671,12 +671,6 @@
 {{-- CKEditor 5 Classic Build --}}
 <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 
-{{-- Plugin de Alineación para CKEditor 5 --}}
-<script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-alignment@41.1.0/build/alignment.js"></script>
-
-{{-- Script de Integración de WIRIS MathType para CKEditor 5 --}}
-<script src="https://cdn.jsdelivr.net/npm/@wiris/mathtype-ckeditor5@8.7.0/dist/plugin.js"></script>
-
 {{-- MathJax para renderizado de fórmulas --}}
 <script>
 window.MathJax = {
@@ -747,93 +741,100 @@ function addQuestion(questionData = {}) {
     // Actualizar número de pregunta
     div.querySelector('.question-number-display').textContent = questionIndex + 1;
     
-    // CONFIGURAR PREVISUALIZACIÓN DE IMÁGENES EXISTENTES INMEDIATAMENTE
+    // NUEVO: Determinar qué modo activar por defecto
+    const currentIndex = questionIndex;
+    
     setTimeout(() => {
-        // Pregunta
-        if (questionData.image_path) {
-            const previewContainer = document.getElementById(`question-image-preview-${questionIndex}`);
-            if (previewContainer) {
-                previewContainer.innerHTML = '';
-                const img = document.createElement('img');
-                img.src = questionData.image_path;
-                img.className = 'image-preview';
-                img.alt = 'Imagen de pregunta existente';
-                img.style.display = 'block'; // FORZAR VISUALIZACIÓN
-                previewContainer.appendChild(img);
-                previewContainer.style.display = 'block'; // FORZAR VISUALIZACIÓN
+        // CONFIGURAR TIPOS DE INPUT BASADO EN CONTENIDO EXISTENTE
+        
+        // PREGUNTA: Si tiene texto, activar modo texto; si solo imagen, modo imagen
+        const hasQuestionText = !!(questionData.text && questionData.text.trim());
+        
+        if (!hasQuestionText && questionHasImage) {
+            // Solo imagen - activar modo imagen
+            const imageBtn = div.querySelector('.input-type-toggle .toggle-btn[data-type="image"]');
+            if (imageBtn) {
+                imageBtn.click();
             }
+            
+            // Mostrar preview de imagen existente
+            if (questionData.image_path) {
+                const previewContainer = document.getElementById(`question-image-preview-${currentIndex}`);
+                if (previewContainer) {
+                    previewContainer.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = questionData.image_path;
+                    img.className = 'image-preview';
+                    img.alt = 'Imagen de pregunta existente';
+                    previewContainer.appendChild(img);
+                    previewContainer.style.display = 'block';
+                }
+            }
+        } else {
+            // Tiene texto (o nada) - modo texto activo por defecto
+            // Inicializar CKEditor para pregunta
+            setTimeout(() => initializeCKEditor(currentIndex, 'question'), 150);
         }
         
-        // Respuesta correcta
-        if (questionData.correct_image_path) {
-            const previewContainer = document.getElementById(`correct-image-preview-${questionIndex}`);
-            if (previewContainer) {
+        // RESPUESTA CORRECTA
+        const hasCorrectText = !!(questionData.correct_text && questionData.correct_text.trim());
+        
+        if (!hasCorrectText && questionData.correct_image_path) {
+            // Solo imagen
+            const imageBtn = div.querySelector('.answer-option:first-child .toggle-btn[data-type="image"]');
+            if (imageBtn) {
+                imageBtn.click();
+            }
+            
+            const previewContainer = document.getElementById(`correct-image-preview-${currentIndex}`);
+            if (previewContainer && questionData.correct_image_path) {
                 previewContainer.innerHTML = '';
                 const img = document.createElement('img');
                 img.src = questionData.correct_image_path;
                 img.className = 'image-preview';
-                img.alt = 'Imagen de respuesta correcta existente';
-                img.style.display = 'block'; // FORZAR VISUALIZACIÓN
                 previewContainer.appendChild(img);
-                previewContainer.style.display = 'block'; // FORZAR VISUALIZACIÓN
+                previewContainer.style.display = 'block';
             }
+        } else {
+            // Tiene texto - inicializar CKEditor
+            setTimeout(() => initializeCKEditor(currentIndex, 'correct'), 150);
         }
         
-        // Respuestas incorrectas
-        ['wrong1', 'wrong2', 'wrong3'].forEach((wrongType) => {
-            const imagePathKey = `${wrongType}_image_path`;
-            if (questionData[imagePathKey]) {
-                const previewContainer = document.getElementById(`${wrongType}-image-preview-${questionIndex}`);
-                if (previewContainer) {
-                    previewContainer.innerHTML = '';
-                    const img = document.createElement('img');
-                    img.src = questionData[imagePathKey];
-                    img.className = 'image-preview';
-                    img.alt = `Imagen de respuesta incorrecta existente`;
-                    img.style.display = 'block'; // FORZAR VISUALIZACIÓN
-                    previewContainer.appendChild(img);
-                    previewContainer.style.display = 'block'; // FORZAR VISUALIZACIÓN
-                }
-            }
-        });
-
-        // CONFIGURAR TIPOS DE INPUT BASADO EN IMÁGENES EXISTENTES
-        // Pregunta - activar modo imagen si tiene imagen
-        if (questionHasImage) {
-            const imageBtn = div.querySelector('.input-type-toggle .toggle-btn[data-type="image"]');
-            if (imageBtn) {
-                // Forzar el cambio visual inmediato
-                imageBtn.click();
-            }
-        }
-        
-        // Respuesta correcta - activar modo imagen si tiene imagen
-        if (questionData.correct_image_path) {
-            const imageBtn = div.querySelector('.answer-option:first-child .toggle-btn[data-type="image"]');
-            if (imageBtn) {
-                // Forzar el cambio visual inmediato
-                imageBtn.click();
-            }
-        }
-        
-        // Respuestas incorrectas - activar modo imagen si tienen imagen
-        ['wrong1', 'wrong2', 'wrong3'].forEach((wrongType) => {
-            const imagePathKey = `${wrongType}_image_path`;
-            if (questionData[imagePathKey]) {
+        // RESPUESTAS INCORRECTAS
+        ['wrong1', 'wrong2', 'wrong3'].forEach((wrongType, idx) => {
+            const textKey = `${wrongType}_text`;
+            const imageKey = `${wrongType}_image_path`;
+            const hasText = !!(questionData[textKey] && questionData[textKey].trim());
+            
+            if (!hasText && questionData[imageKey]) {
+                // Solo imagen
                 const answerOptions = div.querySelectorAll('.answer-option');
-                const targetIndex = ['wrong1', 'wrong2', 'wrong3'].indexOf(wrongType) + 1; // +1 porque el primero es correct
+                const targetIndex = idx + 1;
                 if (answerOptions[targetIndex]) {
                     const imageBtn = answerOptions[targetIndex].querySelector('.toggle-btn[data-type="image"]');
                     if (imageBtn) {
-                        // Forzar el cambio visual inmediato
                         imageBtn.click();
                     }
                 }
+                
+                const previewContainer = document.getElementById(`${wrongType}-image-preview-${currentIndex}`);
+                if (previewContainer && questionData[imageKey]) {
+                    previewContainer.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = questionData[imageKey];
+                    img.className = 'image-preview';
+                    previewContainer.appendChild(img);
+                    previewContainer.style.display = 'block';
+                }
+            } else if (hasText || (!hasText && !questionData[imageKey])) {
+                // Tiene texto o está vacío - inicializar CKEditor
+                setTimeout(() => initializeCKEditor(currentIndex, wrongType), 150);
             }
         });
-
-        // Inicializar CKEditor 5
-        initializeCKEditor(questionIndex);
+        
+        // Crear previsualizaciones MathJax después de que se inicialicen los editores
+        setTimeout(() => createMathPreviews(), 300);
+        
     }, 100);
     
     questionIndex++;
@@ -854,16 +855,12 @@ function toggleQuestionInputType(button, index) {
     document.getElementById(`question-text-${index}`).classList.toggle('active', type === 'text');
     document.getElementById(`question-image-${index}`).classList.toggle('active', type === 'image');
 
-    // ACTUALIZAR VISIBILIDAD DE IMÁGENES EXISTENTES INMEDIATAMENTE
-    updateImagePreviewVisibility(index, 'question', type);
-    
-    if (type === 'image') {
-        showExistingImagesImmediately(index);
-    }
-
     if (type === 'text') {
+        // Destruir editor si existe y reinicializar
+        destroyCKEditorInstances(index, 'question');
         setTimeout(() => initializeCKEditor(index, 'question'), 100);
     } else {
+        // Modo imagen - destruir editor
         destroyCKEditorInstances(index, 'question');
     }
 }
@@ -882,16 +879,12 @@ function toggleAnswerInputType(button, index, answerType) {
     document.getElementById(`${answerType}-text-${index}`).classList.toggle('active', type === 'text');
     document.getElementById(`${answerType}-image-${index}`).classList.toggle('active', type === 'image');
 
-    // ACTUALIZAR VISIBILIDAD DE IMÁGENES EXISTENTES INMEDIATAMENTE
-    updateImagePreviewVisibility(index, answerType, type);
-    
-    if (type === 'image') {
-        showExistingImagesImmediately(index);
-    }
-
     if (type === 'text') {
+        // Destruir editor si existe y reinicializar
+        destroyCKEditorInstances(index, answerType);
         setTimeout(() => initializeCKEditor(index, answerType), 100);
     } else {
+        // Modo imagen - destruir editor
         destroyCKEditorInstances(index, answerType);
     }
 }
@@ -1157,19 +1150,11 @@ function initializeCKEditor(index, type = null) {
     const editorConfig = {
         toolbar: {
             items: [
-                'heading', '|',
-                'bold', 'italic', 'underline', '|',
-                'alignment', '|',
-                'MathType', 'ChemType', '|', 
-                'bulletedList', 'numberedList', 'blockQuote', '|',
-                'link', 'insertTable', 'undo', 'redo', 
+                'bold', 'italic', 'link', '|',
+                'bulletedList', 'numberedList', '|',
+                'undo', 'redo'
             ]
         },
-        
-        alignment: {
-            options: [ 'left', 'right', 'center', 'justify' ]
-        },
-
         htmlSupport: {
             allow: [
                 {
@@ -1186,29 +1171,51 @@ function initializeCKEditor(index, type = null) {
         const element = document.getElementById(el.id);
         const existingInstance = ckeditorInstances[el.key];
 
-        if (element && !existingInstance) {
-             element.closest('.text-input')?.classList.add('active'); 
-
-             ClassicEditor
-                .create(element, editorConfig)
-                .then(editor => {
-                    editor.ui.view.editable.element.classList.add(el.heightClass);
-                    ckeditorInstances[el.key] = editor;
-                    console.log(`CKEditor 5 inicializado: ${el.key}`);
-                    
-                    // Event listener para actualizar previsualización MathJax
-                    editor.model.document.on('change:data', () => {
-                        updateMathPreview(el.key);
-                    });
-                })
-                .catch(error => {
-                    console.error(`Error al inicializar CKEditor 5 para ${el.key}`, error);
-                });
+        // VERIFICACIÓN MEJORADA: No inicializar si ya existe
+        if (!element) {
+            console.log(`Elemento ${el.id} no encontrado`);
+            return;
         }
+
+        if (existingInstance) {
+            console.log(`⚠️ Editor ${el.key} ya existe, saltando inicialización`);
+            return;
+        }
+
+        // Verificar que el contenedor padre esté visible
+        const parent = element.closest('.text-input');
+        if (!parent || !parent.classList.contains('active')) {
+            console.log(`Saltando ${el.key} - contenedor no activo`);
+            return;
+        }
+
+        // Verificar que no haya un editor CKEditor ya renderizado
+        if (element.nextElementSibling && element.nextElementSibling.classList.contains('ck-editor')) {
+            console.log(`⚠️ Ya existe un editor renderizado para ${el.key}`);
+            return;
+        }
+        
+        ClassicEditor
+            .create(element, editorConfig)
+            .then(editor => {
+                // Agrega clases separadas para evitar InvalidCharacterError
+                (el.heightClass || '').trim().split(/\s+/).filter(Boolean)
+                    .forEach(cls => editor.ui.view.editable.element.classList.add(cls));
+                ckeditorInstances[el.key] = editor;
+                console.log(`✅ CKEditor 5 inicializado: ${el.key}`);
+                
+                // Event listener para actualizar previsualización MathJax
+                editor.model.document.on('change:data', () => {
+                    updateMathPreview(el.key);
+                });
+            })
+            .catch(error => {
+                console.error(`❌ Error al inicializar CKEditor 5 para ${el.key}`, error);
+            });
     });
 }
 
-// FUNCIÓN CKEDITOR 5: Destrucción
+// FUNCIÓN CKEDITOR 5: Destrucción MEJORADA
 function destroyCKEditorInstances(index, type = null) {
     const keysToDestroy = [];
     
@@ -1224,12 +1231,14 @@ function destroyCKEditorInstances(index, type = null) {
     keysToDestroy.forEach(key => {
         if (ckeditorInstances[key]) {
             try { 
-                ckeditorInstances[key].destroy(); 
+                ckeditorInstances[key].destroy();
+                delete ckeditorInstances[key];
                 console.log(`CKEditor 5 destruido: ${key}`);
             } catch(e) {
                 console.warn(`No se pudo destruir CKEditor 5 para ${key}:`, e);
+                // Forzar eliminación del registro incluso si falla la destrucción
+                delete ckeditorInstances[key];
             }
-            delete ckeditorInstances[key];
         }
     });
 }

@@ -30,7 +30,9 @@ class CourseController extends Controller
             },
             'weeks.weekDays',
             'weeks.exam',
-            'evaluationBlocks'
+            'evaluationBlocks' => function($q) {
+                $q->with('exam');
+            }
         ])->findOrFail($id);
 
         $weeks = $course->weeks()->with('exams')->get();
@@ -44,15 +46,29 @@ class CourseController extends Controller
             $exams = $exams->merge($block->exams);
         }
         $examProgress = app(ExamStudentController::class)->getExamProgress($id);
-        $bloquesEvaluacion = $course->evaluationBlocks;
+        $bloquesEvaluacion = $course->evaluationBlocks()->orderBy('id')->get();
         $weeksDesbloqueadas = $course->weeks->take($purchase->weeks_unlocked);
 
+        // Construir combined de forma más robusta ordenando por semana
         $combined = [];
+        $usedBlockIds = [];
+        
+        // Crear un mapeo de semanas por ID
+        $weekById = [];
+        foreach ($course->weeks as $w) {
+            $weekById[$w->id] = $w;
+        }
+        
         foreach ($weeksDesbloqueadas as $week) {
-            $combined[] = ['type' => 'week', 'data' => $week];
-            $block = $bloquesEvaluacion->firstWhere('after_week_id', $week->id);
-            if ($block) {
-                $combined[] = ['type' => 'evaluation', 'data' => $block];
+            $combined[] = ['type' => 'week', 'data' => $week, 'order' => $week->number];
+            
+            // Buscar bloques que vienen después de esta semana
+            foreach ($bloquesEvaluacion as $block) {
+                // Verificar si el bloque tiene after_week_id igual al ID de la semana actual
+                if ($block->after_week_id && $block->after_week_id == $week->id && !in_array($block->id, $usedBlockIds)) {
+                    $combined[] = ['type' => 'evaluation', 'data' => $block, 'order' => $week->number + 0.5];
+                    $usedBlockIds[] = $block->id;
+                }
             }
         }
 

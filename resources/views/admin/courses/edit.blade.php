@@ -837,6 +837,7 @@ function updateBlockOrder() {
     
     const blocks = document.querySelectorAll('.week-block');
     const order = [];
+    let lastWeekId = null; // Guardar el ID real de la última semana
     
     console.log(`📊 Total de bloques encontrados: ${blocks.length}`);
     
@@ -849,9 +850,23 @@ function updateBlockOrder() {
         if (block.classList.contains('evaluation-block') || block.dataset.blockType === 'evaluation') {
             type = 'evaluation';
             idInput = block.querySelector('input[name*="evaluation_blocks"][name*="[id]"]');
+            
+            // ACTUALIZAR after_week_id PARA BLOQUES DE EVALUACIÓN
+            // El bloque de evaluación debe venir después de la última semana
+            const afterWeekIdInput = block.querySelector('input[name*="evaluation_blocks"][name*="[after_week_id]"]');
+            if (afterWeekIdInput && lastWeekId) {
+                afterWeekIdInput.value = lastWeekId;
+                console.log(`📝 Actualizando after_week_id de bloque evaluación a ${lastWeekId}`);
+            }
         } else {
             type = 'week';
             idInput = block.querySelector('input[name*="weeks"][name*="[id]"]');
+            
+            // Obtener el ID real de la semana
+            if (idInput && idInput.value) {
+                lastWeekId = idInput.value;
+                console.log(`📍 Semana ID detectada: ${lastWeekId}`);
+            }
         }
         
         // Obtener el ID del bloque

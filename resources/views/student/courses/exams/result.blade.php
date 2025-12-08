@@ -3,6 +3,27 @@
 @section('title', 'Resultados del examen')
 
 @section('content')
+
+<!-- Configuración de MathJax ANTES de cargar el script -->
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: {
+            fontCache: 'global'
+        },
+        startup: {
+            pageReady: () => {
+                console.log('MathJax startup pageReady');
+                return MathJax.typesetPromise();
+            }
+        }
+    };
+</script>
+
 <style>
     .results-container {
         background-color: var(--bg-primary);
@@ -359,7 +380,8 @@
             $temasIncorrectos = [];
             foreach ($answers as $answer) {
                 if ($answer->selected_answer_id != $answer->correct_answer_id) {
-                    $tema = $answer->topic ?? 'Sin tema';
+                    // Primero intenta con el topic guardado, si no existe toma del question->theme
+                    $tema = $answer->topic ?? ($answer->question->theme ?? 'Sin tema');
                     if (!isset($temasIncorrectos[$tema])) {
                         $temasIncorrectos[$tema] = 0;
                     }
@@ -375,7 +397,7 @@
                 <div class="mt-2">
                     @foreach($temasIncorrectos as $tema => $errores)
                         <span class="topic-badge me-2 mb-2 d-inline-block">
-                            {{ $tema }} ({{ $errores }} error{{ $errores > 1 ? 'es' : '' }})
+                            {{ $tema }}
                         </span>
                     @endforeach
                 </div>
@@ -406,13 +428,27 @@
                                     @php
                                         $isCorrect = $answer->selected_answer_id &&
                                                      $answer->selected_answer_id == $answer->correct_answer_id;
+                                        $question = optional($answer->question);
+                                        $selectedAnswer = optional($answer->selectedAnswer);
                                     @endphp
                                     @if ($isCorrect)
                                         <tr>
                                             <td><strong>{{ $i++ }}</strong></td>
-                                            <td><span class="topic-badge">{{ $answer->topic ?? '-' }}</span></td>
-                                            <td>{!! Str::limit(strip_tags(optional($answer->question)->text), 60) !!}</td>
-                                            <td>{!! Str::limit(strip_tags(optional($answer->selectedAnswer)->text), 50) !!}</td>
+                                            <td><span>{{ $question->theme ?? $answer->topic ?? '-' }}</span></td>
+                                            <td>
+                                                @if($question->image_path)
+                                                    <img src="{{ asset('storage/' . $question->image_path) }}" alt="Pregunta" style="max-width: 100px; max-height: 80px; border-radius: 4px; cursor: pointer;" onclick="this.style.maxWidth='100%'; this.style.maxHeight='100%';" title="Click para ampliar">
+                                                @else
+                                                    {!! strip_tags($question->text) !!}
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($selectedAnswer->image_path)
+                                                    <img src="{{ asset('storage/' . $selectedAnswer->image_path) }}" alt="Respuesta" style="max-width: 100px; max-height: 80px; border-radius: 4px; cursor: pointer;" onclick="this.style.maxWidth='100%'; this.style.maxHeight='100%';" title="Click para ampliar">
+                                                @else
+                                                    {!! strip_tags($selectedAnswer->text) !!}
+                                                @endif
+                                            </td>
                                         </tr>
                                     @endif
                                 @endforeach
@@ -441,21 +477,40 @@
                                     @php
                                         $isCorrect = $answer->selected_answer_id &&
                                                      $answer->selected_answer_id == $answer->correct_answer_id;
-                                        $isIncorrect = !$isCorrect; // incluye no respondidas
+                                        $isIncorrect = !$isCorrect;
+                                        $question = optional($answer->question);
+                                        $selectedAnswer = optional($answer->selectedAnswer);
+                                        $correctAnswer = optional($answer->correctAnswer);
                                     @endphp
                                     @if ($isIncorrect)
                                         <tr>
                                             <td><strong>{{ $j++ }}</strong></td>
-                                            <td><span class="topic-badge">{{ $answer->topic ?? '-' }}</span></td>
-                                            <td>{!! Str::limit(strip_tags(optional($answer->question)->text), 60) !!}</td>
+                                            <td><span>{{ $question->theme ?? $answer->topic ?? '-' }}</span></td>
                                             <td>
-                                                @if($answer->selected_answer_id && $answer->selectedAnswer)
-                                                    {!! Str::limit(strip_tags(optional($answer->selectedAnswer)->text), 40) !!}
+                                                @if($question->image_path)
+                                                    <img src="{{ asset('storage/' . $question->image_path) }}" alt="Pregunta" style="max-width: 100px; max-height: 80px; border-radius: 4px; cursor: pointer;" onclick="this.style.maxWidth='100%'; this.style.maxHeight='100%';" title="Click para ampliar">
+                                                @else
+                                                    {!! strip_tags($question->text) !!}
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($answer->selected_answer_id && $selectedAnswer)
+                                                    @if($selectedAnswer->image_path)
+                                                        <img src="{{ asset('storage/' . $selectedAnswer->image_path) }}" alt="Tu respuesta" style="max-width: 100px; max-height: 80px; border-radius: 4px; cursor: pointer;" onclick="this.style.maxWidth='100%'; this.style.maxHeight='100%';" title="Click para ampliar">
+                                                    @else
+                                                        {!! strip_tags($selectedAnswer->text) !!}
+                                                    @endif
                                                 @else
                                                     <small class="incorrect-label">No respondiste</small>
                                                 @endif
                                             </td>
-                                            <td>{!! Str::limit(strip_tags(optional($answer->correctAnswer)->text), 40) !!}</td>
+                                            <td>
+                                                @if($correctAnswer->image_path)
+                                                    <img src="{{ asset('storage/' . $correctAnswer->image_path) }}" alt="Respuesta correcta" style="max-width: 100px; max-height: 80px; border-radius: 4px; cursor: pointer;" onclick="this.style.maxWidth='100%'; this.style.maxHeight='100%';" title="Click para ampliar">
+                                                @else
+                                                    {!! strip_tags($correctAnswer->text) !!}
+                                                @endif
+                                            </td>
                                         </tr>
                                     @endif
                                 @endforeach
@@ -477,6 +532,22 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Procesar MathJax cuando carga la página
+    if (window.MathJax) {
+        console.log('Iniciando procesamiento de MathJax en resultado...');
+        
+        // Procesar inmediatamente
+        MathJax.typesetPromise()
+            .then(() => {
+                console.log('✓ MathJax procesado en resultado');
+                // Reprocesar después de 500ms para asegurar que todo esté listo
+                setTimeout(() => {
+                    MathJax.typesetPromise().catch(err => console.error('Error MathJax:', err));
+                }, 500);
+            })
+            .catch(err => console.error('✗ Error inicial MathJax:', err));
+    }
+    
     // Animación suave para las tarjetas de estadísticas
     const statCards = document.querySelectorAll('.stat-card');
     statCards.forEach((card, index) => {
@@ -501,4 +572,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- MathJax CDN - CARGADO AL FINAL -->
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
 @endsection

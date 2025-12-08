@@ -95,16 +95,22 @@
     
     .carousel-wrapper {
         flex: 1;
-        overflow-x: hidden;
+        overflow-x: auto;
         border-radius: 12px;
         position: relative;
+        scroll-behavior: smooth;
+        scrollbar-width: none; /* Firefox */
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .carousel-wrapper::-webkit-scrollbar {
+        display: none; /* Chrome, Safari */
     }
     
     .carousel-track {
         display: flex;
         gap: 1rem;
         padding: 0.5rem 0;
-        transition: transform 0.3s ease;
         width: max-content;
     }
     
@@ -614,7 +620,7 @@
                 <span class="info-value">101</span>
             </div>
             <div class="info-item">
-                <span class="info-label">Número de DUAS</span>
+                <span class="info-label">Número de Dudas</span>
                 <span class="info-value">202</span>
             </div>
             <div class="info-item">
@@ -647,6 +653,7 @@
                         @php
                             $isEvaluation = $item['type'] === 'evaluation';
                             $week = $item['data'];
+                            $data = $week;
                         @endphp
 
                         <div class="week-card {{ $isEvaluation ? 'evaluation' : '' }}">
@@ -657,20 +664,20 @@
                             </div>
                             
                             <div class="week-content">
-                                @if ($week->live_meet_link)
+                                @if ($data->live_meet_link)
                                     <div class="content-item">
                                         <span class="content-label">Clase en Vivo</span>
-                                        <a href="{{ $week->live_meet_link }}" target="_blank" class="btn-action btn-primary">
+                                        <a href="{{ $data->live_meet_link }}" target="_blank" class="btn-action btn-primary">
                                             <i class="bi bi-camera-video"></i>
                                             Unirse a Clase
                                         </a>
                                     </div>
                                 @endif
 
-                                @if ($week->recording_link)
+                                @if ($data->recording_link)
                                     <div class="content-item">
                                         <span class="content-label">Clase Grabada</span>
-                                        <a href="{{ route('student.recorded', $week->recording_link) }}" class="btn-action btn-secondary">
+                                        <a href="{{ route('student.recorded', $data->recording_link) }}" class="btn-action btn-secondary">
                                             <i class="bi bi-play-circle"></i>
                                             Ver Grabación
                                         </a>
@@ -678,9 +685,9 @@
                                 @endif
 
                                 @php
-                                    $exam = isset($week->exam) ? $week->exam : null;
-                                    if (!$exam && isset($week->exam_id)) {
-                                        $exam = \App\Models\Exam::find($week->exam_id);
+                                    $exam = isset($data->exam) ? $data->exam : null;
+                                    if (!$exam && isset($data->exam_id)) {
+                                        $exam = \App\Models\Exam::find($data->exam_id);
                                     }
                                 @endphp
 
@@ -709,10 +716,10 @@
                                     </div>
                                 @endif
 
-                                @if ($week->resource_id)
+                                @if ($data->resource_id)
                                     <div class="content-item">
                                         <span class="content-label">Recursos</span>
-                                        <a href="{{ route('student.resources.view', ['type' => $isEvaluation ? 'evaluation' : 'week', 'id' => $week->id]) }}" class="btn-action btn-secondary">
+                                        <a href="{{ route('student.resources.view', ['type' => $isEvaluation ? 'evaluation' : 'week', 'id' => $data->id]) }}" class="btn-action btn-secondary">
                                             <i class="bi bi-folder"></i>
                                             Ver Recursos
                                         </a>
@@ -874,30 +881,42 @@ document.addEventListener('DOMContentLoaded', function () {
     const track = document.getElementById('carousel-track');
     const prevBtn = document.getElementById('prev-week');
     const nextBtn = document.getElementById('next-week');
+    const wrapper = track.parentElement;
     const cards = track.querySelectorAll('.week-card');
     
     if (track && cards.length > 0) {
+        let currentIndex = 0;
         const cardWidth = cards[0].offsetWidth + parseInt(getComputedStyle(track).gap);
-        const visibleCards = Math.floor(track.parentElement.offsetWidth / cardWidth);
-        let currentPosition = 0;
-        const maxPosition = track.scrollWidth - track.parentElement.offsetWidth;
         
         function updateButtons() {
-            prevBtn.disabled = currentPosition <= 0;
-            nextBtn.disabled = currentPosition >= maxPosition;
+            prevBtn.disabled = currentIndex <= 0;
+            nextBtn.disabled = currentIndex >= cards.length - 1;
         }
         
-        function scrollCarousel(direction) {
-            const scrollAmount = cardWidth * visibleCards;
-            currentPosition += direction * scrollAmount;
-            currentPosition = Math.max(0, Math.min(currentPosition, maxPosition));
-            
-            track.style.transform = `translateX(-${currentPosition}px)`;
+        function scrollToCard(index) {
+            currentIndex = Math.max(0, Math.min(index, cards.length - 1));
+            const scrollPosition = currentIndex * cardWidth;
+            wrapper.scrollLeft = scrollPosition;
             updateButtons();
         }
         
-        prevBtn.addEventListener('click', () => scrollCarousel(-1));
-        nextBtn.addEventListener('click', () => scrollCarousel(1));
+        prevBtn.addEventListener('click', () => {
+            scrollToCard(currentIndex - 1);
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            scrollToCard(currentIndex + 1);
+        });
+        
+        // Detectar scroll manual y actualizar índice
+        let scrollTimeout;
+        wrapper.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                currentIndex = Math.round(wrapper.scrollLeft / cardWidth);
+                updateButtons();
+            }, 100);
+        });
         
         // Inicializar estado de botones
         updateButtons();
@@ -907,9 +926,7 @@ document.addEventListener('DOMContentLoaded', function () {
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                currentPosition = 0;
-                track.style.transform = 'translateX(0)';
-                updateButtons();
+                scrollToCard(0);
             }, 250);
         });
     }

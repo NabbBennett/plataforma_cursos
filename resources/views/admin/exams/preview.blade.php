@@ -50,11 +50,8 @@ window.MathJax = {
                                  onerror="this.style.display='none'">             
                         </div>
                     @endif
-                    
                     <div class="question-text math-content">
-                        @if($question->theme)
-                            <span class="question-theme">- {{ $question->theme }}</span>
-                        @endif
+                        {!! $question->text !!}
                     </div>
                 </div>
 

@@ -687,31 +687,6 @@
 {{-- CKEditor 5 Classic Build --}}
 <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 
-{{-- Plugin de Alineación para CKEditor 5 --}}
-<script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-alignment@41.1.0/build/alignment.js"></script>
-
-{{-- Script de Integración de WIRIS MathType para CKEditor 5 --}}
-<script src="https://cdn.jsdelivr.net/npm/@wiris/mathtype-ckeditor5@8.7.0/dist/plugin.js"></script>
-
-{{-- MathJax para renderizado de fórmulas --}}
-<script>
-window.MathJax = {
-    tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        packages: { '[+]': ['mhchem'] }
-    },
-    svg: { 
-        fontCache: 'global',
-        scale: 0.9
-    },
-    startup: {
-        typeset: false
-    }
-};
-</script>
-<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
 <script>
 let questionIndex = 0;
 const ckeditorInstances = {}; 
@@ -757,18 +732,14 @@ function updateQuestionNumbers() {
 function toggleQuestionInputType(button, index) {
     const type = button.dataset.type;
     const container = button.closest('.input-type-toggle');
-    
-    // Actualizar botones activos
-    container.querySelectorAll('.toggle-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    container.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
-    
-    // Mostrar/ocultar inputs
+
     document.getElementById(`question-text-${index}`).classList.toggle('active', type === 'text');
     document.getElementById(`question-image-${index}`).classList.toggle('active', type === 'image');
 
     if (type === 'text') {
+        destroyCKEditorInstances(index, 'question');
         setTimeout(() => initializeCKEditor(index, 'question'), 100);
     } else {
         destroyCKEditorInstances(index, 'question');
@@ -778,165 +749,140 @@ function toggleQuestionInputType(button, index) {
 function toggleAnswerInputType(button, index, answerType) {
     const type = button.dataset.type;
     const container = button.closest('.input-type-toggle');
-    
-    // Actualizar botones activos
-    container.querySelectorAll('.toggle-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    container.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
-    
-    // Mostrar/ocultar inputs
+
     document.getElementById(`${answerType}-text-${index}`).classList.toggle('active', type === 'text');
     document.getElementById(`${answerType}-image-${index}`).classList.toggle('active', type === 'image');
 
     if (type === 'text') {
+        destroyCKEditorInstances(index, answerType);
         setTimeout(() => initializeCKEditor(index, answerType), 100);
     } else {
         destroyCKEditorInstances(index, answerType);
     }
 }
 
+// Previsualizar imagen de pregunta
 function previewQuestionImage(input, index) {
     const previewContainer = document.getElementById(`question-image-preview-${index}`);
+    if (!previewContainer) return;
     previewContainer.innerHTML = '';
-    
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        
-        reader.onload = function(e) {
+        reader.onload = e => {
             const img = document.createElement('img');
             img.src = e.target.result;
             img.className = 'image-preview';
             previewContainer.appendChild(img);
-        }
-        
+        };
         reader.readAsDataURL(input.files[0]);
     }
 }
 
+// Previsualizar imagen de respuesta
 function previewAnswerImage(input, index, answerType) {
     const previewContainer = document.getElementById(`${answerType}-image-preview-${index}`);
+    if (!previewContainer) return;
     previewContainer.innerHTML = '';
-    
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        
-        reader.onload = function(e) {
+        reader.onload = e => {
             const img = document.createElement('img');
             img.src = e.target.result;
             img.className = 'image-preview';
             previewContainer.appendChild(img);
-        }
-        
+        };
         reader.readAsDataURL(input.files[0]);
     }
 }
 
 // FUNCIÓN CKEDITOR 5: Configuración y Inicialización
 function initializeCKEditor(index, type = null) {
-    if (typeof ClassicEditor === 'undefined') {
-        console.error('CKEditor 5 (ClassicEditor) no está cargado.');
-        return;
-    }
-    
-    const elementsToInit = [];
-    
-    if (type === 'question' || type === null) {
-        elementsToInit.push({
-            id: `editor-question-${index}`,
-            key: `question-${index}`,
-            heightClass: 'ck-editor__editable_inline'
-        });
-    }
+    if (typeof ClassicEditor === 'undefined') return;
 
+    const elementsToInit = [];
+    if (type === 'question' || type === null) {
+        elementsToInit.push({ id: `editor-question-${index}`, key: `question-${index}`, heightClass: 'ck-editor__editable_inline' });
+    }
     const answerTypes = (type && type !== 'question') ? [type] : ['correct', 'wrong1', 'wrong2', 'wrong3'];
-    
     answerTypes.forEach(answerType => {
-        elementsToInit.push({
-            id: `editor-${answerType}-${index}`,
-            key: `${answerType}-${index}`,
-            heightClass: 'ck-editor__editable_inline answer-editor'
-        });
+        elementsToInit.push({ id: `editor-${answerType}-${index}`, key: `${answerType}-${index}`, heightClass: 'ck-editor__editable_inline answer-editor' });
     });
 
-    // Configuración Base de CKEditor 5
+    // Toolbar básica (sin plugins que no están en el build CDN)
     const editorConfig = {
         toolbar: {
             items: [
-                'heading', '|',
-                'bold', 'italic', 'underline', '|',
-                'alignment', '|',
-                'MathType', 'ChemType', '|', 
-                'bulletedList', 'numberedList', 'blockQuote', '|',
-                'link', 'insertTable', 'undo', 'redo', 
+                'bold', 'italic', 'link', '|',
+                'bulletedList', 'numberedList', '|',
+                'undo', 'redo'
             ]
         },
-        
-        alignment: {
-            options: [ 'left', 'right', 'center', 'justify' ]
-        },
-
-        htmlSupport: {
-            allow: [
-                {
-                    name: /.*/,
-                    attributes: true,
-                    classes: true,
-                    styles: true
-                }
-            ]
-        }
+        htmlSupport: { allow: [{ name: /.*/, attributes: true, classes: true, styles: true }] }
     };
     
     elementsToInit.forEach(el => {
         const element = document.getElementById(el.id);
         const existingInstance = ckeditorInstances[el.key];
 
-        if (element && !existingInstance) {
-             element.closest('.text-input')?.classList.add('active'); 
+        if (!element) return;
+        if (existingInstance) return;
+        if (element.dataset.ckeditorInitialized === '1') return;
+        if (element.dataset.ckeditorInitializing === '1') return; // evita dobles creaciones en curso
 
-             ClassicEditor
-                .create(element, editorConfig)
-                .then(editor => {
-                    editor.ui.view.editable.element.classList.add(el.heightClass);
-                    ckeditorInstances[el.key] = editor;
-                    console.log(`CKEditor 5 inicializado: ${el.key}`);
-                    
-                    // 🚨 AGREGAR: Event listener para actualizar previsualización MathJax
-                    editor.model.document.on('change:data', () => {
-                        updateMathPreview(el.key);
-                    });
-                })
-                .catch(error => {
-                    console.error(`Error al inicializar CKEditor 5 para ${el.key}`, error);
-                });
-        }
+        const parent = element.closest('.text-input');
+        if (!parent || !parent.classList.contains('active')) return;
+
+        if (element.nextElementSibling && element.nextElementSibling.classList.contains('ck-editor')) return;
+
+        // Marca en curso para evitar llamadas duplicadas mientras crea el editor
+        element.dataset.ckeditorInitializing = '1';
+
+        ClassicEditor
+            .create(element, editorConfig)
+            .then(editor => {
+                // Agrega clases separadas para evitar InvalidCharacterError y duplicados
+                (el.heightClass || '').trim().split(/\s+/).filter(Boolean)
+                    .forEach(cls => editor.ui.view.editable.element.classList.add(cls));
+
+                ckeditorInstances[el.key] = editor;
+                element.dataset.ckeditorInitialized = '1';
+                delete element.dataset.ckeditorInitializing;
+                editor.model.document.on('change:data', () => updateMathPreview(el.key));
+                console.log(`CKEditor 5 inicializado: ${el.key}`);
+            })
+            .catch(error => {
+                console.error(`Error al inicializar CKEditor 5 para ${el.key}`, error);
+                delete element.dataset.ckeditorInitializing;
+            });
     });
 }
 
 // FUNCIÓN CKEDITOR 5: Destrucción
 function destroyCKEditorInstances(index, type = null) {
     const keysToDestroy = [];
-    
-    if (type === 'question' || type === null) {
-        keysToDestroy.push(`question-${index}`);
-    }
-
+    if (type === 'question' || type === null) keysToDestroy.push(`question-${index}`);
     const answerTypes = (type && type !== 'question') ? [type] : ['correct', 'wrong1', 'wrong2', 'wrong3'];
-    answerTypes.forEach(answerType => {
-        keysToDestroy.push(`${answerType}-${index}`);
-    });
+    answerTypes.forEach(answerType => keysToDestroy.push(`${answerType}-${index}`));
     
     keysToDestroy.forEach(key => {
         if (ckeditorInstances[key]) {
-            try { 
-                ckeditorInstances[key].destroy(); 
-                console.log(`CKEditor 5 destruido: ${key}`);
-            } catch(e) {
-                console.warn(`No se pudo destruir CKEditor 5 para ${key}:`, e);
-            }
+            try { ckeditorInstances[key].destroy(); } catch(e) { console.warn(`No se pudo destruir CKEditor 5 para ${key}:`, e); }
             delete ckeditorInstances[key];
         }
+        const t = document.getElementById(`editor-${key}`);
+        if (t) {
+            delete t.dataset.ckeditorInitialized;
+            delete t.dataset.ckeditorInitializing;
+            // Eliminar wrapper .ck-editor si quedó en el DOM para evitar duplicados visuales
+            const wrapper = t.nextElementSibling;
+            if (wrapper && wrapper.classList.contains('ck-editor')) {
+                wrapper.remove();
+            }
+            t.style.display = '';
+        }
+        console.log(`CKEditor 5 destruido: ${key}`);
     });
 }
 
@@ -1028,42 +974,13 @@ function updateAllMathPreviews() {
 
 // Observador para detectar cambios de visibilidad
 function setupVisibilityObserver() {
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                const target = mutation.target;
-                if (target.classList.contains('active') && target.classList.contains('text-input')) {
-                    const textarea = target.querySelector('textarea[id^="editor-"]');
-                    if (textarea) {
-                        const id = textarea.id;
-                        const match = id.match(/editor-(question|correct|wrong[123])-(\d+)/);
-                        if (match) {
-                            const type = match[1];
-                            const index = match[2];
-                            
-                            setTimeout(() => {
-                                initializeCKEditor(parseInt(index), type === 'question' ? 'question' : type);
-                                createMathPreviews();
-                            }, 200);
-                        }
-                    }
-                }
-            }
-        });
-    });
-
-    document.querySelectorAll('.text-input').forEach(el => {
-        observer.observe(el, { attributes: true });
-    });
+    // Desactivado para evitar dobles inicializaciones de CKEditor
 }
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
     // Agregar la primera pregunta automáticamente
     addQuestion();
-    
-    // Configurar observador de visibilidad
-    setupVisibilityObserver();
     
     // Inicializar MathJax cuando esté listo
     if (window.MathJax) {

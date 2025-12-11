@@ -13,7 +13,18 @@ class StoreController extends Controller
     public function show($id){
         // Cargar el curso con semanas y reseñas (incluyendo el usuario que hizo cada reseña)
         $course = Course::with(['weeks', 'reviews.user'])->findOrFail($id);
-        return view('general.store.detail', compact('course'));
+        
+        // Determinar el group_id (si no tiene, asignar uno basado en el ID)
+        $groupId = $course->course_group ?? (($course->id - 1) % 4) + 1;
+        
+        // Obtener otros horarios disponibles del mismo grupo
+        $schedules = Course::where('course_group', $groupId)
+            ->where('id', '!=', $course->id)
+            ->select('id', 'schedule', 'price_per_week')
+            ->get()
+            ->toArray();
+        
+        return view('general.store.detail', compact('course', 'schedules'));
     }
 
     public function storeReview(Request $request, $id){
@@ -62,7 +73,33 @@ class StoreController extends Controller
             });
         }
 
-        $courses = $query->withCount('weeks')->get();
+        // Agrupar por course_group y crear una estructura de grupos
+        $allCourses = $query->withCount('weeks')->orderBy('course_group')->orderBy('schedule')->get();
+        
+        $courseGroups = [];
+        foreach ($allCourses as $course) {
+            // Si no tiene course_group, asignale uno basado en su ID
+            $groupId = $course->course_group ?? ($course->id % 4) + 1;
+            
+            if (!isset($courseGroups[$groupId])) {
+                $courseGroups[$groupId] = [
+                    'group' => $groupId,
+                    'title' => $course->title,
+                    'description' => $course->description,
+                    'image' => $course->image,
+                    'schedules' => []
+                ];
+            }
+            $courseGroups[$groupId]['schedules'][] = [
+                'id' => $course->id,
+                'schedule' => $course->schedule ?? ('Horario ' . count($courseGroups[$groupId]['schedules']) + 1),
+                'price_per_week' => $course->price_per_week,
+                'number_of_weeks' => $course->number_of_weeks,
+                'weeks_count' => $course->weeks_count
+            ];
+        }
+
+        $courses = array_values($courseGroups);
 
         // Ejemplo en StoreController
         $user = auth()->user();

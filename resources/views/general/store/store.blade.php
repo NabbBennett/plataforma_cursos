@@ -70,7 +70,7 @@
             <div class="mobile-filter-container">
                 <div class="mobile-filter-header">
                     <div class="courses-count">
-                        <span id="courses-count">{{ $courses->count() }}</span> cursos encontrados
+                        <span id="courses-count">{{ count($courses) }}</span> cursos encontrados
                     </div>
                     <button class="btn-mobile-filter-toggle" id="mobileFilterToggle">
                         <i class="bi bi-funnel"></i>
@@ -130,53 +130,40 @@
 
             <!-- Grid de cursos -->
             <div id="courses-grid" class="courses-grid">
-                @if($courses->count() > 0)
-                    @foreach($courses as $course)
+                @if(count($courses) > 0)
+                    @foreach($courses as $group)
                         <div class="course-card">
                             <div class="course-image-container">
-                                @if($course->image)
-                                    <img src="{{ asset('storage/' . $course->image) }}" class="course-image" alt="{{ $course->title }}">
+                                @if($group['image'])
+                                    <img src="{{ asset('storage/' . $group['image']) }}" class="course-image" alt="{{ $group['title'] }}">
                                 @else
                                     <div class="course-image-placeholder">
                                         <i class="bi bi-book"></i>
                                     </div>
                                 @endif
                                 
-                                @php
-                                    $weeksCompradas = $userWeeks[$course->id] ?? 0;
-                                    $weeksTotal = $course->weeks->count();
-                                    $cursoComprado = $weeksCompradas >= $weeksTotal;
-                                @endphp
-                                
-                                @if($cursoComprado)
-                                    <div class="course-badge purchased">
-                                        <i class="bi bi-check-circle"></i>
-                                        Comprado
-                                    </div>
-                                @else
-                                    <div class="course-badge price">
-                                        ${{ number_format($course->price_per_week, 0) }}/semana
-                                    </div>
-                                @endif
+                                <div class="course-badge price">
+                                    ${{ number_format($group['schedules'][0]['price_per_week'] ?? 0, 0) }}/semana
+                                </div>
                             </div>
                             
                             <div class="course-content">
-                                <h3 class="course-title">{{ $course->title }}</h3>
-                                <p class="course-description">{{ Str::limit($course->description, 120) }}</p>
+                                <h3 class="course-title">{{ $group['title'] }}</h3>
+                                <p class="course-description">{{ Str::limit($group['description'], 120) }}</p>
                                 
                                 <div class="course-meta">
                                     <div class="meta-item">
                                         <i class="bi bi-clock"></i>
-                                        <span>{{ $course->weeks->count() }} semanas</span>
+                                        <span>{{ $group['schedules'][0]['number_of_weeks'] ?? 0 }} semanas</span>
                                     </div>
                                     <div class="meta-item">
                                         <i class="bi bi-collection-play"></i>
-                                        <span>{{ $course->weeks->count() }} módulos</span>
+                                        <span>{{ count($group['schedules']) }} horarios disponibles</span>
                                     </div>
                                 </div>
                                 
                                 <div class="course-actions">
-                                    <a href="{{ route('store.course', $course->id) }}" class="btn-course primary">
+                                    <a href="{{ route('store.course', $group['schedules'][0]['id']) }}" class="btn-course primary">
                                         <i class="bi bi-eye"></i>
                                         Ver Curso
                                     </a>
@@ -540,7 +527,6 @@
     font-size: 0.85rem;
     color: var(--text-secondary);
 }
-
 .course-actions {
     margin-top: auto;
 }

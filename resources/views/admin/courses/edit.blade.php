@@ -450,6 +450,28 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
+                            <label for="course_group" class="form-label">Grupo de Curso (1-4) *</label>
+                            <input type="number" class="form-control" id="course_group" name="course_group" 
+                                   min="1" max="4" 
+                                   value="{{ old('course_group', $course->course_group) }}" 
+                                   placeholder="Seleccione 1, 2, 3 o 4"
+                                   required>
+                            <small class="text-secondary-custom">Agrupa horarios diferentes en la tienda</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="schedule" class="form-label">Horario *</label>
+                            <input type="text" class="form-control" id="schedule" name="schedule" 
+                                   value="{{ old('schedule', $course->schedule) }}" 
+                                   placeholder="Ej: Lunes 9:00 AM - 11:00 AM"
+                                   required
+                                   maxlength="100">
+                            <small class="text-secondary-custom">Ej: Martes y Jueves 3:00 PM</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
                             <label for="title" class="form-label">Título del Curso *</label>
                             <input type="text" class="form-control" id="title" name="title" 
                                    value="{{ old('title', $course->title) }}" 

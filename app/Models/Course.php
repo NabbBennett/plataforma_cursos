@@ -17,7 +17,9 @@ class Course extends Model
         'price_per_week',
         'number_of_weeks',
         'image',
-        'enrolled_count'
+        'enrolled_count',
+        'course_group',
+        'schedule'
     ];
 
     public function weeks(){

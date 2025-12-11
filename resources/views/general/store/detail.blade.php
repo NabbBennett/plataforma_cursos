@@ -33,6 +33,52 @@
         flex-wrap: wrap;
     }
     
+    .schedule-selector-detail {
+        background-color: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        margin-bottom: 1.5rem;
+    }
+    
+    .schedule-label-detail {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+    
+    .schedule-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .schedule-option {
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--border-color);
+        background-color: var(--bg-primary);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: var(--text-primary);
+        text-decoration: none;
+        display: inline-block;
+        font-size: 0.9rem;
+    }
+    
+    .schedule-option:hover {
+        border-color: var(--btn-primary-bg);
+        background-color: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+    }
+    
+    .schedule-option.active {
+        border-color: var(--btn-primary-bg);
+        background-color: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+    }
+    
     .weeks-input {
         width: 80px;
         text-align: center;
@@ -221,7 +267,7 @@
         <!-- Info principal -->
         <div class="col-md-7">
             <h1 class="mb-3">{{ $course->title }}</h1>
-            
+            <h4 class="mb-3">Horario: <strong>{{ $course->schedule }}</strong></p>
             @php
                 $capacity   = $course->capacity;
                 $enrolled   = $course->enrolled_count ?? 0;
@@ -268,6 +314,22 @@
                     </small>
                 @endif
             </div>
+            
+            {{-- Selector de horarios si hay más disponibles --}}
+            @if(count($schedules) > 0)
+                <div class="schedule-selector-detail">
+                    <label class="schedule-label-detail">
+                        <i class="bi bi-clock"></i> Otros horarios disponibles:
+                    </label>
+                    <div class="schedule-options">
+                        @foreach($schedules as $schedule)
+                            <a href="{{ route('store.course', $schedule['id']) }}" class="schedule-option">
+                                {{ $schedule['schedule'] }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
             
             <div class="mb-4">
                 <h5>Semanas de duración</h5>

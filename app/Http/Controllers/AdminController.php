@@ -124,6 +124,8 @@ class AdminController extends Controller
             $this->checkPermission(['admin', 'maestro']);
     
         $request->validate([
+            'course_group' => 'required|integer|min:1|max:4',
+            'schedule' => 'required|string|max:100',
             "title" => "required|string|max:255",
             "description" => "required|string",
             'start_date' => 'nullable|date',
@@ -145,6 +147,8 @@ class AdminController extends Controller
             'number_of_weeks' => $request->number_of_weeks,
             'image' => $imagePath,
             'capacity' => $request->capacity,
+            'course_group' => $request->course_group,
+            'schedule' => $request->schedule,
         ]);
 
         for ($i = 1; $i <= $request->number_of_weeks; $i++) {
@@ -213,6 +217,8 @@ class AdminController extends Controller
                     $this->checkPermission(['admin', 'maestro']);
 
         $request->validate([
+            'course_group' => 'required|integer|min:1|max:4',
+            'schedule' => 'required|string|max:100',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'start_date' => 'nullable|date',
@@ -225,6 +231,8 @@ class AdminController extends Controller
         $course = Course::findOrFail($id);
         
         $course->update($request->only([
+            'course_group',
+            'schedule',
             'title', 
             'description', 
             'price_per_week', 

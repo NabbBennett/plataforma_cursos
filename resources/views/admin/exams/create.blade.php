@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', 'Crear Examen')
-@include('layouts.help')
 
 @section('content')
 <style>
@@ -61,30 +60,6 @@
     text-align: center;
 }
 
-/* Estilos para CKEditor */
-.ck-editor__editable_inline {
-    min-height: 150px;
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-}
-
-.ck-editor__editable_inline.answer-editor {
-    min-height: 100px;
-}
-
-.ck.ck-toolbar {
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-bottom: none;
-}
-
-.ck.ck-editor__main .ck-editor__editable {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-}
-
 /* Responsive */
 @media (max-width: 768px) {
     .math-preview-header {
@@ -99,16 +74,75 @@
     }
 }
 
-/*CKEditor Custom Styles*/
-    .ck-editor__editable_inline {
-        min-height: 150px;
-    }
+/* NicEdit width adjustments - Responsive */
+.text-input {
+    width: 100%;
+    box-sizing: border-box;
+    display: block !important;
+}
 
-    .ck-editor__editable_inline.answer-editor {
-        min-height: 100px; 
-    }
+.text-input .nicEdit-panelContain {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    display: block !important;
+}
 
-    .exam-create-container {
+.text-input .nicEdit-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.text-input .nicEdit-container {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* NicEdit width adjustments */
+.text-input {
+    width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+.text-input textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    display: none !important;
+    overflow-x: hidden !important;
+}
+
+.text-input .nicEdit-panelContain {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    overflow-x: hidden !important;
+    border-width: 1px !important;
+}
+
+.text-input .nicEdit-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    margin: 4px !important;
+    min-width: auto !important;
+}
+
+.text-input [style*="width: 100px"] {
+    width: 100% !important;
+    min-width: 100% !important;
+}
+
+.nicEdit-panelContain,
+.nicEdit-container {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.exam-create-container {
         background-color: var(--bg-primary);
         color: var(--text-primary);
         min-height: calc(100vh - var(--header-height));
@@ -339,10 +373,6 @@
         border-left: 4px solid #dc3545;
     }
 
-    .ckeditor-container {
-        margin-bottom: 1rem;
-    }
-
     .image-preview-container {
         margin-top: 1rem;
     }
@@ -511,8 +541,7 @@
 
         <div class="mb-3 text-input active" id="question-text-__INDEX__">
             <label class="form-label">Texto de la pregunta</label>
-            {{-- Importante: El ID debe ser único para CKEditor 5 --}}
-            <textarea name="questions[__INDEX__][text]" class="form-control ckeditor-text" 
+            <textarea name="questions[__INDEX__][text]" class="form-control " 
                       id="editor-question-__INDEX__" data-editor-type="question" 
                       placeholder="Escribe la pregunta aquí..."></textarea>
         </div>
@@ -554,7 +583,7 @@
                 </div>
                 
                 <div class="text-input active" id="correct-text-__INDEX__">
-                    <textarea name="questions[__INDEX__][correct]" class="form-control ckeditor-answer" 
+                    <textarea name="questions[__INDEX__][correct]" class="form-control" 
                               id="editor-correct-__INDEX__" data-editor-type="answer" 
                               placeholder="Escribe la respuesta correcta..."></textarea>
                 </div>
@@ -589,7 +618,7 @@
                 </div>
                 
                 <div class="text-input active" id="wrong1-text-__INDEX__">
-                    <textarea name="questions[__INDEX__][wrong1]" class="form-control ckeditor-answer" 
+                    <textarea name="questions[__INDEX__][wrong1]" class="form-control" 
                               id="editor-wrong1-__INDEX__" data-editor-type="answer" 
                               placeholder="Escribe una respuesta incorrecta..."></textarea>
                 </div>
@@ -624,7 +653,7 @@
                 </div>
                 
                 <div class="text-input active" id="wrong2-text-__INDEX__">
-                    <textarea name="questions[__INDEX__][wrong2]" class="form-control ckeditor-answer" 
+                    <textarea name="questions[__INDEX__][wrong2]" class="form-control" 
                               id="editor-wrong2-__INDEX__" data-editor-type="answer" 
                               placeholder="Escribe otra respuesta incorrecta (opcional)..."></textarea>
                 </div>
@@ -659,7 +688,7 @@
                 </div>
                 
                 <div class="text-input active" id="wrong3-text-__INDEX__">
-                    <textarea name="questions[__INDEX__][wrong3]" class="form-control ckeditor-answer" 
+                    <textarea name="questions[__INDEX__][wrong3]" class="form-control" 
                               id="editor-wrong3-__INDEX__" data-editor-type="answer" 
                               placeholder="Escribe otra respuesta incorrecta (opcional)..."></textarea>
                 </div>
@@ -684,12 +713,12 @@
 
 @section('scripts')
 
-{{-- CKEditor 5 Classic Build --}}
-<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+{{-- NicEdit (gratuito) --}}
+<script src="https://js.nicedit.com/nicEdit-latest.js" type="text/javascript"></script>
 
 <script>
 let questionIndex = 0;
-const ckeditorInstances = {}; 
+const editorInstances = {}; 
 
 function addQuestion() {
     const template = document.getElementById('question-template').innerHTML;
@@ -701,8 +730,11 @@ function addQuestion() {
     // Actualizar número de pregunta
     div.querySelector('.question-number-display').textContent = questionIndex + 1;
     
-    // Inicializar CKEditor 5
-    initializeCKEditor(questionIndex);
+    // Inicializar NicEdit
+    initializeNicEdit(questionIndex);
+    
+    // Re-inicializar ResizeObserver para los nuevos elementos
+    setupResizeObserver();
     
     questionIndex++;
 }
@@ -711,8 +743,8 @@ function removeQuestion(button) {
     const questionCard = button.closest('.question-card');
     const index = questionCard.dataset.index;
     
-    // Destruir instancias de CKEditor 5
-    destroyCKEditorInstances(index);
+    // Destruir instancias de NicEdit
+    destroyNicEditInstances(index);
     
     if (document.querySelectorAll('.question-card').length > 1) {
         questionCard.remove();
@@ -739,10 +771,10 @@ function toggleQuestionInputType(button, index) {
     document.getElementById(`question-image-${index}`).classList.toggle('active', type === 'image');
 
     if (type === 'text') {
-        destroyCKEditorInstances(index, 'question');
-        setTimeout(() => initializeCKEditor(index, 'question'), 100);
+        destroyNicEditInstances(index, 'question');
+        setTimeout(() => initializeNicEdit(index, 'question'), 100);
     } else {
-        destroyCKEditorInstances(index, 'question');
+        destroyNicEditInstances(index, 'question');
     }
 }
 
@@ -756,10 +788,10 @@ function toggleAnswerInputType(button, index, answerType) {
     document.getElementById(`${answerType}-image-${index}`).classList.toggle('active', type === 'image');
 
     if (type === 'text') {
-        destroyCKEditorInstances(index, answerType);
-        setTimeout(() => initializeCKEditor(index, answerType), 100);
+        destroyNicEditInstances(index, answerType);
+        setTimeout(() => initializeNicEdit(index, answerType), 100);
     } else {
-        destroyCKEditorInstances(index, answerType);
+        destroyNicEditInstances(index, answerType);
     }
 }
 
@@ -797,92 +829,91 @@ function previewAnswerImage(input, index, answerType) {
     }
 }
 
-// FUNCIÓN CKEDITOR 5: Configuración y Inicialización
-function initializeCKEditor(index, type = null) {
-    if (typeof ClassicEditor === 'undefined') return;
+// FUNCIÓN NICEDIT: Configuración e Inicialización
+function initializeNicEdit(index, type = null) {
+    if (typeof nicEditors === 'undefined') {
+        console.warn('NicEdit no está disponible aún, reintentando...');
+        setTimeout(() => initializeNicEdit(index, type), 300);
+        return;
+    }
 
     const elementsToInit = [];
     if (type === 'question' || type === null) {
-        elementsToInit.push({ id: `editor-question-${index}`, key: `question-${index}`, heightClass: 'ck-editor__editable_inline' });
+        elementsToInit.push({ id: `editor-question-${index}`, key: `question-${index}` });
     }
     const answerTypes = (type && type !== 'question') ? [type] : ['correct', 'wrong1', 'wrong2', 'wrong3'];
     answerTypes.forEach(answerType => {
-        elementsToInit.push({ id: `editor-${answerType}-${index}`, key: `${answerType}-${index}`, heightClass: 'ck-editor__editable_inline answer-editor' });
+        elementsToInit.push({ id: `editor-${answerType}-${index}`, key: `${answerType}-${index}` });
     });
 
-    // Toolbar básica (sin plugins que no están en el build CDN)
-    const editorConfig = {
-        toolbar: {
-            items: [
-                'bold', 'italic', 'link', '|',
-                'bulletedList', 'numberedList', '|',
-                'undo', 'redo'
-            ]
-        },
-        htmlSupport: { allow: [{ name: /.*/, attributes: true, classes: true, styles: true }] }
-    };
-    
     elementsToInit.forEach(el => {
         const element = document.getElementById(el.id);
-        const existingInstance = ckeditorInstances[el.key];
-
         if (!element) return;
-        if (existingInstance) return;
-        if (element.dataset.ckeditorInitialized === '1') return;
-        if (element.dataset.ckeditorInitializing === '1') return; // evita dobles creaciones en curso
+
+        // Evitar reinicializar
+        if (editorInstances[el.key]) return;
 
         const parent = element.closest('.text-input');
         if (!parent || !parent.classList.contains('active')) return;
 
-        if (element.nextElementSibling && element.nextElementSibling.classList.contains('ck-editor')) return;
+        try {
+            const nic = new nicEditor({ fullPanel: true });
+            nic.panelInstance(el.id);
+            editorInstances[el.key] = nic;
 
-        // Marca en curso para evitar llamadas duplicadas mientras crea el editor
-        element.dataset.ckeditorInitializing = '1';
-
-        ClassicEditor
-            .create(element, editorConfig)
-            .then(editor => {
-                // Agrega clases separadas para evitar InvalidCharacterError y duplicados
-                (el.heightClass || '').trim().split(/\s+/).filter(Boolean)
-                    .forEach(cls => editor.ui.view.editable.element.classList.add(cls));
-
-                ckeditorInstances[el.key] = editor;
-                element.dataset.ckeditorInitialized = '1';
-                delete element.dataset.ckeditorInitializing;
-                editor.model.document.on('change:data', () => updateMathPreview(el.key));
-                console.log(`CKEditor 5 inicializado: ${el.key}`);
-            })
-            .catch(error => {
-                console.error(`Error al inicializar CKEditor 5 para ${el.key}`, error);
-                delete element.dataset.ckeditorInitializing;
-            });
+            // Restaurar contenido existente
+            setTimeout(() => {
+                const instance = nicEditors.findEditor(el.id);
+                if (instance && element.value) {
+                    instance.setContent(element.value);
+                }
+                updateMathPreview(el.key);
+            }, 150);
+            
+            // Forzar ancho correcto del panel de NicEdit
+            setTimeout(() => {
+                const textInput = element.closest('.text-input');
+                const panel = textInput.querySelector('.nicEdit-panelContain');
+                if (panel && textInput) {
+                    const availableWidth = textInput.offsetWidth;
+                    panel.style.width = availableWidth + 'px';
+                    panel.style.minWidth = availableWidth + 'px';
+                }
+            }, 200);
+        } catch (err) {
+            console.error(`Error al inicializar NicEdit para ${el.key}`, err);
+        }
     });
 }
 
-// FUNCIÓN CKEDITOR 5: Destrucción
-function destroyCKEditorInstances(index, type = null) {
+// FUNCIÓN NICEDIT: Destrucción
+function destroyNicEditInstances(index, type = null) {
     const keysToDestroy = [];
     if (type === 'question' || type === null) keysToDestroy.push(`question-${index}`);
     const answerTypes = (type && type !== 'question') ? [type] : ['correct', 'wrong1', 'wrong2', 'wrong3'];
     answerTypes.forEach(answerType => keysToDestroy.push(`${answerType}-${index}`));
     
     keysToDestroy.forEach(key => {
-        if (ckeditorInstances[key]) {
-            try { ckeditorInstances[key].destroy(); } catch(e) { console.warn(`No se pudo destruir CKEditor 5 para ${key}:`, e); }
-            delete ckeditorInstances[key];
-        }
-        const t = document.getElementById(`editor-${key}`);
-        if (t) {
-            delete t.dataset.ckeditorInitialized;
-            delete t.dataset.ckeditorInitializing;
-            // Eliminar wrapper .ck-editor si quedó en el DOM para evitar duplicados visuales
-            const wrapper = t.nextElementSibling;
-            if (wrapper && wrapper.classList.contains('ck-editor')) {
-                wrapper.remove();
+        const editor = editorInstances[key];
+        const id = `editor-${key}`;
+        if (editor) {
+            try {
+                editor.removeInstance(id);
+            } catch (e) {
+                console.warn(`No se pudo destruir NicEdit para ${key}:`, e);
             }
-            t.style.display = '';
+            delete editorInstances[key];
         }
-        console.log(`CKEditor 5 destruido: ${key}`);
+
+        // Limpiar panel si quedó en el DOM
+        const textarea = document.getElementById(id);
+        if (textarea) {
+            const panel = textarea.previousElementSibling;
+            if (panel && panel.classList.contains('nicEdit-panelContain')) {
+                panel.remove();
+            }
+            textarea.style.display = '';
+        }
     });
 }
 
@@ -924,20 +955,27 @@ function createMathPreviewElement(elementKey) {
 }
 
 // Actualizar previsualización MathJax
+function getEditorContent(key) {
+    const id = `editor-${key}`;
+    const nic = (typeof nicEditors !== 'undefined') ? nicEditors.findEditor(id) : null;
+    if (nic && nic.getContent) {
+        return nic.getContent();
+    }
+    return document.getElementById(id)?.value || '';
+}
+
 function updateMathPreview(elementKey) {
-    const editor = ckeditorInstances[elementKey];
     const previewContent = document.getElementById(`math-content-${elementKey}`);
+    if (!previewContent) return;
+
+    const content = getEditorContent(elementKey);
+    previewContent.innerHTML = content;
     
-    if (editor && previewContent) {
-        const content = editor.getData();
-        previewContent.innerHTML = content;
-        
-        // Reprocesar MathJax si está disponible
-        if (window.MathJax && MathJax.typesetPromise) {
-            MathJax.typesetPromise([previewContent]).catch(error => {
-                console.warn('Error procesando MathJax:', error);
-            });
-        }
+    // Reprocesar MathJax si está disponible
+    if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise([previewContent]).catch(error => {
+            console.warn('Error procesando MathJax:', error);
+        });
     }
 }
 
@@ -967,14 +1005,14 @@ function togglePreview(elementKey) {
 
 // Actualizar todas las previsualizaciones
 function updateAllMathPreviews() {
-    Object.keys(ckeditorInstances).forEach(key => {
+    Object.keys(editorInstances).forEach(key => {
         updateMathPreview(key);
     });
 }
 
 // Observador para detectar cambios de visibilidad
 function setupVisibilityObserver() {
-    // Desactivado para evitar dobles inicializaciones de CKEditor
+    // Desactivado para evitar dobles inicializaciones del editor
 }
 
 // Inicialización
@@ -1004,15 +1042,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         questions.forEach((question, index) => {
-            // Obtener el valor del CKEditor 5
-            const qEditor = ckeditorInstances[`question-${index}`];
-            let questionText = '';
-            
-            if (qEditor) {
-                questionText = qEditor.getData();
-            } else {
-                questionText = document.querySelector(`#editor-question-${index}`)?.value || '';
-            }
+            // Obtener el valor del editor enriquecido
+            const questionText = getEditorContent(`question-${index}`);
             
             const questionImage = document.querySelector(`#question-image-input-${index}`)?.files[0];
             
@@ -1023,12 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Validar que al menos la primera respuesta incorrecta tenga contenido
             const wrongKey = `wrong1-${index}`;
-            let wrong1Text = '';
-            if (ckeditorInstances[wrongKey]) {
-                wrong1Text = ckeditorInstances[wrongKey].getData();
-            } else {
-                wrong1Text = document.querySelector(`#editor-wrong1-${index}`)?.value || '';
-            }
+            const wrong1Text = getEditorContent(wrongKey);
             
             const wrong1Image = document.querySelector(`#wrong1-image-input-${index}`)?.files[0];
             
@@ -1049,15 +1075,64 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Limpiar editores antes de cerrar
 window.addEventListener('beforeunload', function() {
-    Object.keys(ckeditorInstances).forEach(key => {
-        if (ckeditorInstances[key]) {
-            try {
-                ckeditorInstances[key].destroy();
-            } catch(e) {
-                console.warn(`Error limpiando ${key}:`, e);
-            }
-        }
+    Object.keys(editorInstances).forEach(key => {
+        destroyNicEditInstances(key.split('-')[1] || 0, key.split('-')[0]);
     });
+});
+
+// Función para ajustar el ancho dinámico de NicEdit
+function adjustNicEditWidth(textInput) {
+    const nicEditPanel = textInput.querySelector('.nicEdit-panelContain');
+    const nicEditMain = textInput.querySelector('.nicEdit-main');
+    
+    // Obtener el ancho disponible del contenedor padre
+    const availableWidth = textInput.offsetWidth;
+    
+    if (availableWidth > 0) {
+        // Ajustar NicEdit
+        if (nicEditPanel && nicEditMain) {
+            nicEditPanel.style.width = availableWidth + 'px';
+            nicEditPanel.style.minWidth = availableWidth + 'px';
+            nicEditMain.style.width = availableWidth + 'px';
+            nicEditMain.style.minWidth = availableWidth + 'px';
+        }
+    }
+}
+
+// Hacer NicEdit responsive usando ResizeObserver
+function setupResizeObserver() {
+    // Observar el contenedor principal de preguntas
+    const questionsContainer = document.getElementById('questions-container');
+    if (questionsContainer) {
+        const containerObserver = new ResizeObserver(() => {
+            document.querySelectorAll('.text-input').forEach(textInput => {
+                adjustNicEditWidth(textInput);
+            });
+        });
+        containerObserver.observe(questionsContainer);
+    }
+    
+    // Observar cada .text-input individualmente
+    document.querySelectorAll('.text-input').forEach(textInput => {
+        const textInputObserver = new ResizeObserver(() => {
+            adjustNicEditWidth(textInput);
+        });
+        textInputObserver.observe(textInput);
+    });
+}
+
+// Llamar cuando el DOM está listo
+setupResizeObserver();
+
+// También ajustar al hacer resize de la ventana
+let resizeTimeout;
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        document.querySelectorAll('.text-input').forEach(textInput => {
+            adjustNicEditWidth(textInput);
+        });
+    }, 100);
 });
 
 </script>

@@ -31,7 +31,7 @@ class CourseController extends Controller
             'weeks.weekDays',
             'weeks.exam',
             'evaluationBlocks' => function($q) {
-                $q->with('exam');
+                $q->with('exams');
             }
         ])->findOrFail($id);
 
@@ -46,7 +46,7 @@ class CourseController extends Controller
             $exams = $exams->merge($block->exams);
         }
         $examProgress = app(ExamStudentController::class)->getExamProgress($id);
-        $bloquesEvaluacion = $course->evaluationBlocks()->orderBy('id')->get();
+        $bloquesEvaluacion = $course->evaluationBlocks()->with('exams')->orderBy('id')->get();
         $weeksDesbloqueadas = $course->weeks->take($purchase->weeks_unlocked);
 
         // Construir combined de forma más robusta ordenando por semana

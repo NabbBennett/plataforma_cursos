@@ -13,7 +13,7 @@
                     <p class="lead mb-4">Somos un centro de enseñanza para potencializar el aprendizaje de los y las estudiantes en diferentes campos de conocimientos. Especializándonos principalmente en las habilidades requeridas para la entrada a las mejores universidades del país. Únete a nosotros y descubre cómo podemos ayudarte a alcanzar tus metas académicas</p>
                     <div class="d-flex gap-3 flex-wrap justify-content-center">
                         <a href="{{ route('store') }}" class="btn btn-primary btn-lg">Explorar Cursos</a>
-                        <a href="{{ route('information.index') }}" class="btn btn-outline-primary btn-lg">Más Información</a>
+                        <a href="#mission-vision" class="btn btn-outline-primary btn-lg">Más Información</a>
                     </div>
                 </div>
             </div>
@@ -31,7 +31,7 @@
 </section>
 
 <!-- Misión y Visión Section -->
-<section class="mission-vision py-5">
+<section id="mission-vision" class="mission-vision py-5">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="display-5 fw-bold mb-3">NUESTRA MISIÓN Y VISIÓN</h2>
@@ -212,74 +212,8 @@
             <p class="lead">Descubre las experiencias de quienes ya han vivido el proceso de aprendizaje con nosotros</p>
         </div>
         
-        <div class="testimonials-container">
-            <div class="swiper testimonials-swiper">
-                <div class="swiper-wrapper">
-                    <!-- Testimonio 1 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-content">
-                            <div class="testimonial-avatar rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
-                            <h3 class="testimonial-name">Sarah Price</h3>
-                            <p class="testimonial-title">Benemerita Universidad Autonoma de Puebla</p>
-                            <p class="testimonial-quote">El curso cumplió al 100% con las expectativas.</p>
-                        </div>
-                    </div>
-
-                    <!-- Testimonio 2 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-content">
-                            <div class="testimonial-avatar rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
-                            <h3 class="testimonial-name">Carlos Martínez</h3>
-                            <p class="testimonial-title">Ingeniero en Sistemas</p>
-                            <p class="testimonial-quote">La metodología de enseñanza es excepcional. Pude aplicar inmediatamente lo aprendido en mi trabajo.</p>
-                        </div>
-                    </div>
-
-                    <!-- Testimonio 3 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-content">
-                            <div class="testimonial-avatar rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
-                            <h3 class="testimonial-name">Ana García</h3>
-                            <p class="testimonial-title">Diseñadora Gráfica</p>
-                            <p class="testimonial-quote">Los cursos son muy completos y los instructores tienen un conocimiento profundo de los temas.</p>
-                        </div>
-                    </div>
-
-                    <!-- Testimonio 4 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-content">
-                            <div class="testimonial-avatar rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
-                            <h3 class="testimonial-name">Miguel Ángel</h3>
-                            <p class="testimonial-title">Estudiante de Maestría</p>
-                            <p class="testimonial-quote">La flexibilidad horaria me permitió compaginar mis estudios con mi trabajo a tiempo completo.</p>
-                        </div>
-                    </div>
-
-                    <!-- Testimonio 5 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-content">
-                            <div class="testimonial-avatar rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
-                            <h3 class="testimonial-name">Laura Sánchez</h3>
-                            <p class="testimonial-title">Profesora Universitaria</p>
-                            <p class="testimonial-quote">El material de estudio es excelente y muy bien estructurado. Totalmente recomendado.</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- Botones y paginación -->
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-pagination"></div>
-            </div> 
+        <div class="testimonial-container text-center">
+            <a href="{{ route('testimonials') }}" class="btn btn-primary btn-lg">Ver Todos los Testimonios</a>
         </div>
     </div>
 </section>
@@ -1255,6 +1189,10 @@ body.dark-mode .lead {
 .mobile-spacing {
     margin-bottom: 1.5rem;
 }
+
+.testimonial-container {
+    padding: 40px 20px;
+}
 </style>
 
 <script>
@@ -1276,50 +1214,6 @@ function toggleReadMore(button) {
 
 // Inicializar Swiper para testimonios
 document.addEventListener('DOMContentLoaded', function () {
-    // Testimonios Swiper
-    new Swiper('.testimonials-swiper', {
-        slidesPerView: 'auto',
-        centeredSlides: true,
-        loop: true,
-        spaceBetween: 40,
-        speed: 600,
-        effect: 'coverflow',
-        coverflowEffect: {
-            rotate: 0,
-            stretch: -50, 
-            depth: 150, 
-            modifier: 1,
-            slideShadows: false
-        },
-        pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-        },
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-        autoplay: {
-            delay: 2000, 
-            disableOnInteraction: false,
-        },
-        breakpoints: {
-            320: {
-                spaceBetween: 20,
-                coverflowEffect: {
-                    stretch: -30,
-                    depth: 100
-                }
-            },
-            768: {
-                spaceBetween: 40,
-                coverflowEffect: {
-                    stretch: -50,
-                    depth: 150
-                }
-            }
-        }
-    });
 
     // Acordeón FAQ
     const accordionItems = document.querySelectorAll('.accordion-item');

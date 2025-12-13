@@ -89,6 +89,14 @@ class ExamController extends Controller
             }
         }
 
+        // Configuración compartida de HTMLPurifier para preservar estilos
+        $purifierConfig = [
+            'HTML.Allowed' => 'p[style],div[style],b,strong,i,em,u,s,a[href],ul,ol,li,br,span[style]',
+            'CSS.AllowedProperties' => 'text-align,font-weight,font-style,text-decoration,color,background-color',
+            'Attr.AllowedFrameTargets' => ['_blank'],
+            'AutoFormat.RemoveEmpty' => false,
+        ];
+
         $exam = Exam::create([
             'title' => $request->title,
             'duration_minutes' => $request->duration_minutes,
@@ -103,11 +111,7 @@ class ExamController extends Controller
             // si hay imagen, usar '' en lugar de null para cumplir NOT NULL
             $questionText = $questionImagePath
                 ? ''
-                : Purifier::clean($q['text'] ?? '', [
-                    'HTML.Allowed' => 'p,b,strong,i,em,u,a[href],ul,ol,li,img[src|alt|width|height|style],br,span',
-                    'CSS.AllowedProperties' => 'width,height,background-color,text-align',
-                    'URI.AllowedSchemes' => ['http' => true, 'https' => true, 'data' => true],
-                ]);
+                : Purifier::clean($q['text'] ?? '', $purifierConfig);
 
             $question = Question::create([
                 'exam_id' => $exam->id,
@@ -122,7 +126,7 @@ class ExamController extends Controller
                 ? $request->file("questions.$index.correct_image")->store('exams/answers', 'public')
                 : null;
 
-            $correctText = $correctImagePath ? '' : Purifier::clean($q['correct'] ?? '');
+            $correctText = $correctImagePath ? '' : Purifier::clean($q['correct'] ?? '', $purifierConfig);
 
             Answer::create([
                 'question_id' => $question->id,
@@ -138,7 +142,7 @@ class ExamController extends Controller
                     : null;
 
                 // si hay imagen, text = ''
-                $wrongText = $answerImagePath ? '' : Purifier::clean($q[$key] ?? '');
+                $wrongText = $answerImagePath ? '' : Purifier::clean($q[$key] ?? '', $purifierConfig);
 
                 if (!empty(trim($wrongText)) || $answerImagePath) {
                     Answer::create([
@@ -294,6 +298,14 @@ public function edit(Exam $exam){
             }
         }
 
+        // Configuración compartida de HTMLPurifier para preservar estilos
+        $purifierConfig = [
+            'HTML.Allowed' => 'p[style],div[style],b,strong,i,em,u,s,a[href],ul,ol,li,br,span[style]',
+            'CSS.AllowedProperties' => 'text-align,font-weight,font-style,text-decoration,color,background-color',
+            'Attr.AllowedFrameTargets' => ['_blank'],
+            'AutoFormat.RemoveEmpty' => false,
+        ];
+
         $exam->update([
             'title' => $request->title,
             'duration_minutes' => $request->duration_minutes,
@@ -336,11 +348,7 @@ public function edit(Exam $exam){
 
             // usar '' si hay imagen
             $rawQuestionText = $q['text'] ?? '';
-            $questionTextClean = $questionImagePath ? '' : Purifier::clean($rawQuestionText, [
-                'HTML.Allowed' => 'p,b,strong,i,em,u,a[href],ul,ol,li,img[src|alt|width|height|style],br,span',
-                'CSS.AllowedProperties' => 'width,height,background-color,text-align',
-                'URI.AllowedSchemes' => ['http' => true, 'https' => true, 'data' => true],
-            ]);
+            $questionTextClean = $questionImagePath ? '' : Purifier::clean($rawQuestionText, $purifierConfig);
 
             $question = Question::create([
                 'exam_id' => $exam->id,
@@ -357,7 +365,7 @@ public function edit(Exam $exam){
                 $correctImagePath = !empty($q['correct_existing_image']) ? $q['correct_existing_image'] : null;
             }
 
-            $correctTextClean = $correctImagePath ? '' : Purifier::clean($q['correct'] ?? '');
+            $correctTextClean = $correctImagePath ? '' : Purifier::clean($q['correct'] ?? '', $purifierConfig);
             $createdAnswers = [];
 
             if (!empty(trim($correctTextClean)) || $correctImagePath) {
@@ -378,7 +386,7 @@ public function edit(Exam $exam){
                 }
 
                 $rawWrongText = $q[$key] ?? '';
-                $wrongTextClean = $answerImagePath ? '' : Purifier::clean($rawWrongText);
+                $wrongTextClean = $answerImagePath ? '' : Purifier::clean($rawWrongText, $purifierConfig);
 
                 $isDuplicate = false;
                 foreach ($createdAnswers as $a) {

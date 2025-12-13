@@ -30,20 +30,104 @@
 
     <div class="mb-3">
         <label class="form-label">
-            <i class="bi bi-file-text me-1"></i>Examen de evaluación
+            <i class="bi bi-toggle2-on me-1"></i>Tipo de bloque
         </label>
-        <select name="evaluation_blocks[{{ $index }}][exam_id]" class="form-select">
-            <option value="">-- Seleccionar examen --</option>
-            @foreach ($allExams as $exam)
-                @php $examLabel = $exam->title ? $exam->title : "Examen #{$exam->id}"; @endphp
-                <option value="{{ $exam->id }}"
-                    {{ (isset($evaluationBlock) && $evaluationBlock->exam_id == $exam->id) ? 'selected' : '' }}>
-                    {{ $examLabel }} ({{ $exam->questions_count }} preguntas, {{ $exam->duration_minutes }} min)
-                </option>
-            @endforeach
-        </select>
-        <small class="text-secondary-custom">Examen final de evaluación</small>
+        @php $selectedType = isset($evaluationBlock) && $evaluationBlock->evaluation_type ? $evaluationBlock->evaluation_type : 'universidad'; @endphp
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch"
+                   id="evaluation-type-switch-{{ $index }}"
+                   {{ $selectedType === 'preparatoria' ? 'checked' : '' }}
+                   onchange="updateEvalType{{ $index }}(this)">
+            <label class="form-check-label" for="evaluation-type-switch-{{ $index }}">
+                <span id="evaluation-type-label-{{ $index }}">{{ $selectedType === 'preparatoria' ? 'Preparatoria' : 'Universidad' }}</span>
+            </label>
+        </div>
+        <input type="hidden" name="evaluation_blocks[{{ $index }}][evaluation_type]" id="evaluation-type-input-{{ $index }}" value="{{ $selectedType }}">
+        <small class="text-secondary-custom">Usa el switch para elegir Universidad o Preparatoria.</small>
     </div>
+
+    @php
+        $type = isset($evaluationBlock) && $evaluationBlock->evaluation_type ? $evaluationBlock->evaluation_type : 'universidad';
+        $categoryLabels = $type === 'preparatoria'
+            ? [
+                'slot1' => 'Pensamiento crítico y resolución de problemas',
+                'slot2' => 'Comunicación, alfabetización multimodal y cultura',
+                'slot3' => 'Razonamiento matemático y ciencias de datos',
+                'slot4' => 'Sociedad, cultura y ciudadanía global',
+                'slot5' => 'Ciencias y tecnología para el futuro',
+            ]
+            : [
+                'slot1' => 'Español',
+                'slot2' => 'Matemáticas',
+                'slot3' => 'Área de conocimiento',
+                'slot4' => 'Habilidades blandas',
+                'slot5' => 'Inglés',
+            ];
+
+        $existingExams = isset($evaluationBlock) && $evaluationBlock->relationLoaded('exams')
+            ? $evaluationBlock->exams->sortBy('id')->values()
+            : collect();
+
+        if ($existingExams->isEmpty() && isset($evaluationBlock) && $evaluationBlock->exam_id) {
+            $fallbackExam = \App\Models\Exam::find($evaluationBlock->exam_id);
+            if ($fallbackExam) {
+                $existingExams = collect([$fallbackExam]);
+            }
+        }
+    @endphp
+
+    @foreach ($categoryLabels as $catKey => $label)
+        @php
+            $selectedExam = $existingExams->get($loop->index);
+        @endphp
+        <div class="mb-3">
+            <label class="form-label">
+                <i class="bi bi-file-text me-1"></i>{{ $label }}
+            </label>
+            <select name="evaluation_blocks[{{ $index }}][exam_ids][{{ $catKey }}]" class="form-select">
+                <option value="">-- Seleccionar examen --</option>
+                @foreach ($allExams as $exam)
+                    @php $examLabel = $exam->title ? $exam->title : "Examen #{$exam->id}"; @endphp
+                    <option value="{{ $exam->id }}"
+                        {{ ($selectedExam && $selectedExam->id == $exam->id) ? 'selected' : '' }}>
+                        {{ $examLabel }} ({{ $exam->questions_count }} preguntas, {{ $exam->duration_minutes }} min)
+                    </option>
+                @endforeach
+            </select>
+            <small class="text-secondary-custom">Puedes dejarlo vacío si no aplica</small>
+        </div>
+    @endforeach
+
+    <script>
+        function updateEvalType{{ $index }}(checkbox) {
+            const type = checkbox.checked ? 'preparatoria' : 'universidad';
+            // update hidden input and visible label
+            const input = document.getElementById('evaluation-type-input-{{ $index }}');
+            const typeLabel = document.getElementById('evaluation-type-label-{{ $index }}');
+            if (input) input.value = type;
+            if (typeLabel) typeLabel.innerText = type === 'preparatoria' ? 'Preparatoria' : 'Universidad';
+
+            // label sets
+            const labels = type === 'preparatoria'
+                ? ['Pensamiento crítico y resolución de problemas', 'Comunicación, alfabetización multimodal y cultura', 'Razonamiento matemático y ciencias de datos', 'Sociedad, cultura y ciudadanía global', 'Ciencias y tecnología para el futuro']
+                : ['Español', 'Matemáticas', 'Área de conocimiento', 'Habilidades blandas', 'Inglés'];
+
+            // scope to this block container
+            const container = document.getElementById('evaluation-type-switch-{{ $index }}')?.closest('.evaluation-block');
+            if (!container) return;
+
+            // find all exam label elements in order
+            const formGroups = container.querySelectorAll('.mb-3');
+            let labelIdx = 0;
+            formGroups.forEach(group => {
+                const labelEl = group.querySelector('.form-label');
+                const hasIcon = labelEl && labelEl.querySelector('i.bi-file-text');
+                if (labelEl && hasIcon && labelIdx < labels.length) {
+                    labelEl.innerHTML = '<i class="bi bi-file-text me-1"></i>' + labels[labelIdx++];
+                }
+            });
+        }
+    </script>
 
     <div class="alert alert-info mt-3">
         <i class="bi bi-info-circle me-2"></i>

@@ -685,35 +685,95 @@
                                 @endif
 
                                 @php
-                                    $exam = isset($data->exam) ? $data->exam : null;
-                                    if (!$exam && isset($data->exam_id)) {
-                                        $exam = \App\Models\Exam::find($data->exam_id);
+                                    $type = $isEvaluation && isset($data->evaluation_type) ? $data->evaluation_type : 'universidad';
+                                    $categoryLabels = $type === 'preparatoria'
+                                        ? [
+                                            'pensamiento' => 'Pensamiento crítico y resolución de problemas',
+                                            'comunicacion' => 'Comunicación, alfabetización multimodal y cultura',
+                                            'razonamiento' => 'Razonamiento matemático y ciencias de datos',
+                                            'sociedad' => 'Sociedad, cultura y ciudadanía global',
+                                            'ciencias' => 'Ciencias y tecnología para el futuro',
+                                        ]
+                                        : [
+                                            'spanish' => 'Español',
+                                            'math' => 'Matemáticas',
+                                            'area' => 'Área de conocimiento',
+                                            'habilidades' => 'Habilidades blandas',
+                                            'ingles' => 'Inglés',
+                                        ];
+
+                                    if ($isEvaluation) {
+                                        $examsInBlock = $data->relationLoaded('exams') ? $data->exams : collect();
+                                        $examsInBlock = $examsInBlock->sortBy(function($e){ return $e->slot_index ?? $e->id; })->values();
+
+                                        if ($examsInBlock->isEmpty() && isset($data->exam_id)) {
+                                            $fallbackExam = \App\Models\Exam::find($data->exam_id);
+                                            if ($fallbackExam) {
+                                                $examsInBlock = collect([$fallbackExam]);
+                                            }
+                                        }
+                                    } else {
+                                        $exam = isset($data->exam) ? $data->exam : null;
+                                        if (!$exam && isset($data->exam_id)) {
+                                            $exam = \App\Models\Exam::find($data->exam_id);
+                                        }
                                     }
                                 @endphp
 
-                                @if ($exam)
-                                    @php
-                                        $result = \App\Models\ExamResult::where('user_id', Auth::id())->where('exam_id', $exam->id)->latest()->first();
-                                    @endphp
-
-                                    <div class="content-item">
-                                        <span class="content-label">Examen</span>
-                                        @if ($result)
-                                            <a href="{{ route('student.exams.result', ['course' => $course->id, 'exam' => $exam->id]) }}" class="btn-action btn-success">
-                                                <i class="bi bi-check-circle"></i>
-                                                Ver Resultados
-                                            </a>
-                                        @else
-                                            <a href="{{ route('student.exams.start', ['course' => $course->id, 'exam' => $exam->id]) }}" class="btn-action btn-primary">
-                                                <i class="bi bi-pencil-square"></i>
-                                                Realizar Examen
-                                            </a>
-                                        @endif
-                                    </div>
+                                @if ($isEvaluation)
+                                    @php $categoryKeys = array_keys($categoryLabels); @endphp
+                                    @foreach ($categoryKeys as $idx => $catKey)
+                                        @php $exam = $examsInBlock->get($idx); @endphp
+                                        <div class="content-item">
+                                            <span class="content-label">{{ $categoryLabels[$catKey] }}</span>
+                                            @if ($exam)
+                                                @php
+                                                    $result = \App\Models\ExamResult::where('user_id', Auth::id())
+                                                        ->where('exam_id', $exam->id)
+                                                        ->latest()
+                                                        ->first();
+                                                @endphp
+                                                @if ($result)
+                                                    <a href="{{ route('student.exams.result', ['course' => $course->id, 'exam' => $exam->id]) }}" class="btn-action btn-success">
+                                                        <i class="bi bi-check-circle"></i>
+                                                        Ver Resultados
+                                                    </a>
+                                                @else
+                                                    <a href="{{ route('student.exams.start', ['course' => $course->id, 'exam' => $exam->id]) }}" class="btn-action btn-primary">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                        Realizar Examen
+                                                    </a>
+                                                @endif
+                                            @else
+                                                <span class="text-muted">No asignado</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
                                 @else
-                                    <div class="no-exam">
-                                        No hay examen asignado
-                                    </div>
+                                    @if ($exam)
+                                        @php
+                                            $result = \App\Models\ExamResult::where('user_id', Auth::id())->where('exam_id', $exam->id)->latest()->first();
+                                        @endphp
+
+                                        <div class="content-item">
+                                            <span class="content-label">Examen</span>
+                                            @if ($result)
+                                                <a href="{{ route('student.exams.result', ['course' => $course->id, 'exam' => $exam->id]) }}" class="btn-action btn-success">
+                                                    <i class="bi bi-check-circle"></i>
+                                                    Ver Resultados
+                                                </a>
+                                            @else
+                                                <a href="{{ route('student.exams.start', ['course' => $course->id, 'exam' => $exam->id]) }}" class="btn-action btn-primary">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                    Realizar Examen
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div class="no-exam">
+                                            No hay examen asignado
+                                        </div>
+                                    @endif
                                 @endif
 
                                 @if ($data->resource_id)

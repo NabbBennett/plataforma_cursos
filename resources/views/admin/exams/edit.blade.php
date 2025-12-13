@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', 'Editar Examen')
-@include('layouts.help')
 
 @section('content')
 <style>
@@ -60,30 +59,6 @@
         text-align: center;
     }
 
-    /* Estilos para CKEditor */
-    .ck-editor__editable_inline {
-        min-height: 150px;
-        background-color: var(--bg-primary);
-        color: var(--text-primary);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-    }
-
-    .ck-editor__editable_inline.answer-editor {
-        min-height: 100px;
-    }
-
-    .ck.ck-toolbar {
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-bottom: none;
-    }
-
-    .ck.ck-editor__main .ck-editor__editable {
-        background-color: var(--bg-primary);
-        color: var(--text-primary);
-    }
-
     /* Responsive */
     @media (max-width: 768px) {
         .math-preview-header {
@@ -98,13 +73,47 @@
         }
     }
 
-    /*CKEditor Custom Styles*/
-    .ck-editor__editable_inline {
-        min-height: 150px;
+    /* NicEdit width adjustments */
+    .text-input {
+        width: 100% !important;
+        overflow-x: hidden !important;
     }
 
-    .ck-editor__editable_inline.answer-editor {
-        min-height: 100px; 
+    .text-input textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        display: none !important;
+        overflow-x: hidden !important;
+    }
+
+    .text-input .nicEdit-panelContain {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        display: block !important;
+        overflow-x: hidden !important;
+        border-width: 1px !important;
+    }
+
+    .text-input .nicEdit-main {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+        margin: 4px !important;
+        min-width: auto !important;
+    }
+
+    .text-input [style*="width: 100px"] {
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+
+    .nicEdit-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
     }
 
     .exam-create-container {
@@ -668,8 +677,8 @@
 
 @section('scripts')
 
-{{-- CKEditor 5 Classic Build --}}
-<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+{{-- NicEdit (gratuito) --}}
+<script src="https://js.nicedit.com/nicEdit-latest.js" type="text/javascript"></script>
 
 {{-- MathJax para renderizado de fórmulas --}}
 <script>
@@ -692,7 +701,7 @@ window.MathJax = {
 
 <script>
 let questionIndex = 0;
-const ckeditorInstances = {}; 
+const editorInstances = {}; 
 
 // Datos del examen para edición
 const examData = @json($examData ?? []);
@@ -703,28 +712,36 @@ function addQuestion(questionData = {}) {
     // Determinar si la pregunta tiene imagen existente
     const questionHasImage = !!(questionData.image_path || questionData.existing_image);
     
+    // Función para escapar HTML en atributos pero preservarlo en textarea
+    const escapeHtml = (text) => {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    };
+    
     // Preparar datos para la plantilla con valores por defecto seguros
     const templateData = {
         '__INDEX__': questionIndex,
         '__QUESTION_ID__': questionData.id || '',
-        '__QUESTION_TEXT__': questionData.text || '',
-        '__QUESTION_THEME__': questionData.theme || '',
+        '__QUESTION_TEXT__': questionData.text || '',  // NO escapar - NicEdit maneja HTML
+        '__QUESTION_THEME__': escapeHtml(questionData.theme || ''),
         '__QUESTION_IMAGE_PREVIEW__': questionData.image_preview || '',
         '__QUESTION_EXISTING_IMAGE__': questionData.existing_image || '',
         '__CORRECT_ANSWER_ID__': questionData.correct_id || '',
-        '__CORRECT_ANSWER_TEXT__': questionData.correct_text || '',
+        '__CORRECT_ANSWER_TEXT__': questionData.correct_text || '',  // NO escapar
         '__CORRECT_ANSWER_IMAGE_PREVIEW__': questionData.correct_image_preview || '',
         '__CORRECT_ANSWER_EXISTING_IMAGE__': questionData.correct_existing_image || '',
         '__WRONG1_ANSWER_ID__': questionData.wrong1_id || '',
-        '__WRONG1_ANSWER_TEXT__': questionData.wrong1_text || '',
+        '__WRONG1_ANSWER_TEXT__': questionData.wrong1_text || '',  // NO escapar
         '__WRONG1_ANSWER_IMAGE_PREVIEW__': questionData.wrong1_image_preview || '',
         '__WRONG1_ANSWER_EXISTING_IMAGE__': questionData.wrong1_existing_image || '',
         '__WRONG2_ANSWER_ID__': questionData.wrong2_id || '',
-        '__WRONG2_ANSWER_TEXT__': questionData.wrong2_text || '',
+        '__WRONG2_ANSWER_TEXT__': questionData.wrong2_text || '',  // NO escapar
         '__WRONG2_ANSWER_IMAGE_PREVIEW__': questionData.wrong2_image_preview || '',
         '__WRONG2_ANSWER_EXISTING_IMAGE__': questionData.wrong2_existing_image || '',
         '__WRONG3_ANSWER_ID__': questionData.wrong3_id || '',
-        '__WRONG3_ANSWER_TEXT__': questionData.wrong3_text || '',
+        '__WRONG3_ANSWER_TEXT__': questionData.wrong3_text || '',  // NO escapar
         '__WRONG3_ANSWER_IMAGE_PREVIEW__': questionData.wrong3_image_preview || '',
         '__WRONG3_ANSWER_EXISTING_IMAGE__': questionData.wrong3_existing_image || ''
     };
@@ -772,8 +789,8 @@ function addQuestion(questionData = {}) {
             }
         } else {
             // Tiene texto (o nada) - modo texto activo por defecto
-            // Inicializar CKEditor para pregunta
-            setTimeout(() => initializeCKEditor(currentIndex, 'question'), 150);
+            // Inicializar NicEdit para pregunta
+            setTimeout(() => initializeNicEdit(currentIndex, 'question'), 150);
         }
         
         // RESPUESTA CORRECTA
@@ -796,8 +813,8 @@ function addQuestion(questionData = {}) {
                 previewContainer.style.display = 'block';
             }
         } else {
-            // Tiene texto - inicializar CKEditor
-            setTimeout(() => initializeCKEditor(currentIndex, 'correct'), 150);
+            // Tiene texto - inicializar NicEdit
+            setTimeout(() => initializeNicEdit(currentIndex, 'correct'), 150);
         }
         
         // RESPUESTAS INCORRECTAS
@@ -827,13 +844,16 @@ function addQuestion(questionData = {}) {
                     previewContainer.style.display = 'block';
                 }
             } else if (hasText || (!hasText && !questionData[imageKey])) {
-                // Tiene texto o está vacío - inicializar CKEditor
-                setTimeout(() => initializeCKEditor(currentIndex, wrongType), 150);
+                // Tiene texto o está vacío - inicializar NicEdit
+                setTimeout(() => initializeNicEdit(currentIndex, wrongType), 150);
             }
         });
         
         // Crear previsualizaciones MathJax después de que se inicialicen los editores
         setTimeout(() => createMathPreviews(), 300);
+        
+        // Re-inicializar ResizeObserver para los nuevos elementos
+        setupResizeObserver();
         
     }, 100);
     
@@ -857,11 +877,11 @@ function toggleQuestionInputType(button, index) {
 
     if (type === 'text') {
         // Destruir editor si existe y reinicializar
-        destroyCKEditorInstances(index, 'question');
-        setTimeout(() => initializeCKEditor(index, 'question'), 100);
+        destroyNicEditInstances(index, 'question');
+        setTimeout(() => initializeNicEdit(index, 'question'), 100);
     } else {
         // Modo imagen - destruir editor
-        destroyCKEditorInstances(index, 'question');
+        destroyNicEditInstances(index, 'question');
     }
 }
 
@@ -881,11 +901,11 @@ function toggleAnswerInputType(button, index, answerType) {
 
     if (type === 'text') {
         // Destruir editor si existe y reinicializar
-        destroyCKEditorInstances(index, answerType);
-        setTimeout(() => initializeCKEditor(index, answerType), 100);
+        destroyNicEditInstances(index, answerType);
+        setTimeout(() => initializeNicEdit(index, answerType), 100);
     } else {
         // Modo imagen - destruir editor
-        destroyCKEditorInstances(index, answerType);
+        destroyNicEditInstances(index, answerType);
     }
 }
 
@@ -982,13 +1002,20 @@ document.addEventListener('DOMContentLoaded', function() {
     setupVisibilityObserver();
     
     // Inicializar MathJax cuando esté listo
-    if (window.MathJax) {
+    if (window.MathJax && window.MathJax.startup && window.MathJax.startup.promise) {
         MathJax.startup.promise.then(() => {
             console.log('MathJax cargado correctamente para edición');
             createMathPreviews();
         }).catch(error => {
             console.warn('Error cargando MathJax:', error);
         });
+    } else {
+        console.log('MathJax no disponible aún, esperando...');
+        setTimeout(() => {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                createMathPreviews();
+            }
+        }, 1000);
     }
     
     // Validación del formulario (igual que en create)
@@ -1002,14 +1029,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         questions.forEach((question, index) => {
-            const qEditor = ckeditorInstances[`question-${index}`];
-            let questionText = '';
-            
-            if (qEditor) {
-                questionText = qEditor.getData();
-            } else {
-                questionText = document.querySelector(`#editor-question-${index}`)?.value || '';
-            }
+            const questionText = getEditorContent(`question-${index}`);
             
             const questionImage = document.querySelector(`#question-image-input-${index}`)?.files[0];
             const hasExistingImage = document.querySelector(`input[name="questions[${index}][existing_image]"]`)?.value;
@@ -1021,12 +1041,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Validar que al menos la primera respuesta incorrecta tenga contenido
             const wrongKey = `wrong1-${index}`;
-            let wrong1Text = '';
-            if (ckeditorInstances[wrongKey]) {
-                wrong1Text = ckeditorInstances[wrongKey].getData();
-            } else {
-                wrong1Text = document.querySelector(`#editor-wrong1-${index}`)?.value || '';
-            }
+            const wrong1Text = getEditorContent(wrongKey);
             
             const wrong1Image = document.querySelector(`#wrong1-image-input-${index}`)?.files[0];
             const hasWrong1ExistingImage = document.querySelector(`input[name="questions[${index}][wrong1_existing_image]"]`)?.value;
@@ -1047,14 +1062,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Limpiar editores antes de cerrar
 window.addEventListener('beforeunload', function() {
-    Object.keys(ckeditorInstances).forEach(key => {
-        if (ckeditorInstances[key]) {
-            try {
-                ckeditorInstances[key].destroy();
-            } catch(e) {
-                console.warn(`Error limpiando ${key}:`, e);
-            }
-        }
+    Object.keys(editorInstances).forEach(key => {
+        destroyNicEditInstances(key.split('-')[1] || 0, key.split('-')[0]);
     });
 });
 
@@ -1065,8 +1074,8 @@ function removeQuestion(button) {
     const questionCard = button.closest('.question-card');
     const index = questionCard.dataset.index;
     
-    // Destruir instancias de CKEditor 5
-    destroyCKEditorInstances(index);
+    // Destruir instancias de NicEdit
+    destroyNicEditInstances(index);
     
     if (document.querySelectorAll('.question-card').length > 1) {
         questionCard.remove();
@@ -1119,10 +1128,11 @@ function previewAnswerImage(input, index, answerType) {
     }
 }
 
-// FUNCIÓN CKEDITOR 5: Configuración y Inicialización
-function initializeCKEditor(index, type = null) {
-    if (typeof ClassicEditor === 'undefined') {
-        console.error('CKEditor 5 (ClassicEditor) no está cargado.');
+// FUNCIÓN NICEDIT: Configuración e Inicialización
+function initializeNicEdit(index, type = null) {
+    if (typeof nicEditors === 'undefined') {
+        console.warn('NicEdit no está cargado, reintentando...');
+        setTimeout(() => initializeNicEdit(index, type), 300);
         return;
     }
     
@@ -1131,8 +1141,7 @@ function initializeCKEditor(index, type = null) {
     if (type === 'question' || type === null) {
         elementsToInit.push({
             id: `editor-question-${index}`,
-            key: `question-${index}`,
-            heightClass: 'ck-editor__editable_inline'
+            key: `question-${index}`
         });
     }
 
@@ -1141,37 +1150,14 @@ function initializeCKEditor(index, type = null) {
     answerTypes.forEach(answerType => {
         elementsToInit.push({
             id: `editor-${answerType}-${index}`,
-            key: `${answerType}-${index}`,
-            heightClass: 'ck-editor__editable_inline answer-editor'
+            key: `${answerType}-${index}`
         });
     });
 
-    // Configuración Base de CKEditor 5
-    const editorConfig = {
-        toolbar: {
-            items: [
-                'bold', 'italic', 'link', '|',
-                'bulletedList', 'numberedList', '|',
-                'undo', 'redo'
-            ]
-        },
-        htmlSupport: {
-            allow: [
-                {
-                    name: /.*/,
-                    attributes: true,
-                    classes: true,
-                    styles: true
-                }
-            ]
-        }
-    };
-    
     elementsToInit.forEach(el => {
         const element = document.getElementById(el.id);
-        const existingInstance = ckeditorInstances[el.key];
+        const existingInstance = editorInstances[el.key];
 
-        // VERIFICACIÓN MEJORADA: No inicializar si ya existe
         if (!element) {
             console.log(`Elemento ${el.id} no encontrado`);
             return;
@@ -1182,41 +1168,44 @@ function initializeCKEditor(index, type = null) {
             return;
         }
 
-        // Verificar que el contenedor padre esté visible
         const parent = element.closest('.text-input');
         if (!parent || !parent.classList.contains('active')) {
             console.log(`Saltando ${el.key} - contenedor no activo`);
             return;
         }
-
-        // Verificar que no haya un editor CKEditor ya renderizado
-        if (element.nextElementSibling && element.nextElementSibling.classList.contains('ck-editor')) {
-            console.log(`⚠️ Ya existe un editor renderizado para ${el.key}`);
-            return;
-        }
         
-        ClassicEditor
-            .create(element, editorConfig)
-            .then(editor => {
-                // Agrega clases separadas para evitar InvalidCharacterError
-                (el.heightClass || '').trim().split(/\s+/).filter(Boolean)
-                    .forEach(cls => editor.ui.view.editable.element.classList.add(cls));
-                ckeditorInstances[el.key] = editor;
-                console.log(`✅ CKEditor 5 inicializado: ${el.key}`);
-                
-                // Event listener para actualizar previsualización MathJax
-                editor.model.document.on('change:data', () => {
-                    updateMathPreview(el.key);
-                });
-            })
-            .catch(error => {
-                console.error(`❌ Error al inicializar CKEditor 5 para ${el.key}`, error);
-            });
+        try {
+            const nic = new nicEditor({ fullPanel: true });
+            nic.panelInstance(el.id);
+            editorInstances[el.key] = nic;
+            setTimeout(() => {
+                const instance = nicEditors.findEditor(el.id);
+                if (instance && element.value) {
+                    instance.setContent(element.value);
+                }
+                updateMathPreview(el.key);
+            }, 150);
+            console.log(`✅ NicEdit inicializado: ${el.key}`);
+            
+            // Forzar ancho correcto del panel de NicEdit
+            setTimeout(() => {
+                const panel = document.querySelector(`.nicEdit-panelContain[id*="${el.id}"]`) || 
+                              el.closest ? el.closest('.text-input').querySelector('.nicEdit-panelContain') : null;
+                if (panel) {
+                    const textInput = el.closest('.text-input');
+                    const availableWidth = textInput.offsetWidth;
+                    panel.style.width = availableWidth + 'px';
+                    panel.style.minWidth = availableWidth + 'px';
+                }
+            }, 200);
+        } catch(error) {
+            console.error(`❌ Error al inicializar NicEdit para ${el.key}`, error);
+        }
     });
 }
 
-// FUNCIÓN CKEDITOR 5: Destrucción MEJORADA
-function destroyCKEditorInstances(index, type = null) {
+// FUNCIÓN NICEDIT: Destrucción MEJORADA
+function destroyNicEditInstances(index, type = null) {
     const keysToDestroy = [];
     
     if (type === 'question' || type === null) {
@@ -1229,16 +1218,24 @@ function destroyCKEditorInstances(index, type = null) {
     });
     
     keysToDestroy.forEach(key => {
-        if (ckeditorInstances[key]) {
+        const editor = editorInstances[key];
+        const id = `editor-${key}`;
+        if (editor) {
             try { 
-                ckeditorInstances[key].destroy();
-                delete ckeditorInstances[key];
-                console.log(`CKEditor 5 destruido: ${key}`);
+                editor.removeInstance(id);
+                delete editorInstances[key];
+                console.log(`NicEdit destruido: ${key}`);
             } catch(e) {
-                console.warn(`No se pudo destruir CKEditor 5 para ${key}:`, e);
-                // Forzar eliminación del registro incluso si falla la destrucción
-                delete ckeditorInstances[key];
+                console.warn(`No se pudo destruir NicEdit para ${key}:`, e);
             }
+        }
+        const t = document.getElementById(id);
+        if (t) {
+            const panel = t.previousElementSibling;
+            if (panel && panel.classList.contains('nicEdit-panelContain')) {
+                panel.remove();
+            }
+            t.style.display = '';
         }
     });
 }
@@ -1277,12 +1274,20 @@ function createMathPreviewElement(elementKey) {
     }
 }
 
+function getEditorContent(key) {
+    const id = `editor-${key}`;
+    const nic = (typeof nicEditors !== 'undefined') ? nicEditors.findEditor(id) : null;
+    if (nic && nic.getContent) {
+        return nic.getContent();
+    }
+    return document.getElementById(id)?.value || '';
+}
+
 function updateMathPreview(elementKey) {
-    const editor = ckeditorInstances[elementKey];
     const previewContent = document.getElementById(`math-content-${elementKey}`);
     
-    if (editor && previewContent) {
-        const content = editor.getData();
+    if (previewContent) {
+        const content = getEditorContent(elementKey);
         previewContent.innerHTML = content;
         
         // Reprocesar MathJax si está disponible
@@ -1318,7 +1323,7 @@ function togglePreview(elementKey) {
 }
 
 function updateAllMathPreviews() {
-    Object.keys(ckeditorInstances).forEach(key => {
+    Object.keys(editorInstances).forEach(key => {
         updateMathPreview(key);
     });
 }
@@ -1338,7 +1343,7 @@ function setupVisibilityObserver() {
                             const index = match[2];
                             
                             setTimeout(() => {
-                                initializeCKEditor(parseInt(index), type === 'question' ? 'question' : type);
+                                initializeNicEdit(parseInt(index), type === 'question' ? 'question' : type);
                                 createMathPreviews();
                             }, 200);
                         }
@@ -1352,6 +1357,61 @@ function setupVisibilityObserver() {
         observer.observe(el, { attributes: true });
     });
 }
+
+// Función para ajustar el ancho dinámico de NicEdit
+function adjustNicEditWidth(textInput) {
+    const nicEditPanel = textInput.querySelector('.nicEdit-panelContain');
+    const nicEditMain = textInput.querySelector('.nicEdit-main');
+    
+    // Obtener el ancho disponible del contenedor padre
+    const availableWidth = textInput.offsetWidth;
+    
+    if (availableWidth > 0) {
+        // Ajustar NicEdit
+        if (nicEditPanel && nicEditMain) {
+            nicEditPanel.style.width = availableWidth + 'px';
+            nicEditPanel.style.minWidth = availableWidth + 'px';
+            nicEditMain.style.width = availableWidth + 'px';
+            nicEditMain.style.minWidth = availableWidth + 'px';
+        }
+    }
+}
+
+// Hacer NicEdit responsive usando ResizeObserver
+function setupResizeObserver() {
+    // Observar el contenedor principal de preguntas
+    const questionsContainer = document.getElementById('questions-container');
+    if (questionsContainer) {
+        const containerObserver = new ResizeObserver(() => {
+            document.querySelectorAll('.text-input').forEach(textInput => {
+                adjustNicEditWidth(textInput);
+            });
+        });
+        containerObserver.observe(questionsContainer);
+    }
+    
+    // Observar cada .text-input individualmente
+    document.querySelectorAll('.text-input').forEach(textInput => {
+        const textInputObserver = new ResizeObserver(() => {
+            adjustNicEditWidth(textInput);
+        });
+        textInputObserver.observe(textInput);
+    });
+}
+
+// Llamar cuando el DOM está listo
+setupResizeObserver();
+
+// También ajustar al hacer resize de la ventana
+let resizeTimeout;
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        document.querySelectorAll('.text-input').forEach(textInput => {
+            adjustNicEditWidth(textInput);
+        });
+    }, 100);
+});
 
 </script>
 @endsection

@@ -170,7 +170,7 @@ class AdminController extends Controller
             'weeks.resource',
             'weeks.weekDays',
             'weeks.exam',
-            'evaluationBlocks'
+            'evaluationBlocks.exams'
         ])->findOrFail($id);
 
         $weeks = $course->weeks()
@@ -181,9 +181,10 @@ class AdminController extends Controller
         
         // Cargar bloques de evaluación ordenados
         $evals = $course->evaluationBlocks()
-                       ->orderBy('order', 'asc')
-                       ->orderBy('id', 'asc')
-                       ->get();
+                   ->with('exams')
+                   ->orderBy('order', 'asc')
+                   ->orderBy('id', 'asc')
+                   ->get();
         
         $allExams = Exam::withCount('questions')->get();
         $resources = Resource::all();
@@ -317,12 +318,24 @@ class AdminController extends Controller
             $week->save();
         }
 
-        // Procesar bloques de evaluación (solo exam_id)
+        // Procesar bloques de evaluación (hasta cinco exámenes)
         $evalsData = $request->input('evaluation_blocks', []);
         $processedEvalIds = [];
-        
+
         foreach ($evalsData as $evalKey => $evalData) {
-            if (!isset($evalData['exam_id']) || empty($evalData['exam_id'])) {
+            $examIds = $evalData['exam_ids'] ?? [];
+            $type = isset($evalData['evaluation_type']) ? $evalData['evaluation_type'] : 'universidad';
+            // Fixed slot keys so switching types keeps the same payload structure
+            $slots = ['slot1','slot2','slot3','slot4','slot5'];
+
+            $orderedExamIds = [];
+            foreach ($slots as $slot) {
+                if (!empty($examIds[$slot])) {
+                    $orderedExamIds[] = (int)$examIds[$slot];
+                }
+            }
+
+            if (empty($orderedExamIds)) {
                 continue;
             }
 
@@ -347,11 +360,22 @@ class AdminController extends Controller
             $eval->order = $order;
             $afterWeekId = $evalData['after_week_id'] ?? null;
             $eval->after_week_id = $afterWeekId > 0 ? $afterWeekId : null;
-            $eval->exam_id = $evalData['exam_id'];
+            $eval->evaluation_type = $evalData['evaluation_type'] ?? ($eval->evaluation_type ?? 'universidad');
+            $eval->exam_id = is_array($orderedExamIds) && isset($orderedExamIds[0]) ? (is_array($orderedExamIds[0]) ? $orderedExamIds[0]['id'] : $orderedExamIds[0]) : null; // Mantiene compatibilidad
             $eval->live_meet_link = null;
             $eval->recording_link = null;
             $eval->resource_id = null;
             $eval->save();
+
+            // Limpiar exámenes que ya no pertenecen a este bloque
+            Exam::where('evaluation_block_id', $eval->id)->update(['evaluation_block_id' => null]);
+
+            // Asignar los exámenes seleccionados al bloque
+            // Asignar los exámenes seleccionados al bloque (sin slot_index en este paso si no existe)
+            $idsToAssign = collect($orderedExamIds)->map(function($e){ return is_array($e) ? $e['id'] : $e; })->all();
+            if (!empty($idsToAssign)) {
+                Exam::whereIn('id', $idsToAssign)->update(['evaluation_block_id' => $eval->id]);
+            }
             
             if (!in_array($eval->id, $processedEvalIds)) {
                 $processedEvalIds[] = $eval->id;
@@ -388,6 +412,7 @@ class AdminController extends Controller
                         $block = EvaluationBlock::find($blockId);
                         if ($block && $block->course_id == $course->id) {
                             \Log::info('Eliminando bloque de evaluación:', ['id' => $blockId]);
+                            Exam::where('evaluation_block_id', $block->id)->update(['evaluation_block_id' => null]);
                             $block->delete();
                         }
                     }

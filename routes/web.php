@@ -253,3 +253,7 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::post('/exams/{exam}/results/{examResult}/reset', [\App\Http\Controllers\ExamController::class,'resetResult'])
         ->name('admin.exams.results.reset');
 });
+
+Route::get('/testimonios', function () {
+    return view('general.testimonial.index');
+})->name('testimonials');

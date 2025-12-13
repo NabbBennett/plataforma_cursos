@@ -11,6 +11,7 @@ class EvaluationBlock extends Model
 
     protected $fillable = [
         'course_id',
+        'evaluation_type',
         'after_week_id',
         'live_meet_link',
         'recording_link',

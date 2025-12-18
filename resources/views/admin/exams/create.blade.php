@@ -764,35 +764,83 @@ function updateQuestionNumbers() {
 function toggleQuestionInputType(button, index) {
     const type = button.dataset.type;
     const container = button.closest('.input-type-toggle');
+    
+    // Actualizar botones activos
     container.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
 
-    document.getElementById(`question-text-${index}`).classList.toggle('active', type === 'text');
-    document.getElementById(`question-image-${index}`).classList.toggle('active', type === 'image');
-
-    if (type === 'text') {
-        destroyNicEditInstances(index, 'question');
-        setTimeout(() => initializeNicEdit(index, 'question'), 100);
-    } else {
-        destroyNicEditInstances(index, 'question');
-    }
+    // Mostrar/ocultar inputs
+    const textInput = document.getElementById(`question-text-${index}`);
+    const imageInput = document.getElementById(`question-image-${index}`);
+    
+    // Primero destruir cualquier editor existente
+    destroyNicEditInstances(index, 'question');
+    
+    // Luego cambiar visibilidad
+    setTimeout(() => {
+        textInput.classList.toggle('active', type === 'text');
+        imageInput.classList.toggle('active', type === 'image');
+        
+        // Si es texto, reinicializar el editor y LIMPIAR LA IMAGEN EXISTENTE
+        if (type === 'text') {
+            const textarea = textInput.querySelector('textarea');
+            if (textarea) {
+                // Limpiar estilos inline del textarea
+                textarea.removeAttribute('style');
+                textarea.style.display = 'none'; // CSS lo manejará con NicEdit
+            }
+            
+            // LIMPIAR el campo de imagen existente para que se elimine al guardar
+            const existingImageField = document.querySelector(`input[name="questions[${index}][existing_image]"]`);
+            if (existingImageField) {
+                existingImageField.value = '';
+            }
+            
+            // Esperar a que el DOM se estabilice antes de inicializar
+            setTimeout(() => initializeNicEdit(index, 'question'), 100);
+        }
+    }, 50);
 }
 
 function toggleAnswerInputType(button, index, answerType) {
     const type = button.dataset.type;
     const container = button.closest('.input-type-toggle');
+    
+    // Actualizar botones activos
     container.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
 
-    document.getElementById(`${answerType}-text-${index}`).classList.toggle('active', type === 'text');
-    document.getElementById(`${answerType}-image-${index}`).classList.toggle('active', type === 'image');
-
-    if (type === 'text') {
-        destroyNicEditInstances(index, answerType);
-        setTimeout(() => initializeNicEdit(index, answerType), 100);
-    } else {
-        destroyNicEditInstances(index, answerType);
-    }
+    // Mostrar/ocultar inputs
+    const textInput = document.getElementById(`${answerType}-text-${index}`);
+    const imageInput = document.getElementById(`${answerType}-image-${index}`);
+    
+    // Primero destruir cualquier editor existente
+    destroyNicEditInstances(index, answerType);
+    
+    // Luego cambiar visibilidad
+    setTimeout(() => {
+        textInput.classList.toggle('active', type === 'text');
+        imageInput.classList.toggle('active', type === 'image');
+        
+        // Si es texto, reinicializar el editor y LIMPIAR LA IMAGEN EXISTENTE
+        if (type === 'text') {
+            const textarea = textInput.querySelector('textarea');
+            if (textarea) {
+                // Limpiar estilos inline del textarea
+                textarea.removeAttribute('style');
+                textarea.style.display = 'none'; // CSS lo manejará con NicEdit
+            }
+            
+            // LIMPIAR el campo de imagen existente para que se elimine al guardar
+            const existingImageField = document.querySelector(`input[name="questions[${index}][${answerType}_existing_image]"]`);
+            if (existingImageField) {
+                existingImageField.value = '';
+            }
+            
+            // Esperar a que el DOM se estabilice antes de inicializar
+            setTimeout(() => initializeNicEdit(index, answerType), 100);
+        }
+    }, 50);
 }
 
 // Previsualizar imagen de pregunta
@@ -905,14 +953,19 @@ function destroyNicEditInstances(index, type = null) {
             delete editorInstances[key];
         }
 
-        // Limpiar panel si quedó en el DOM
-        const textarea = document.getElementById(id);
-        if (textarea) {
-            const panel = textarea.previousElementSibling;
-            if (panel && panel.classList.contains('nicEdit-panelContain')) {
-                panel.remove();
+        // Limpiar todo relacionado con NicEdit del DOM
+        const textInput = document.querySelector(`.text-input #${id}`)?.closest('.text-input');
+        if (textInput) {
+            // Eliminar todos los div de NicEdit dentro de este text-input
+            const nicPanels = textInput.querySelectorAll('.nicEdit-panelContain');
+            nicPanels.forEach(panel => panel.remove());
+            
+            // Mostrar el textarea
+            const textarea = textInput.querySelector('textarea');
+            if (textarea) {
+                textarea.style.display = '';
             }
-            textarea.style.display = '';
+        }
         }
     });
 }
@@ -962,6 +1015,23 @@ function getEditorContent(key) {
         return nic.getContent();
     }
     return document.getElementById(id)?.value || '';
+}
+
+// NUEVA FUNCIÓN: Sincronizar todos los editores NicEdit con sus textareas
+function syncAllEditorsToTextarea() {
+    Object.keys(editorInstances).forEach(key => {
+        const editor = editorInstances[key];
+        const id = `editor-${key}`;
+        
+        if (editor && editor.getContent) {
+            const content = editor.getContent();
+            const textarea = document.getElementById(id);
+            if (textarea) {
+                textarea.value = content;
+                console.log(`✅ Sincronizado ${key}: "${content.substring(0, 50)}..."`);
+            }
+        }
+    });
 }
 
 function updateMathPreview(elementKey) {
@@ -1032,6 +1102,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Validación del formulario
     document.getElementById('exam-form').addEventListener('submit', function(e) {
+        // PRIMERO: Sincronizar todos los editores NicEdit con sus textareas
+        syncAllEditorsToTextarea();
+        
         let isValid = true;
         const questions = document.querySelectorAll('.question-card');
         

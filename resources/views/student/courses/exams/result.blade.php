@@ -150,6 +150,15 @@
         vertical-align: top;
     }
 
+    .zoomable-image {
+        cursor: zoom-in;
+        transition: transform 0.2s ease;
+    }
+
+    .zoomable-image:hover {
+        transform: scale(1.02);
+    }
+
     .table-success-custom th {
         background-color: rgba(40, 167, 69, 0.2);
         color: #28a745;
@@ -437,14 +446,30 @@
                                             <td><span>{{ $question->theme ?? $answer->topic ?? '-' }}</span></td>
                                             <td>
                                                 @if($question->image_path)
-                                                    <img src="{{ asset('storage/' . $question->image_path) }}" alt="Pregunta" style="max-width: 100px; max-height: 80px; border-radius: 4px; cursor: pointer;" onclick="this.style.maxWidth='100%'; this.style.maxHeight='100%';" title="Click para ampliar">
+                                                      <img src="{{ asset('storage/' . $question->image_path) }}"
+                                                          alt="Pregunta"
+                                                          class="zoomable-image"
+                                                          data-src="{{ asset('storage/' . $question->image_path) }}"
+                                                          data-alt="Pregunta"
+                                                          role="button"
+                                                          aria-label="Ampliar pregunta"
+                                                          onclick="openImageModal(this.dataset.src || this.src, this.dataset.alt || this.alt)"
+                                                          style="max-width: 100px; max-height: 80px; border-radius: 4px; object-fit: contain; cursor: zoom-in;">
                                                 @else
                                                     {!! strip_tags($question->text) !!}
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($selectedAnswer->image_path)
-                                                    <img src="{{ asset('storage/' . $selectedAnswer->image_path) }}" alt="Respuesta" style="max-width: 100px; max-height: 80px; border-radius: 4px; cursor: pointer;" onclick="this.style.maxWidth='100%'; this.style.maxHeight='100%';" title="Click para ampliar">
+                                                      <img src="{{ asset('storage/' . $selectedAnswer->image_path) }}"
+                                                          alt="Respuesta"
+                                                          class="zoomable-image"
+                                                          data-src="{{ asset('storage/' . $selectedAnswer->image_path) }}"
+                                                          data-alt="Respuesta"
+                                                          role="button"
+                                                          aria-label="Ampliar respuesta"
+                                                          onclick="openImageModal(this.dataset.src || this.src, this.dataset.alt || this.alt)"
+                                                          style="max-width: 100px; max-height: 80px; border-radius: 4px; object-fit: contain; cursor: zoom-in;">
                                                 @else
                                                     {!! strip_tags($selectedAnswer->text) !!}
                                                 @endif
@@ -488,7 +513,15 @@
                                             <td><span>{{ $question->theme ?? $answer->topic ?? '-' }}</span></td>
                                             <td>
                                                 @if($question->image_path)
-                                                    <img src="{{ asset('storage/' . $question->image_path) }}" alt="Pregunta" style="max-width: 100px; max-height: 80px; border-radius: 4px; cursor: pointer;" onclick="this.style.maxWidth='100%'; this.style.maxHeight='100%';" title="Click para ampliar">
+                                                      <img src="{{ asset('storage/' . $question->image_path) }}"
+                                                          alt="Pregunta"
+                                                          class="zoomable-image"
+                                                          data-src="{{ asset('storage/' . $question->image_path) }}"
+                                                          data-alt="Pregunta"
+                                                          role="button"
+                                                          aria-label="Ampliar pregunta"
+                                                          onclick="openImageModal(this.dataset.src || this.src, this.dataset.alt || this.alt)"
+                                                          style="max-width: 100px; max-height: 80px; border-radius: 4px; object-fit: contain; cursor: zoom-in;">
                                                 @else
                                                     {!! strip_tags($question->text) !!}
                                                 @endif
@@ -496,7 +529,15 @@
                                             <td>
                                                 @if($answer->selected_answer_id && $selectedAnswer)
                                                     @if($selectedAnswer->image_path)
-                                                        <img src="{{ asset('storage/' . $selectedAnswer->image_path) }}" alt="Tu respuesta" style="max-width: 100px; max-height: 80px; border-radius: 4px; cursor: pointer;" onclick="this.style.maxWidth='100%'; this.style.maxHeight='100%';" title="Click para ampliar">
+                                                         <img src="{{ asset('storage/' . $selectedAnswer->image_path) }}"
+                                                             alt="Tu respuesta"
+                                                             class="zoomable-image"
+                                                             data-src="{{ asset('storage/' . $selectedAnswer->image_path) }}"
+                                                             data-alt="Tu respuesta"
+                                                             role="button"
+                                                             aria-label="Ampliar tu respuesta"
+                                                             onclick="openImageModal(this.dataset.src || this.src, this.dataset.alt || this.alt)"
+                                                             style="max-width: 100px; max-height: 80px; border-radius: 4px; object-fit: contain; cursor: zoom-in;">
                                                     @else
                                                         {!! strip_tags($selectedAnswer->text) !!}
                                                     @endif
@@ -506,7 +547,15 @@
                                             </td>
                                             <td>
                                                 @if($correctAnswer->image_path)
-                                                    <img src="{{ asset('storage/' . $correctAnswer->image_path) }}" alt="Respuesta correcta" style="max-width: 100px; max-height: 80px; border-radius: 4px; cursor: pointer;" onclick="this.style.maxWidth='100%'; this.style.maxHeight='100%';" title="Click para ampliar">
+                                                      <img src="{{ asset('storage/' . $correctAnswer->image_path) }}"
+                                                          alt="Respuesta correcta"
+                                                          class="zoomable-image"
+                                                          data-src="{{ asset('storage/' . $correctAnswer->image_path) }}"
+                                                          data-alt="Respuesta correcta"
+                                                          role="button"
+                                                          aria-label="Ampliar respuesta correcta"
+                                                          onclick="openImageModal(this.dataset.src || this.src, this.dataset.alt || this.alt)"
+                                                          style="max-width: 100px; max-height: 80px; border-radius: 4px; object-fit: contain; cursor: zoom-in;">
                                                 @else
                                                     {!! strip_tags($correctAnswer->text) !!}
                                                 @endif
@@ -530,7 +579,30 @@
     </div>
 </div>
 
+@include('student.courses.exams.modal')
+
 <script>
+// Funciones globales para abrir/cerrar el modal desde onclick inline
+window.openImageModal = function(src, alt) {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('imageModalContent');
+    const modalCaption = document.getElementById('imageModalCaption');
+    if (!modal || !modalImg || !modalCaption) return;
+    modal.style.display = 'flex';
+    modalImg.src = src;
+    modalCaption.textContent = alt || '';
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeImageModal = function() {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('imageModalContent');
+    if (!modal || !modalImg) return;
+    modal.style.display = 'none';
+    modalImg.src = '';
+    document.body.style.overflow = '';
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // Procesar MathJax cuando carga la página
     if (window.MathJax) {
@@ -570,6 +642,36 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+
+    // Modal de imágenes (delegado y resiliente)
+    (function setupImageModal(){
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('imageModalContent');
+        const modalCaption = document.getElementById('imageModalCaption');
+        const closeBtn = document.getElementById('imageModalClose');
+
+        if (!modal || !modalImg || !modalCaption) return;
+
+        const closeImageModal = () => {
+            window.closeImageModal();
+        };
+
+        document.addEventListener('click', (e) => {
+            const img = e.target.closest('.zoomable-image');
+            if (!img) return;
+            const src = img.dataset.src || img.dataset.zoomSrc || img.src;
+            const alt = img.dataset.alt || img.dataset.zoomAlt || img.alt;
+            if (src) window.openImageModal(src, alt);
+        });
+
+        if (closeBtn) closeBtn.addEventListener('click', closeImageModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeImageModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeImageModal();
+        });
+    })();
 });
 </script>
 

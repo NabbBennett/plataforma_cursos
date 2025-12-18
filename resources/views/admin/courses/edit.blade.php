@@ -276,6 +276,55 @@
         margin-top: 0.25rem;
     }
 
+    /* NicEdit styling to match theme */
+    .nicEdit-panel {
+        background-color: var(--bg-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .nicEdit-panelContain {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .nicEdit-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        box-sizing: border-box !important;
+    }
+
+    .nicEdit-main {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        min-height: 140px;
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 6px !important;
+        padding: 0.5rem !important;
+    }
+
+    .nicEdit-main textarea {
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 6px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+    }
+
+    /* Ensure editor blocks do not float and expand fully */
+    .nicEdit-container,
+    .nicEdit-main {
+        float: none !important;
+        display: block !important;
+    }
+
     @media (max-width: 768px) {
         .edit-course-container {
             padding: 1rem 0;
@@ -609,7 +658,9 @@
     </div>
 </div>
 
+<script src="https://js.nicedit.com/nicEdit-latest.js"></script>
 <script>
+let descriptionEditor;
 // Mover estas variables y funciones FUERA del DOMContentLoaded para que sean globales
 let weekIndex = 0;
 let draggedItem = null;
@@ -1111,6 +1162,87 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inicializar el orden al cargar
     updateBlockOrder();
+});
+
+// NicEdit initialization and syncing for course description
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize NicEdit after a brief delay to ensure DOM is ready
+    setTimeout(() => {
+        descriptionEditor = new nicEditor({ fullPanel: true }).panelInstance('description');
+        updateDescriptionCount();
+        adjustDescriptionEditorWidth();
+        // Hide original textarea after editor is ready
+        const descriptionInputEl = document.getElementById('description');
+        if (descriptionInputEl) descriptionInputEl.style.display = 'none';
+    }, 100);
+
+    const descriptionInput = document.getElementById('description');
+    const descriptionCount = document.getElementById('descriptionCount');
+
+    function updateDescriptionCount() {
+        if (!descriptionEditor || !descriptionCount) return;
+        const content = descriptionEditor.getContent() || '';
+        const length = content.replace(/<[^>]*>/g, '').length;
+        descriptionCount.textContent = `${length}/1000 caracteres`;
+        // Optional visual hints using existing style classes
+        descriptionCount.classList.remove('warning', 'danger');
+        if (length > 900) {
+            descriptionCount.classList.add('danger');
+        } else if (length > 750) {
+            descriptionCount.classList.add('warning');
+        }
+    }
+
+    if (descriptionInput) {
+        descriptionInput.addEventListener('input', updateDescriptionCount);
+    }
+
+    const form = document.querySelector('.form-container form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            if (descriptionEditor && descriptionInput) {
+                descriptionInput.value = descriptionEditor.getContent();
+            }
+        });
+    }
+    
+    // Adjust editor width to match container and observe resizing
+    function adjustDescriptionEditorWidth() {
+        const textarea = document.getElementById('description');
+        const fieldContainer = textarea ? (textarea.closest('.mb-3') || textarea.parentElement) : null;
+        const fallbackContainer = document.querySelector('.form-container');
+        const containerWidth = fieldContainer ? fieldContainer.getBoundingClientRect().width : (fallbackContainer ? fallbackContainer.getBoundingClientRect().width : null);
+        if (!containerWidth) return;
+
+        const scope = fieldContainer || document;
+        const panel = scope.querySelector('.nicEdit-panelContain');
+        const main = scope.querySelector('.nicEdit-main');
+        const container = scope.querySelector('.nicEdit-container') || (panel ? panel.parentElement : null);
+        const parent1 = main ? main.parentElement : null;
+        const parent2 = parent1 ? parent1.parentElement : null;
+        [panel, main, container, parent1, parent2].forEach(el => {
+            if (el) {
+                el.style.width = containerWidth + 'px';
+                el.style.maxWidth = '100%';
+                el.style.boxSizing = 'border-box';
+                el.style.float = 'none';
+                el.style.display = 'block';
+            }
+        });
+    }
+
+    (function setupDescriptionWidthObserver(){
+        const textarea = document.getElementById('description');
+        const fieldContainer = textarea ? (textarea.closest('.mb-3') || textarea.parentElement) : null;
+        if (fieldContainer && window.ResizeObserver) {
+            const ro = new ResizeObserver(() => adjustDescriptionEditorWidth());
+            ro.observe(fieldContainer);
+        }
+        window.addEventListener('resize', adjustDescriptionEditorWidth);
+        // Mutation observer to catch NicEdit DOM insertion
+        const mo = new MutationObserver(() => adjustDescriptionEditorWidth());
+        mo.observe(fieldContainer || document.body, { childList: true, subtree: true });
+    })();
 });
 </script>
 @endsection

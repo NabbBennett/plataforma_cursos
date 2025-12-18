@@ -17,11 +17,12 @@
 <section class="evidence-gallery py-5">
     <div class="container">
         <div class="row g-4">
-            @for($i = 1; $i <= 18; $i++)
+            @for($i = 1; $i <= 28; $i++)
             @php
                 $imageJpg = public_path('images/testimonios/' . $i . '.jpg');
                 $imageJpeg = public_path('images/testimonios/' . $i . '.jpeg');
-                $imageExt = file_exists($imageJpg) ? 'jpg' : (file_exists($imageJpeg) ? 'jpeg' : 'jpg');
+                $imagePng = public_path('images/testimonios/' . $i . '.png');
+                $imageExt = file_exists($imageJpg) ? 'jpg' : (file_exists($imageJpeg) ? 'jpeg' : (file_exists($imagePng) ? 'png' : 'jpg'));
             @endphp
             <div class="col-lg-4 col-md-6 col-sm-12">
                 <div class="evidence-card">

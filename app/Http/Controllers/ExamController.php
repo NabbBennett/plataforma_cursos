@@ -343,10 +343,11 @@ public function edit(Exam $exam){
             if ($request->hasFile("questions.$index.image")) {
                 $questionImagePath = $request->file("questions.$index.image")->store('exams/questions', 'public');
             } else {
-                $questionImagePath = !empty($q['existing_image']) ? $q['existing_image'] : ($existingByIndex[$index]['question_image'] ?? null);
+                // Si existing_image está presente y NO VACÍO, usarlo; si no, NULL (imagen se elimina)
+                $questionImagePath = !empty($q['existing_image']) ? $q['existing_image'] : null;
             }
 
-            // usar '' si hay imagen
+            // usar '' si hay imagen, sino usar texto limpio
             $rawQuestionText = $q['text'] ?? '';
             $questionTextClean = $questionImagePath ? '' : Purifier::clean($rawQuestionText, $purifierConfig);
 
@@ -362,6 +363,7 @@ public function edit(Exam $exam){
             if ($request->hasFile("questions.$index.correct_image")) {
                 $correctImagePath = $request->file("questions.$index.correct_image")->store('exams/answers', 'public');
             } else {
+                // Si existing_image está presente y NO VACÍO, usarlo; si no, NULL (imagen se elimina)
                 $correctImagePath = !empty($q['correct_existing_image']) ? $q['correct_existing_image'] : null;
             }
 

@@ -98,15 +98,49 @@
         color: var(--btn-primary-text);
         border-color: var(--btn-primary-bg);
     }
+
+    .nav-btn.active.answered {
+        /* Mantener estilo de activa pero con el tachado/X visibles */
+        opacity: 1;
+        background-color: var(--btn-primary-bg);
+        color: var(--btn-primary-text) !important;
+        border-color: var(--btn-primary-bg);
+        text-decoration: line-through !important;
+        text-decoration-thickness: 2px;
+        text-decoration-color: var(--btn-primary-text);
+    }
     
     .nav-btn.answered {
-        text-decoration: line-through;
+        text-decoration: line-through !important;
+        text-decoration-thickness: 2px;
+        text-decoration-color: var(--text-primary);
+        text-decoration-skip-ink: none;
         background-color: var(--bg-secondary);
+        color: var(--text-primary) !important;
+        font-weight: 700;
+        position: relative;
+    }
+
+    .nav-btn.answered::after {
+        content: '✕';
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        pointer-events: none;
     }
     
     .form-check-input:checked {
         background-color: var(--btn-primary-bg);
         border-color: var(--btn-primary-bg);
+    }
+
+    body.dark-mode .form-check-input{
+        background-color: var(--dark-base);
     }
     
     .form-check-label {

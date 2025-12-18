@@ -132,6 +132,14 @@
             color: #dc3545; 
             background-color: transparent; 
         }
+
+        body.dark-mode .bi{
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .bi:hover{
+            color: black;
+        }
         
         .btn-outline-danger:hover { 
             background-color: var(--btn-danger-bg); 

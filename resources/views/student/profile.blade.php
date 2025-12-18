@@ -51,7 +51,6 @@
                         <div class="course-horizontal-content">
                             <div class="course-horizontal-info">
                                 <h3 class="course-horizontal-title">{{ $curso->title }}</h3>
-                                <p class="course-horizontal-description">{{ Str::limit($curso->description, 120) }}</p>
                             </div>
                             <div class="course-horizontal-actions">
                                 <a href="{{ route('courses.show', $curso->id) }}" class="btn-access-course">
@@ -81,7 +80,7 @@
                         <div class="course-content">
                             <h3 class="course-title">{{ $curso->title }}</h3>
                             <div class="course-actions">
-                                <a href="{{ route('store.courses.show', $curso->id) }}" class="btn btn-outline-primary">Saber Más</a>
+                                <a href="{{ route('store.course', $curso->id) }}" class="btn btn-outline-primary">Saber Más</a>
                             </div>
                         </div>
                     </div>
@@ -206,6 +205,14 @@
     border-bottom: 2px solid var(--border-color);
 }
 
+body.dark-mode .bi{
+    color: var(--text-primary);
+}
+
+body.dark-mode .bi:hover{
+    color: black;
+}
+
 /* CURSOS ADQUIRIDOS - DISEÑO HORIZONTAL */
 .courses-horizontal {
     display: flex;
@@ -305,9 +312,10 @@
     margin: 3rem 0; 
 }
 
-.carousel-container { 
+.carousel-container {
+    width: 100%;
     position: relative; 
-    overflow: hidden; 
+    overflow: visible; 
 }
 
 .carousel-track {
@@ -328,7 +336,7 @@
 
 .course-card {
     width: 100%;
-    height: 360px;
+    min-height: 360px;
     display: flex;
     flex-direction: column;
     background-color: var(--bg-secondary);
@@ -340,20 +348,20 @@
 
 .course-image {
     width: 100%;
-    height: 60%;            
+    height: 180px;            
     object-fit: cover;
     display: block;
     flex-shrink: 0;
 }
 
 .course-content {
-    height: 40%;
+    flex: 1;
     padding: 1rem;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    overflow: hidden;
+    min-height: 140px;
 }
 
 .carousel-controls {
@@ -378,7 +386,7 @@
 
 .carousel-btn:hover {
     background: var(--btn-primary-bg);
-    color: #fff;
+    color: white;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
@@ -459,11 +467,11 @@
     }
 
     .course-card { 
-        height: 420px; 
+        min-height: 380px; 
     }
 
     .course-image { 
-        height: 60%; 
+        height: 200px; 
     }
 
     .section-title {

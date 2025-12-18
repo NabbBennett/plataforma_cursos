@@ -170,6 +170,54 @@
         color: #dc3545;
     }
 
+    .nicEdit-panel {
+        background-color: var(--bg-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .nicEdit-panelContain {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .nicEdit-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        box-sizing: border-box !important;
+    }
+
+    .nicEdit-main {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        min-height: 140px;
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 6px !important;
+        padding: 0.5rem !important;
+    }
+
+    .nicEdit-main textarea {
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 6px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+    }
+
+    /* Ensure editor blocks do not float and expand fully */
+    .nicEdit-container,
+    .nicEdit-main {
+        float: none !important;
+        display: block !important;
+    }
+
     @media (max-width: 768px) {
         .create-course-container {
             padding: 1rem 0;
@@ -406,7 +454,10 @@
     </div>
 </div>
 
+<script src="https://js.nicedit.com/nicEdit-latest.js"></script>
 <script>
+let descriptionEditor;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Contador de caracteres para título
     const titleInput = document.getElementById('title');
@@ -422,19 +473,74 @@ document.addEventListener('DOMContentLoaded', function() {
     titleCount.textContent = `${titleInput.value.length}/255 caracteres`;
     updateCounterStyle(titleCount, titleInput.value.length, 255);
 
+    // Inicializar NicEdit para descripción
+    setTimeout(() => {
+        descriptionEditor = new nicEditor({ fullPanel: true }).panelInstance('description');
+        updateDescriptionCount();
+        adjustDescriptionEditorWidth();
+        // Hide original textarea after editor is ready
+        const descriptionInputEl = document.getElementById('description');
+        if (descriptionInputEl) descriptionInputEl.style.display = 'none';
+    }, 100);
+
     // Contador de caracteres para descripción
     const descriptionInput = document.getElementById('description');
     const descriptionCount = document.getElementById('descriptionCount');
     
-    descriptionInput.addEventListener('input', function() {
-        const length = this.value.length;
+    function updateDescriptionCount() {
+        const content = descriptionEditor.getContent() || '';
+        const length = content.replace(/<[^>]*>/g, '').length;
         descriptionCount.textContent = `${length}/1000 caracteres`;
         updateCounterStyle(descriptionCount, length, 1000);
-    });
+    }
+
+    // Listener para actualizar contador cuando cambia el contenido
+    if (descriptionEditor) {
+        descriptionInput.addEventListener('input', updateDescriptionCount);
+    }
     
     // Inicializar contador de descripción
-    descriptionCount.textContent = `${descriptionInput.value.length}/1000 caracteres`;
-    updateCounterStyle(descriptionCount, descriptionInput.value.length, 1000);
+    updateDescriptionCount();
+
+    // Ajustar ancho del editor al contenedor
+    function adjustDescriptionEditorWidth() {
+        const textarea = document.getElementById('description');
+        const fieldContainer = textarea ? (textarea.closest('.mb-3') || textarea.parentElement) : null;
+        const fallbackContainer = document.querySelector('.form-container');
+        const containerWidth = fieldContainer ? fieldContainer.getBoundingClientRect().width : (fallbackContainer ? fallbackContainer.getBoundingClientRect().width : null);
+        if (!containerWidth) return;
+
+        const scope = fieldContainer || document;
+        const panel = scope.querySelector('.nicEdit-panelContain');
+        const main = scope.querySelector('.nicEdit-main');
+        const container = scope.querySelector('.nicEdit-container') || (panel ? panel.parentElement : null);
+        const parent1 = main ? main.parentElement : null;
+        const parent2 = parent1 ? parent1.parentElement : null;
+        [panel, main, container, parent1, parent2].forEach(el => {
+            if (el) {
+                el.style.width = containerWidth + 'px';
+                el.style.maxWidth = '100%';
+                el.style.boxSizing = 'border-box';
+                el.style.float = 'none';
+                el.style.display = 'block';
+            }
+        });
+    }
+
+    // Observador de cambios de tamaño del contenedor
+    (function setupDescriptionWidthObserver(){
+        const textarea = document.getElementById('description');
+        const fieldContainer = textarea ? (textarea.closest('.mb-3') || textarea.parentElement) : null;
+        if (fieldContainer && window.ResizeObserver) {
+            const ro = new ResizeObserver(() => adjustDescriptionEditorWidth());
+            ro.observe(fieldContainer);
+        }
+        window.addEventListener('resize', adjustDescriptionEditorWidth);
+
+        // Mutation observer to catch NicEdit DOM insertion
+        const mo = new MutationObserver(() => adjustDescriptionEditorWidth());
+        mo.observe(fieldContainer || document.body, { childList: true, subtree: true });
+    })();
 
     // Función para actualizar el estilo del contador
     function updateCounterStyle(counter, length, max) {
@@ -468,6 +574,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Validación del formulario
     const form = document.getElementById('courseForm');
     form.addEventListener('submit', function(e) {
+        // Sincronizar contenido de NicEdit a textarea
+        if (descriptionEditor) {
+            document.getElementById('description').value = descriptionEditor.getContent();
+        }
+
         let valid = true;
         
         // Validar precio

@@ -213,7 +213,7 @@
         </div>
         
         <div class="testimonial-container text-center">
-            <a href="{{ route('testimonials') }}" class="btn btn-primary btn-lg">Ver Todos los Testimonios</a>
+            <a href="{{ route('testimonials') }}" class="btn btn-primary btn-lg btn-testimonials">Ver Todos los Testimonios</a>
         </div>
     </div>
 </section>
@@ -635,11 +635,19 @@ body.dark-mode .feature-card:hover {
     background-color: var(--bg-secondary);
 }
 
-.testimonials-container {
-    width: 90%;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 30px 20px;
+.btn-testimonials {
+    padding: 1.15rem 2.4rem;
+    font-size: 1.25rem;
+    border-radius: 14px;
+}
+
+@media (max-width: 576px) {
+    .btn-testimonials {
+        width: 100%;
+        max-width: 320px;
+        padding: 1rem 2rem;
+        font-size: 1.15rem;
+    }
 }
 
 .Testimonials-title-intro {
@@ -869,10 +877,6 @@ body.dark-mode .swiper-pagination-bullet-active {
 }
 
 @media (max-width: 576px) {
-    .testimonials-container {
-        padding: 20px 10px;
-    }
-    
     .swiper-slide {
         width: 250px;
         padding: 25px 15px;
@@ -1088,10 +1092,6 @@ margin-left: 20px;
         font-size: 24px;
     }
     
-    .testimonials-container {
-        padding: 20px 10px;
-    }
-    
     .faq-title {
         font-size: 1.75rem;
     }
@@ -1188,10 +1188,6 @@ body.dark-mode .lead {
 /* Espaciado adicional para móviles */
 .mobile-spacing {
     margin-bottom: 1.5rem;
-}
-
-.testimonial-container {
-    padding: 40px 20px;
 }
 </style>
 

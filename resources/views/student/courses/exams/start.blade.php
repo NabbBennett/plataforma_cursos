@@ -160,6 +160,7 @@
     .start-button {
         background: linear-gradient(135deg, var(--btn-primary-bg) 0%, var(--success-color) 100%);
         border: 2px solid var(--border-color);
+        color: var(--text-primary);
         border-radius: 12px;
         padding: 1.25rem 3rem;
         font-size: 1.2rem;
@@ -183,6 +184,7 @@
     
     .button-icon {
         font-size: 1.4rem;
+        color: currentColor;
     }
     
     .exam-progress {

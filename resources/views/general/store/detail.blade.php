@@ -199,6 +199,18 @@
         margin-bottom: 1rem;
     }
     
+    .course-description-content {
+        line-height: 1.8;
+    }
+    
+    .course-description-content div,
+    .course-description-content span {
+        background-color: transparent !important;
+        color: inherit !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+    }
+    
     .star-input {
         font-size: 1.5rem;
         color: var(--border-color);
@@ -358,7 +370,7 @@
             
             <div class="mb-4">
                 <h5>Descripción</h5>
-                <p class="text">{{ $course->description }}</p>
+                <div class="text course-description-content">{!! $course->description !!}</div>
             </div>
             
             <!-- Información adicional -->
@@ -367,11 +379,6 @@
                 <div class="row">
                     <div class="col-md-6">
                         <p><strong>Duración:</strong> {{ $course->weeks->count() }} semanas</p>
-                        <p><strong>Nivel:</strong> {{ $course->level ?? 'Todos los niveles' }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Categoría:</strong> {{ $course->category ?? 'General' }}</p>
-                        <p><strong>Instructor:</strong> {{ $course->instructor ?? 'Instituto Resiliencia' }}</p>
                     </div>
                 </div>
             </div>

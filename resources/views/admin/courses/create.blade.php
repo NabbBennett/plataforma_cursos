@@ -131,6 +131,9 @@
         width: 100%;
         height: 100%;
         cursor: pointer;
+        z-index: 2;
+        top: 0;
+        left: 0;
     }
 
     .file-input-label {
@@ -142,6 +145,9 @@
         cursor: pointer;
         transition: all 0.3s ease;
         color: var(--text-secondary);
+        position: relative;
+        z-index: 1;
+        display: block;
     }
 
     .file-input-label:hover {
@@ -313,11 +319,11 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="course_group" class="form-label">Grupo de Curso (1-4) *</label>
+                            <label for="course_group" class="form-label">Grupo de Curso (1-10) *</label>
                             <input type="number" class="form-control" id="course_group" name="course_group" 
-                                   min="1" max="4" 
+                                min="1" max="10" 
                                    value="{{ old('course_group') }}" 
-                                   placeholder="Seleccione 1, 2, 3 o 4"
+                                   placeholder="Seleccione 1, 2, 3 ... 10"
                                    required>
                             <small class="text-secondary-custom">Agrupa horarios diferentes en la tienda</small>
                         </div>
@@ -362,7 +368,6 @@
                         <textarea class="form-control" id="description" name="description" 
                                   rows="4" 
                                   placeholder="Describa el contenido y objetivos del curso..."
-                                  required
                                   maxlength="1000">{{ old('description') }}</textarea>
                         <div class="character-count" id="descriptionCount">0/1000 caracteres</div>
                     </div>
@@ -415,8 +420,7 @@
                         
                         <div class="file-input-custom mb-3">
                             <input type="file" class="form-control" id="image" name="image" 
-                                   accept="image/*" 
-                                   onchange="previewImage(this)">
+                                   accept="image/*">
                             <label for="image" class="file-input-label">
                                 <i class="bi bi-cloud-arrow-up"></i>
                                 <span>Haga clic para seleccionar una imagen</span>
@@ -473,34 +477,37 @@ document.addEventListener('DOMContentLoaded', function() {
     titleCount.textContent = `${titleInput.value.length}/255 caracteres`;
     updateCounterStyle(titleCount, titleInput.value.length, 255);
 
-    // Inicializar NicEdit para descripción
-    setTimeout(() => {
-        descriptionEditor = new nicEditor({ fullPanel: true }).panelInstance('description');
-        updateDescriptionCount();
-        adjustDescriptionEditorWidth();
-        // Hide original textarea after editor is ready
-        const descriptionInputEl = document.getElementById('description');
-        if (descriptionInputEl) descriptionInputEl.style.display = 'none';
-    }, 100);
-
     // Contador de caracteres para descripción
     const descriptionInput = document.getElementById('description');
     const descriptionCount = document.getElementById('descriptionCount');
     
     function updateDescriptionCount() {
+        if (!descriptionEditor || !descriptionEditor.getContent) {
+            console.log('Editor no inicializado aún');
+            return;
+        }
         const content = descriptionEditor.getContent() || '';
         const length = content.replace(/<[^>]*>/g, '').length;
         descriptionCount.textContent = `${length}/1000 caracteres`;
         updateCounterStyle(descriptionCount, length, 1000);
     }
 
-    // Listener para actualizar contador cuando cambia el contenido
-    if (descriptionEditor) {
+    // Inicializar NicEdit para descripción
+    setTimeout(() => {
+        console.log('Inicializando NicEdit...');
+        descriptionEditor = new nicEditor({ fullPanel: true }).panelInstance('description');
+        console.log('NicEdit inicializado:', descriptionEditor);
+        
+        updateDescriptionCount();
+        adjustDescriptionEditorWidth();
+        
+        // Hide original textarea after editor is ready
+        const descriptionInputEl = document.getElementById('description');
+        if (descriptionInputEl) descriptionInputEl.style.display = 'none';
+        
+        // Listener para actualizar contador cuando cambia el contenido
         descriptionInput.addEventListener('input', updateDescriptionCount);
-    }
-    
-    // Inicializar contador de descripción
-    updateDescriptionCount();
+    }, 100);
 
     // Ajustar ancho del editor al contenedor
     function adjustDescriptionEditorWidth() {
@@ -553,23 +560,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Previsualización de imagen
-    window.previewImage = function(input) {
-        const preview = document.getElementById('imagePreview');
-        const file = input.files[0];
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    console.log('Image input:', imageInput);
+    console.log('Image preview:', imagePreview);
+    
+    imageInput.addEventListener('change', function(e) {
+        console.log('Change event triggered');
+        console.log('Files:', this.files);
+        
+        const file = this.files[0];
         
         if (file) {
+            console.log('File selected:', file.name, file.size, file.type);
+            
+            // Validar tamaño del archivo (2MB máximo)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('La imagen es demasiado grande. El tamaño máximo es 2MB.');
+                this.value = '';
+                imagePreview.style.display = 'none';
+                return;
+            }
+            
+            // Validar tipo de archivo
+            if (!file.type.match('image.*')) {
+                alert('Por favor seleccione un archivo de imagen válido.');
+                this.value = '';
+                imagePreview.style.display = 'none';
+                return;
+            }
+            
+            console.log('Reading file...');
             const reader = new FileReader();
             
             reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
+                console.log('File loaded, showing preview');
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
             }
             
             reader.readAsDataURL(file);
         } else {
-            preview.style.display = 'none';
+            console.log('No file selected');
+            imagePreview.style.display = 'none';
         }
-    }
+    });
 
     // Validación del formulario
     const form = document.getElementById('courseForm');
@@ -580,6 +616,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         let valid = true;
+        
+        // Validar descripción
+        const description = document.getElementById('description').value;
+        const descriptionText = description.replace(/<[^>]*>/g, '').trim();
+        if (descriptionText.length === 0) {
+            alert('La descripción es obligatoria');
+            valid = false;
+        }
         
         // Validar precio
         const price = document.getElementById('price_per_week').value;

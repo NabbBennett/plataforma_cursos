@@ -15,7 +15,7 @@ class StoreController extends Controller
         $course = Course::with(['weeks', 'reviews.user'])->findOrFail($id);
         
         // Determinar el group_id (si no tiene, asignar uno basado en el ID)
-        $groupId = $course->course_group ?? (($course->id - 1) % 4) + 1;
+        $groupId = $course->course_group ?? (($course->id - 1) % 10) + 1;
         
         // Obtener otros horarios disponibles del mismo grupo
         $schedules = Course::where('course_group', $groupId)
@@ -79,7 +79,7 @@ class StoreController extends Controller
         $courseGroups = [];
         foreach ($allCourses as $course) {
             // Si no tiene course_group, asignale uno basado en su ID
-            $groupId = $course->course_group ?? ($course->id % 4) + 1;
+            $groupId = $course->course_group ?? ($course->id % 10) + 1;
             
             if (!isset($courseGroups[$groupId])) {
                 $courseGroups[$groupId] = [

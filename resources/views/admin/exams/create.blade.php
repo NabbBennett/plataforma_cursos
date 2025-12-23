@@ -709,11 +709,7 @@
         </div>
     </div>
 </template>
-@endsection
 
-@section('scripts')
-
-{{-- NicEdit (gratuito) --}}
 <script src="https://js.nicedit.com/nicEdit-latest.js" type="text/javascript"></script>
 
 <script>
@@ -721,20 +717,48 @@ let questionIndex = 0;
 const editorInstances = {}; 
 
 function addQuestion() {
-    const template = document.getElementById('question-template').innerHTML;
-    const html = template.replace(/__INDEX__/g, questionIndex);
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    document.getElementById('questions-container').appendChild(div);
+    const template = document.getElementById('question-template');
+    const clone = template.content.cloneNode(true);
+    
+    // Reemplazar __INDEX__ en todos los atributos y IDs del clon
+    const elements = clone.querySelectorAll('[data-index], [id*="__INDEX__"], [name*="__INDEX__"], [onclick*="__INDEX__"], [onchange*="__INDEX__"]');
+    
+    const updateElement = (el) => {
+        // Actualizar atributos
+        if (el.id) el.id = el.id.replace(/__INDEX__/g, questionIndex);
+        if (el.name) el.name = el.name.replace(/__INDEX__/g, questionIndex);
+        if (el.dataset.index !== undefined) el.dataset.index = questionIndex;
+        
+        // Actualizar atributos onclick y onchange
+        Array.from(el.attributes).forEach(attr => {
+            if (attr.name.includes('on') || attr.name === 'for') {
+                el.setAttribute(attr.name, attr.value.replace(/__INDEX__/g, questionIndex));
+            }
+        });
+    };
+    
+    // Actualizar elemento raíz
+    updateElement(clone.querySelector('.question-card'));
+    
+    // Actualizar todos los descendientes
+    clone.querySelectorAll('*').forEach(el => {
+        updateElement(el);
+    });
+    
+    // Agregar al contenedor
+    document.getElementById('questions-container').appendChild(clone);
     
     // Actualizar número de pregunta
-    div.querySelector('.question-number-display').textContent = questionIndex + 1;
-    
-    // Inicializar NicEdit
-    initializeNicEdit(questionIndex);
-    
-    // Re-inicializar ResizeObserver para los nuevos elementos
-    setupResizeObserver();
+    const card = document.querySelector(`.question-card[data-index="${questionIndex}"]`);
+    if (card) {
+        card.querySelector('.question-number-display').textContent = questionIndex + 1;
+        
+        // Inicializar NicEdit
+        initializeNicEdit(questionIndex);
+        
+        // Re-inicializar ResizeObserver
+        setupResizeObserver();
+    }
     
     questionIndex++;
 }
@@ -966,7 +990,6 @@ function destroyNicEditInstances(index, type = null) {
                 textarea.style.display = '';
             }
         }
-        }
     });
 }
 
@@ -997,13 +1020,19 @@ function createMathPreviewElement(elementKey) {
         previewDiv.innerHTML = `
             <div class="math-preview-header">
                 <small class="text-muted">Vista previa:</small>
-                <button type="button" class="btn-toggle-preview" onclick="togglePreview('${elementKey}')">
+                <button type="button" class="btn-toggle-preview btn-preview-${elementKey}">
                     <i class="bi bi-eye"></i> Ocultar vista previa
                 </button>
             </div>
             <div class="math-preview-content" id="math-content-${elementKey}"></div>
         `;
         editorContainer.appendChild(previewDiv);
+        
+        // Agregar evento listener sin usar onclick inline
+        const button = previewDiv.querySelector('.btn-preview-' + elementKey);
+        if (button) {
+            button.addEventListener('click', () => togglePreview(elementKey));
+        }
     }
 }
 
@@ -1209,3 +1238,5 @@ window.addEventListener('resize', function() {
 });
 
 </script>
+
+@endsection

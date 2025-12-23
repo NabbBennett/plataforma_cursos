@@ -499,11 +499,11 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="course_group" class="form-label">Grupo de Curso (1-4) *</label>
+                            <label for="course_group" class="form-label">Grupo de Curso (1-10) *</label>
                             <input type="number" class="form-control" id="course_group" name="course_group" 
-                                   min="1" max="4" 
+                                min="1" max="10" 
                                    value="{{ old('course_group', $course->course_group) }}" 
-                                   placeholder="Seleccione 1, 2, 3 o 4"
+                                placeholder="Seleccione 1, 2, 3 ... 10"
                                    required>
                             <small class="text-secondary-custom">Agrupa horarios diferentes en la tienda</small>
                         </div>
@@ -571,16 +571,22 @@
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Imagen del Curso</label>
-                            <input type="file" class="form-control" name="image" accept="image/*" onchange="previewImage(this)">
-                            @if($course->image)
-                                <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $course->image) }}" class="image-preview" alt="Imagen actual del curso">
-                                    <small class="text-secondary-custom d-block mt-1">
+                            <input type="file" class="form-control" id="imageInput" name="image" accept="image/*" onchange="previewImage(this)">
+                            <div class="mt-2" id="imagePreviewContainer">
+                                @if($course->image)
+                                    <img src="{{ asset('storage/' . $course->image) }}" class="image-preview" id="currentImage" alt="Imagen actual del curso">
+                                    <small class="text-secondary-custom d-block mt-1" id="imageHint">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Imagen actual. Seleccione una nueva para reemplazar.
                                     </small>
-                                </div>
-                            @endif
+                                @else
+                                    <img class="image-preview" id="currentImage" alt="Vista previa" style="display: none;">
+                                    <small class="text-secondary-custom d-block mt-1" id="imageHint" style="display: none;">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        Nueva imagen seleccionada
+                                    </small>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -798,13 +804,35 @@ window.getLastWeekId = function() {
 }
 
 window.previewImage = function(input) {
-    const preview = input.parentElement.querySelector('.image-preview');
+    const currentImage = document.getElementById('currentImage');
+    const imageHint = document.getElementById('imageHint');
+    
     if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Validar tamaño del archivo (2MB máximo)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('La imagen es demasiado grande. El tamaño máximo es 2MB.');
+            input.value = '';
+            return;
+        }
+        
+        // Validar tipo de archivo
+        if (!file.type.match('image.*')) {
+            alert('Por favor seleccione un archivo de imagen válido.');
+            input.value = '';
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
-            preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">`;
+            currentImage.src = e.target.result;
+            currentImage.style.display = 'block';
+            imageHint.innerHTML = '<i class="bi bi-check-circle me-1"></i>Nueva imagen seleccionada. Se reemplazará al guardar.';
+            imageHint.style.display = 'block';
+            imageHint.style.color = '#28a745';
         }
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
 }
 

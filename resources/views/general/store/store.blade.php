@@ -149,7 +149,6 @@
                             
                             <div class="course-content">
                                 <h3 class="course-title">{{ $group['title'] }}</h3>
-                                <p class="course-description">{{ Str::limit($group['description'], 120) }}</p>
                                 
                                 <div class="course-meta">
                                     <div class="meta-item">

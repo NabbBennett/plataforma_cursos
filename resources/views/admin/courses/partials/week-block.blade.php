@@ -77,7 +77,7 @@
             <label class="form-label mb-3">Configurar días de clase grabada</label>
             
             <div class="row g-2">
-                @for ($day = 1; $day <= 5; $day++)
+                @for ($day = 1; $day <= 7; $day++)
                     @php
                         $dayData = isset($week) ? $week->weekDays->firstWhere('day_number', $day) : null;
                     @endphp

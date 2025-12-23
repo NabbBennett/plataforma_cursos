@@ -87,6 +87,12 @@
             flex-direction: column;
             min-height: 100vh;
         }
+
+        br{
+            content: "";
+            margin-bottom: 1rem;
+            display: block;
+        }
         
         .navbar {
             background-color: var(--navbar-bg) !important;

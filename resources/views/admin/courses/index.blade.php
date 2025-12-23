@@ -185,6 +185,75 @@
         max-width: 300px;
     }
 
+    .search-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .search-input-group {
+        position: relative;
+        max-width: 400px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--btn-primary-bg);
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+        pointer-events: none;
+    }
+
+    .clear-search {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 0.25rem;
+        display: none;
+        transition: color 0.3s ease;
+    }
+
+    .clear-search:hover {
+        color: var(--text-primary);
+    }
+
+    .clear-search.active {
+        display: block;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+    }
+
+    .no-results i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
     .alert-custom {
         background-color: var(--bg-secondary);
         border: 1px solid var(--border-color);
@@ -203,6 +272,15 @@
     @media (max-width: 768px) {
         .courses-container {
             padding: 1rem 0;
+        }
+
+        .search-input-group {
+            max-width: 100%;
+        }
+
+        .search-input {
+            font-size: 0.9rem;
+            padding: 0.65rem 1rem 0.65rem 2.5rem;
         }
 
         .page-header {
@@ -300,18 +378,33 @@
             </div>
         @endif
 
+        <!-- Buscador -->
+        @if($courses->count() > 0)
+            <div class="search-container">
+                <div class="search-input-group">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" 
+                           id="searchInput" 
+                           class="search-input" 
+                           placeholder="Buscar curso por nombre..."
+                           autocomplete="off">
+                    <button type="button" class="clear-search" id="clearSearch">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                </div>
+            </div>
+        @endif
+
         <!-- Tabla de cursos -->
         <div class="table-responsive">
             @if($courses->count() > 0)
-                <div class="table-responsive table-responsive-custom">
+                <div class="table-responsive table-responsive-custom" id="tableContainer">
                     <table class="table table-custom table-hover">
                         <thead>
                             <tr>
                                 <th>Imagen</th>
                                 <th>Título</th>
-                                <th class="mobile-hidden">Descripción</th>
-                                <th>Precio</th>
-                                <th>Inicio</th>
+                                <th>Horario</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -339,17 +432,9 @@
                                             ID: #{{ $course->id }}
                                         </small>
                                     </td>
-                                    <td class="mobile-hidden">
-                                        <div class="description-truncate text-secondary-custom">
-                                            {{ $course->description ?: 'Sin descripción' }}
-                                        </div>
-                                    </td>
                                     <td>
-                                        <i class="bi bi-currency-dollar me-1"></i>{{ number_format($course->price_per_week, 2) }}
-                                    </td>
-                                    <td>
-                                        @if($course->start_date)
-                                            <i class="bi bi-calendar-event me-1"></i>{{ \Carbon\Carbon::parse($course->start_date)->format('d/m/Y') }}
+                                        @if($course->schedule)
+                                            <i class="bi bi-clock me-1"></i>{{ $course->schedule }}
                                         @else
                                             —
                                         @endif
@@ -380,6 +465,16 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mensaje de sin resultados (oculto por defecto) -->
+                <div class="no-results" id="noResults" style="display: none;">
+                    <i class="bi bi-search"></i>
+                    <h5>No se encontraron cursos</h5>
+                    <p>No hay cursos que coincidan con "<span id="searchTerm"></span>"</p>
+                    <button class="btn-create" onclick="document.getElementById('clearSearch').click();">
+                        <i class="bi bi-x-circle"></i> Limpiar búsqueda
+                    </button>
                 </div>
 
                 <!-- Información de paginación - Solo si es paginator -->
@@ -421,6 +516,86 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    const tableBody = document.querySelector('.table-custom tbody');
+    const tableContainer = document.getElementById('tableContainer');
+    const noResults = document.getElementById('noResults');
+    const searchTerm = document.getElementById('searchTerm');
+
+    // Ordenar cursos alfabéticamente al cargar
+    if (tableBody) {
+        sortTableAlphabetically();
+    }
+
+    // Función para ordenar la tabla alfabéticamente
+    function sortTableAlphabetically() {
+        const rows = Array.from(tableBody.querySelectorAll('tr'));
+        rows.sort((a, b) => {
+            const titleA = a.querySelector('.fw-bold').textContent.trim().toLowerCase();
+            const titleB = b.querySelector('.fw-bold').textContent.trim().toLowerCase();
+            return titleA.localeCompare(titleB);
+        });
+        
+        rows.forEach(row => tableBody.appendChild(row));
+    }
+
+    // Función de búsqueda
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchValue = this.value.toLowerCase().trim();
+            const rows = tableBody.querySelectorAll('tr');
+            let visibleCount = 0;
+
+            // Mostrar/ocultar botón de limpiar
+            if (searchValue.length > 0) {
+                clearSearch.classList.add('active');
+            } else {
+                clearSearch.classList.remove('active');
+            }
+
+            // Filtrar filas
+            rows.forEach(row => {
+                const title = row.querySelector('.fw-bold').textContent.toLowerCase();
+                
+                if (title.includes(searchValue)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Mostrar mensaje de sin resultados
+            if (visibleCount === 0 && searchValue.length > 0) {
+                tableContainer.style.display = 'none';
+                noResults.style.display = 'block';
+                searchTerm.textContent = searchInput.value;
+            } else {
+                tableContainer.style.display = 'block';
+                noResults.style.display = 'none';
+            }
+        });
+
+        // Limpiar búsqueda
+        clearSearch.addEventListener('click', function() {
+            searchInput.value = '';
+            clearSearch.classList.remove('active');
+            const rows = tableBody.querySelectorAll('tr');
+            rows.forEach(row => row.style.display = '');
+            tableContainer.style.display = 'block';
+            noResults.style.display = 'none';
+            searchInput.focus();
+        });
+
+        // Limpiar con tecla Escape
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                clearSearch.click();
+            }
+        });
+    }
+
     // Animación suave para las filas de la tabla
     const tableRows = document.querySelectorAll('.table-custom tbody tr');
     tableRows.forEach((row, index) => {

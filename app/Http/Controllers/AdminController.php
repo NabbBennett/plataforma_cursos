@@ -124,7 +124,7 @@ class AdminController extends Controller
             $this->checkPermission(['admin', 'maestro']);
     
         $request->validate([
-            'course_group' => 'required|integer|min:1|max:4',
+            'course_group' => 'required|integer|min:1|max:10',
             'schedule' => 'required|string|max:100',
             "title" => "required|string|max:255",
             "description" => "required|string",
@@ -218,7 +218,7 @@ class AdminController extends Controller
                     $this->checkPermission(['admin', 'maestro']);
 
         $request->validate([
-            'course_group' => 'required|integer|min:1|max:4',
+            'course_group' => 'required|integer|min:1|max:10',
             'schedule' => 'required|string|max:100',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -240,6 +240,22 @@ class AdminController extends Controller
             'start_date', 
             'capacity'
         ]));
+        
+        // Manejar la carga de imagen
+        if ($request->hasFile('image')) {
+            // Eliminar imagen anterior si existe
+            if ($course->image) {
+                $oldImagePath = storage_path('app/public/' . $course->image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+            
+            // Guardar nueva imagen
+            $imagePath = $request->file('image')->store('courses', 'public');
+            $course->image = $imagePath;
+            $course->save();
+        }
         
         // Debug: Ver qué datos llegan
         \Log::info('Datos de semanas recibidos:', $request->input('weeks'));

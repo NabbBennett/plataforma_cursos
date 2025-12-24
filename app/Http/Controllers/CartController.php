@@ -131,13 +131,13 @@ class CartController extends Controller {
                         'user_id' => $user->id,
                         'course_id' => $courseId,
                         'type' => 'weekly',
-                        'weeks_unlocked' => $weeks,
+                        // Semanas desbloqueadas comienzan en 0; se irán liberando aparte
+                        'weeks_unlocked' => 0,
                         'paid_weeks' => $weeks
                     ]);
                     $course->increment('enrolled_count');
                     $extra += 200;
                 } else {
-                    $existing->increment('weeks_unlocked', $weeks);
                     $existing->increment('paid_weeks', $weeks);
                 }
             }

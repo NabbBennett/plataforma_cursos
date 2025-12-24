@@ -21,8 +21,10 @@ class PurchasesController extends Controller
     }
     
     public function ventasGlobales(){
-        
-        $ventas = Purchase::with(['user', 'course'])->get();
+        // Paginamos las ventas para mostrar 10 por página
+        $ventas = Purchase::with(['user', 'course'])
+            ->orderByDesc('created_at')
+            ->paginate(10);
 
         foreach ($ventas as $venta) {
             if ($venta->course && $venta->course->start_date) {
@@ -82,7 +84,7 @@ class PurchasesController extends Controller
             [
                 'type' => 'manual',
                 'paid_weeks' => $request->paid_weeks,
-                'weeks_unlocked' => $request->paid_weeks, // 💡 CORRECTO: igual a las pagadas
+                'weeks_unlocked' => 0, // Semanas desbloqueadas comienzan en 0
                 'start_date' => $startDate,
             ]
         );
@@ -186,7 +188,8 @@ class PurchasesController extends Controller
             'user_id' => $user->id,
             'course_id' => $course->id,
             'type' => $request->type,
-            'weeks_unlocked' => $request->type === 'full' ? $course->number_of_weeks : 1,
+            // Semanas desbloqueadas siempre inician en 0; se gestionan aparte
+            'weeks_unlocked' => 0,
             'paid_weeks' => $request->type === 'full' ? $course->number_of_weeks : 1
         ]);
 

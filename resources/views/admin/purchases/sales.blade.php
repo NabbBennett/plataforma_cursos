@@ -212,6 +212,29 @@
         font-weight: 600;
     }
 
+    /* Paginación personalizada */
+    .pagination-custom .page-link {
+        background-color: var(--bg-secondary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .pagination-custom .page-link:hover {
+        background-color: var(--hover-bg);
+        color: var(--text-primary);
+    }
+
+    .pagination-custom .page-item.active .page-link {
+        background-color: var(--btn-primary-bg);
+        border-color: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+    }
+
+    .pagination-custom .page-item.disabled .page-link {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
     @media (max-width: 768px) {
         .sales-container {
             padding: 1rem 0;
@@ -283,7 +306,8 @@
                 </div>
                 <div class="col-md-4 text-md-end">
                     <div class="stats-badge">
-                        <i class="bi bi-cart-check me-1"></i> {{ $ventas->count() }} Ventas
+                        <i class="bi bi-cart-check me-1"></i>
+                        {{ $ventas->total() }} Ventas
                     </div>
                 </div>
             </div>
@@ -450,6 +474,57 @@
                     </div>
                 @endif
             </div>
+
+            @if($ventas->hasPages())
+                <div class="d-flex justify-content-center mt-3">
+                    <nav aria-label="Paginación de ventas">
+                        <ul class="pagination pagination-custom mb-0">
+                            {{-- Anterior --}}
+                            @if ($ventas->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="bi bi-chevron-left me-1"></i> Anterior
+                                    </span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $ventas->previousPageUrl() }}" rel="prev">
+                                        <i class="bi bi-chevron-left me-1"></i> Anterior
+                                    </a>
+                                </li>
+                            @endif
+
+                            {{-- Números de página --}}
+                            @foreach ($ventas->getUrlRange(1, $ventas->lastPage()) as $page => $url)
+                                @if ($page == $ventas->currentPage())
+                                    <li class="page-item active" aria-current="page">
+                                        <span class="page-link">{{ $page }}</span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                    </li>
+                                @endif
+                            @endforeach
+
+                            {{-- Siguiente --}}
+                            @if ($ventas->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $ventas->nextPageUrl() }}" rel="next">
+                                        Siguiente <i class="bi bi-chevron-right ms-1"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        Siguiente <i class="bi bi-chevron-right ms-1"></i>
+                                    </span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
+                </div>
+            @endif
         </div>
     </div>
 </div>

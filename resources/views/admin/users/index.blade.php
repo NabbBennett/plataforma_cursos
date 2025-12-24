@@ -129,7 +129,7 @@
     }
 
     .pagination-custom .page-link {
-        background-color: var(--bg-primary);
+        background-color: var(--bg-secondary);
         border-color: var(--border-color);
         color: var(--text-primary);
     }
@@ -450,11 +450,56 @@
             @if($users->hasPages())
                 <div class="mt-4">
                     <nav aria-label="Paginación de usuarios">
-                        <ul class="pagination pagination-custom justify-content-center">
-                            {{ $users->appends([
-                                'search' => request('search'),
-                                'role' => request('role')
-                            ])->links() }}
+                        <ul class="pagination pagination-custom justify-content-center mb-0">
+                            {{-- Anterior --}}
+                            @php
+                                $paginator = $users->appends([
+                                    'search' => request('search'),
+                                    'role' => request('role'),
+                                ]);
+                            @endphp
+
+                            @if ($paginator->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="bi bi-chevron-left me-1"></i> Anterior
+                                    </span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev">
+                                        <i class="bi bi-chevron-left me-1"></i> Anterior
+                                    </a>
+                                </li>
+                            @endif
+
+                            {{-- Números de página --}}
+                            @foreach ($paginator->getUrlRange(1, $paginator->lastPage()) as $page => $url)
+                                @if ($page == $paginator->currentPage())
+                                    <li class="page-item active" aria-current="page">
+                                        <span class="page-link">{{ $page }}</span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                    </li>
+                                @endif
+                            @endforeach
+
+                            {{-- Siguiente --}}
+                            @if ($paginator->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next">
+                                        Siguiente <i class="bi bi-chevron-right ms-1"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        Siguiente <i class="bi bi-chevron-right ms-1"></i>
+                                    </span>
+                                </li>
+                            @endif
                         </ul>
                     </nav>
                 </div>

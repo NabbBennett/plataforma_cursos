@@ -617,15 +617,29 @@
         <div class="info-grid">
             <div class="info-item">
                 <span class="info-label">Número de Administración</span>
-                <span class="info-value">101</span>
+                <span class="info-value fw-bold">+52 1 220 300 0543</span>
+                <a href="https://api.whatsapp.com/send?phone=5212203000543&text=Hola%2C%20buen%20día" class="btn-action btn-secondary mt-1">
+                    <i class="bi bi-chat-dots"></i>
+                    Mandar mensaje
+                </a>
             </div>
+            <!--
             <div class="info-item">
                 <span class="info-label">Número de Dudas</span>
-                <span class="info-value">202</span>
+                <span class="info-value fw-bold">202</span>
+                <a href="https://api.whatsapp.com/send?phone=5212203000543&text=Hola%2C%20buen%20día" class="btn-action btn-secondary mt-1">
+                    <i class="bi bi-chat-dots"></i>
+                    Mandar mensaje
+                </a>
             </div>
+            -->
             <div class="info-item">
                 <span class="info-label">Psicólogo vocacional</span>
-                <span class="info-value">Mtra. Ana Pérez</span>
+                <span class="info-value fw-bold">+52 1 222 463 4645</span>
+                <a href="https://api.whatsapp.com/send?phone=5212224634645&text=Hola%2C%20buen%20día" class="btn-action btn-secondary mt-1">
+                    <i class="bi bi-chat-dots"></i>
+                    Mandar mensaje
+                </a>
             </div>
         </div>
         
@@ -1153,22 +1167,17 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Gráfica de Puntaje en Modal
         scoreChartModal = new Chart(document.getElementById('scoreChartModal'), {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: initialData.filteredLabels,
                 datasets: [{
                     label: 'Puntaje (%)',
                     data: initialData.filteredScores,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
                     borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 3,
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
-                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    tension: 0.4,
-                    fill: true
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
                 }]
             },
             options: getChartOptions(100)
@@ -1176,22 +1185,17 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Gráfica de Tiempo en Modal
         timeChartModal = new Chart(document.getElementById('timeChartModal'), {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: initialData.filteredLabels,
                 datasets: [{
                     label: 'Tiempo promedio (s)',
                     data: initialData.filteredTimes,
-                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.7)',
                     borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 3,
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
-                    pointBackgroundColor: 'rgba(255, 206, 86, 1)',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    tension: 0.4,
-                    fill: true
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
                 }]
             },
             options: getChartOptions()
@@ -1199,22 +1203,17 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Gráfica de Respuestas correctas en Modal
         correctChartModal = new Chart(document.getElementById('correctChartModal'), {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: initialData.filteredLabels,
                 datasets: [{
                     label: 'Respuestas correctas',
                     data: initialData.filteredCorrect,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
                     borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 3,
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
-                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    tension: 0.4,
-                    fill: true
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
                 }]
             },
             options: getChartOptions()

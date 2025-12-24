@@ -49,17 +49,33 @@
                                             <i class="bi bi-bank2 text-primary me-2"></i>Transferencia Bancaria
                                         </h6>
                                         <div class="mb-2">
-                                            <small class="text-muted d-block">Número de tarjeta:</small>
+                                            <small class="text-muted d-block">Cuenta clabe <strong>SANTANDER</strong>:</small>
                                             <div class="input-group input-group-sm mt-1">
-                                                <input type="text" class="form-control payment-input" value="1234 5678 9012 3456" readonly>
-                                                <button class="btn btn-outline-secondary copy-btn" type="button" onclick="copyToClipboard('1234567890123456')">
+                                                <input type="text" class="form-control payment-input" value="014650200143942203" readonly>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button" onclick="copyToClipboard('014650200143942203')">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                            </div>
+
+                                            <small class="text-muted d-block">Número de cuenta <strong>SANTANDER</strong>:</small>
+                                            <div class="input-group input-group-sm mt-1">
+                                                <input type="text" class="form-control payment-input" value="20014394220" readonly>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button" onclick="copyToClipboard('20014394220')">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                            </div>
+
+                                            <small class="text-muted d-block">Cuenta clabe <strong>BANCOPPEL</strong>:</small>
+                                            <div class="input-group input-group-sm mt-1">
+                                                <input type="text" class="form-control payment-input" value="137650104253744303" readonly>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button" onclick="copyToClipboard('137650104253744303')">
                                                     <i class="bi bi-clipboard"></i>
                                                 </button>
                                             </div>
                                         </div>
                                         <div class="mb-2">
                                             <small class="text-muted d-block">Nombre del destinatario:</small>
-                                            <div class="fw-semibold text-center small">Instituto Resiliencia</div>
+                                            <div class="fw-semibold text-left small">Benito de Jesús García Torres</div>
                                         </div>
                                     </div>
                                 </div>
@@ -71,17 +87,28 @@
                                             <i class="bi bi-shop text-warning me-2"></i>Pago en OXXO
                                         </h6>
                                         <div class="mb-2">
-                                            <small class="text-muted d-block">Número de tarjeta:</small>
+                                            <small class="text-muted d-block">Número de tarjeta <strong>SANTANDER</strong>:</small>
                                             <div class="input-group input-group-sm mt-1">
-                                                <input type="text" class="form-control payment-input" value="9876 5432 1098 7654" readonly>
-                                                <button class="btn btn-outline-secondary copy-btn" type="button" onclick="copyToClipboard('9876543210987654')">
+                                                <input type="text" class="form-control payment-input" value="5579 0990 1677 4293" readonly>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button" onclick="copyToClipboard('5579099016774293')">
                                                     <i class="bi bi-clipboard"></i>
                                                 </button>
                                             </div>
                                         </div>
+
+                                        <div class="mb-2">
+                                            <small class="text-muted d-block">Número de tarjeta <strong>BANCOPPEL</strong>:</small>
+                                            <div class="input-group input-group-sm mt-1">
+                                                <input type="text" class="form-control payment-input" value="4169 1608 0369 4521" readonly>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button" onclick="copyToClipboard('4169160803694521')">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <div class="mb-2">
                                             <small class="text-muted d-block">Nombre del destinatario:</small>
-                                            <div class="fw-semibold text-center small">Instituto Resiliencia</div>
+                                            <div class="fw-semibold text-left small">Benito de Jesús García Torres</div>
                                         </div>
                                     </div>
                                 </div>

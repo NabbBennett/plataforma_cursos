@@ -45,8 +45,10 @@ class User extends Authenticatable
             return false;
         }
 
+        // Se considera que compró todos los módulos si es compra completa
+        // o si las semanas pagadas cubren todas las semanas del curso.
         return $purchase->type === 'full' || 
-            $purchase->weeks_unlocked >= $course->weeks->count();
+            $purchase->paid_weeks >= $course->weeks->count();
     }
 
     public function userAnswers() {

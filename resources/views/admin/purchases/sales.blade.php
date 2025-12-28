@@ -378,7 +378,15 @@
                     <h5 class="text-primary-custom mb-0">Ventas registradas</h5>
                 </div>
                 <div class="col-md-6">
-                    <input type="text" id="searchInput" class="form-control form-control-custom" placeholder="Buscar por alumno o curso...">
+                    <form method="GET" action="{{ route('admin.purchases.sales') }}" class="d-flex gap-2">
+                        <input
+                            type="text"
+                            id="searchInput"
+                            name="q"
+                            value="{{ request('q') }}"
+                            class="form-control form-control-custom"
+                            placeholder="Buscar por alumno o curso...">
+                    </form>
                 </div>
             </div>
 
@@ -419,7 +427,7 @@
                                         <td>
                                             <div class="text-primary-custom fw-bold">{{ $venta->user->name }}</div>
                                             <small class="text-secondary-custom mobile-hidden">
-                                                {{ $venta->user->email }}
+                                                {{ $venta->user->phone_mobile ?? 'Sin teléfono' }} <br> {{ $venta->user->email }}
                                             </small>
                                         </td>
                                         <td class="mobile-hidden">
@@ -531,27 +539,22 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Animación suave para las filas de la tabla
-    const tableRows = document.querySelectorAll('.table-custom tbody tr');
-    tableRows.forEach((row, index) => {
-        row.style.opacity = '0';
-        row.style.transform = 'translateX(-20px)';
-        
-        setTimeout(() => {
-            row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            row.style.opacity = '1';
-            row.style.transform = 'translateX(0)';
-        }, index * 100);
-    });
-
-    // Buscador
-    document.getElementById('searchInput').addEventListener('keyup', function () {
-        let value = this.value.toLowerCase();
-        document.querySelectorAll('#ventasTable tbody tr').forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(value) ? '' : 'none';
+    // Búsqueda en tiempo real (lado servidor) con debounce
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        let searchTimeout = null;
+        searchInput.addEventListener('input', function () {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            searchTimeout = setTimeout(() => {
+                const form = this.form;
+                if (form) {
+                    form.submit();
+                }
+            }, 500); // espera 500ms después de dejar de escribir
         });
-    });
+    }
 
     // Límite dinámico para semanas pagadas
     document.getElementById('courseSelect').addEventListener('change', function () {

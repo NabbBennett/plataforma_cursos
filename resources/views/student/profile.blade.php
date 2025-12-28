@@ -224,7 +224,8 @@ body.dark-mode .bi:hover{
 .course-horizontal-card {
     display: flex;
     height: 150px;
-    margin: 0 10%;
+    margin: 0 auto;
+    max-width: 100%;
     background: var(--bg-secondary);
     border-radius: 12px;
     border: 1px solid var(--border-color);
@@ -315,7 +316,9 @@ body.dark-mode .bi:hover{
 .carousel-container {
     width: 100%;
     position: relative; 
-    overflow: visible; 
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 .carousel-track {
@@ -433,6 +436,8 @@ body.dark-mode .bi:hover{
     /* CURSOS HORIZONTAL - MÓVIL */
     .course-horizontal-card {
         flex-direction: column;
+        margin: 0 !important;
+        height: auto;
     }
 
     .course-horizontal-image {
@@ -458,7 +463,8 @@ body.dark-mode .bi:hover{
 
     /* CARRUSEL MÓVIL */
     .carousel-slide { 
-        flex: 0 0 90%; 
+        flex: 0 0 100% !important;
+        max-width: 100%;
     }
 
     .carousel-track { 
@@ -513,6 +519,11 @@ body.dark-mode .bi:hover{
 
     .empty-state {
         padding: 2rem 1rem;
+    }
+
+    .carousel-slide {
+        flex: 0 0 calc(100% - 12px) !important;
+        max-width: calc(100% - 12px);
     }
 }
 

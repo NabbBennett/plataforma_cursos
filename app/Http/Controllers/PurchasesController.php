@@ -20,11 +20,24 @@ class PurchasesController extends Controller
         }
     }
     
-    public function ventasGlobales(){
+    public function ventasGlobales(Request $request){
+        // Listado de ventas con búsqueda global por alumno o curso
+        $query = Purchase::with(['user', 'course'])
+            ->orderByDesc('created_at');
+
+        if ($search = $request->input('q')) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })->orWhereHas('course', function ($sub) use ($search) {
+                    $sub->where('title', 'like', "%{$search}%");
+                });
+            });
+        }
+
         // Paginamos las ventas para mostrar 10 por página
-        $ventas = Purchase::with(['user', 'course'])
-            ->orderByDesc('created_at')
-            ->paginate(10);
+        $ventas = $query->paginate(10)->appends($request->all());
 
         foreach ($ventas as $venta) {
             if ($venta->course && $venta->course->start_date) {

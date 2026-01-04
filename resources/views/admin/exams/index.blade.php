@@ -191,6 +191,25 @@
         border-left: 4px solid #dc3545;
     }
 
+    /* Paginación personalizada */
+    .pagination-custom .page-link {
+        background-color: var(--bg-secondary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .pagination-custom .page-link:hover {
+        background-color: var(--hover-bg);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .pagination-custom .page-item.active .page-link {
+        background-color: var(--btn-primary-bg);
+        border-color: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+    }
+
     @media (max-width: 768px) {
         .exams-container {
             padding: 1rem 0;
@@ -283,6 +302,26 @@
             </div>
         @endif
 
+        <!-- Buscador de exámenes -->
+        <div class="table-container mb-3">
+            <div class="row align-items-center g-2">
+                <div class="col-md-6">
+                    <h5 class="text-primary-custom mb-0"><i class="bi bi-search me-2"></i>Buscar examen</h5>
+                </div>
+                <div class="col-md-6">
+                    <form method="GET" action="{{ route('admin.exams.index') }}" class="d-flex gap-2">
+                        <input
+                            type="text"
+                            id="examSearchInput"
+                            name="search"
+                            value="{{ request('search') }}"
+                            class="form-control"
+                            placeholder="Buscar por título de examen...">
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <!-- Tabla de exámenes -->
         <div class="table-responsive">
             @if($exams->count() > 0)
@@ -371,8 +410,98 @@
                             </div>
                             <div class="col-md-6">
                                 <nav aria-label="Paginación de exámenes" class="d-flex justify-content-end">
-                                    <ul class="pagination pagination-sm">
-                                        {{ $exams->links() }}
+                                    @php
+                                        $paginator = $exams->appends([
+                                            'search' => request('search'),
+                                        ]);
+                                    @endphp
+                                    <ul class="pagination pagination-sm pagination-custom mb-0">
+                                        {{-- Anterior --}}
+                                        @if ($paginator->onFirstPage())
+                                            <li class="page-item disabled">
+                                                <span class="page-link">
+                                                    <i class="bi bi-chevron-left me-1"></i> Anterior
+                                                </span>
+                                            </li>
+                                        @else
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev">
+                                                    <i class="bi bi-chevron-left me-1"></i> Anterior
+                                                </a>
+                                            </li>
+                                        @endif
+
+                                        {{-- Números de página (máximo 5 enlaces visibles) --}}
+                                        @php
+                                            $currentPage = $paginator->currentPage();
+                                            $lastPage = $paginator->lastPage();
+                                            $pages = [];
+
+                                            if ($lastPage <= 5) {
+                                                for ($i = 1; $i <= $lastPage; $i++) {
+                                                    $pages[] = $i;
+                                                }
+                                            } else {
+                                                $pages[] = 1; // siempre primera
+
+                                                if ($currentPage <= 3) {
+                                                    // Inicio: 1, 2, 3, 4, última
+                                                    $pages[] = 2;
+                                                    $pages[] = 3;
+                                                    $pages[] = 4;
+                                                } elseif ($currentPage >= $lastPage - 2) {
+                                                    // Final: 1, última-3, última-2, última-1, última
+                                                    $pages[] = $lastPage - 3;
+                                                    $pages[] = $lastPage - 2;
+                                                    $pages[] = $lastPage - 1;
+                                                } else {
+                                                    // Medio: 1, actual-1, actual, actual+1, última
+                                                    $pages[] = $currentPage - 1;
+                                                    $pages[] = $currentPage;
+                                                    $pages[] = $currentPage + 1;
+                                                }
+
+                                                $pages[] = $lastPage; // siempre última
+
+                                                $pages = array_values(array_unique($pages));
+                                                sort($pages);
+                                            }
+
+                                            $previousPage = null;
+                                        @endphp
+
+                                        @foreach ($pages as $page)
+                                            @if (!is_null($previousPage) && $page - $previousPage > 1)
+                                                <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                                            @endif
+
+                                            @if ($page == $currentPage)
+                                                <li class="page-item active" aria-current="page">
+                                                    <span class="page-link">{{ $page }}</span>
+                                                </li>
+                                            @else
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ $paginator->url($page) }}">{{ $page }}</a>
+                                                </li>
+                                            @endif
+
+                                            @php $previousPage = $page; @endphp
+                                        @endforeach
+
+                                        {{-- Siguiente --}}
+                                        @if ($paginator->hasMorePages())
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next">
+                                                    Siguiente <i class="bi bi-chevron-right ms-1"></i>
+                                                </a>
+                                            </li>
+                                        @else
+                                            <li class="page-item disabled">
+                                                <span class="page-link">
+                                                    Siguiente <i class="bi bi-chevron-right ms-1"></i>
+                                                </span>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </nav>
                             </div>
@@ -396,19 +525,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Animación suave para las filas de la tabla
-    const tableRows = document.querySelectorAll('.table-custom tbody tr');
-    tableRows.forEach((row, index) => {
-        row.style.opacity = '0';
-        row.style.transform = 'translateX(-20px)';
-        
-        setTimeout(() => {
-            row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            row.style.opacity = '1';
-            row.style.transform = 'translateX(0)';
-        }, index * 100);
-    });
-
     // Confirmación mejorada para eliminación
     const deleteForms = document.querySelectorAll('form[onsubmit]');
     deleteForms.forEach(form => {
@@ -438,6 +554,23 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => alert.remove(), 500);
         }, 5000);
     });
+
+    // Búsqueda en tiempo real (lado servidor) con debounce
+    const examSearchInput = document.getElementById('examSearchInput');
+    if (examSearchInput) {
+        let searchTimeout = null;
+        examSearchInput.addEventListener('input', function () {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            searchTimeout = setTimeout(() => {
+                const form = this.form;
+                if (form) {
+                    form.submit();
+                }
+            }, 500); // espera 500ms después de dejar de escribir
+        });
+    }
 });
 </script>
 @endsection

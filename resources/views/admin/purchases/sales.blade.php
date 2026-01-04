@@ -502,17 +502,65 @@
                                 </li>
                             @endif
 
-                            {{-- Números de página --}}
-                            @foreach ($ventas->getUrlRange(1, $ventas->lastPage()) as $page => $url)
-                                @if ($page == $ventas->currentPage())
+                            {{-- Números de página (máximo 5 enlaces visibles) --}}
+                            @php
+                                $currentPage = $ventas->currentPage();
+                                $lastPage = $ventas->lastPage();
+                                $pages = [];
+
+                                if ($lastPage <= 5) {
+                                    // Si hay 5 páginas o menos, mostrar todas
+                                    for ($i = 1; $i <= $lastPage; $i++) {
+                                        $pages[] = $i;
+                                    }
+                                } else {
+                                    // Siempre mostrar la primera página
+                                    $pages[] = 1;
+
+                                    if ($currentPage <= 3) {
+                                        // Estamos al inicio: 1, 2, 3, 4, última
+                                        $pages[] = 2;
+                                        $pages[] = 3;
+                                        $pages[] = 4;
+                                    } elseif ($currentPage >= $lastPage - 2) {
+                                        // Estamos al final: 1, última-3, última-2, última-1, última
+                                        $pages[] = $lastPage - 3;
+                                        $pages[] = $lastPage - 2;
+                                        $pages[] = $lastPage - 1;
+                                    } else {
+                                        // Zona intermedia: 1, actual-1, actual, actual+1, última
+                                        $pages[] = $currentPage - 1;
+                                        $pages[] = $currentPage;
+                                        $pages[] = $currentPage + 1;
+                                    }
+
+                                    // Siempre mostrar la última página
+                                    $pages[] = $lastPage;
+
+                                    // Eliminar duplicados y ordenar
+                                    $pages = array_values(array_unique($pages));
+                                    sort($pages);
+                                }
+
+                                $previousPage = null;
+                            @endphp
+
+                            @foreach ($pages as $page)
+                                @if (!is_null($previousPage) && $page - $previousPage > 1)
+                                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                                @endif
+
+                                @if ($page == $currentPage)
                                     <li class="page-item active" aria-current="page">
                                         <span class="page-link">{{ $page }}</span>
                                     </li>
                                 @else
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                        <a class="page-link" href="{{ $ventas->url($page) }}">{{ $page }}</a>
                                     </li>
                                 @endif
+
+                                @php $previousPage = $page; @endphp
                             @endforeach
 
                             {{-- Siguiente --}}

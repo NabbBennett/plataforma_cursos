@@ -357,11 +357,13 @@
                 <div class="col-md-8">
                     <h1 class="mb-2 d-inline"><i class="bi bi-book me-2"></i>Gestión de Cursos</h1>
                 </div>
+                @if(auth()->user()->isAdmin())
                 <div class="col-md-4 text-md-end">
                     <a href="{{ route('admin.courses.create') }}" class="btn-create">
                         <i class="bi bi-plus-circle"></i> Nuevo Curso
                     </a>
                 </div>
+                @endif
             </div>
         </div>
 

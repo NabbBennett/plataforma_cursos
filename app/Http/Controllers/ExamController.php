@@ -24,9 +24,17 @@ class ExamController extends Controller
         }
     }
 
-    public function index(){
-        $exams = Exam::withCount('questions')->latest()->get();
-        return view('admin.exams.index', compact('exams'));
+    public function index(Request $request)
+    {
+        $query = Exam::withCount('questions')->latest();
+
+        if ($search = $request->input('search')) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        $exams = $query->paginate(15)->appends($request->only('search'));
+
+        return view('admin.exams.index', compact('exams', 'search'));
     }
 
     public function create(){

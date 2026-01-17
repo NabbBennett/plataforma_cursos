@@ -37,7 +37,7 @@
             <input class="form-check-input" type="checkbox" role="switch"
                    id="evaluation-type-switch-{{ $index }}"
                    {{ $selectedType === 'preparatoria' ? 'checked' : '' }}
-                   onchange="updateEvalType{{ $index }}(this)">
+                   onchange="handleEvaluationTypeChange(this)">
             <label class="form-check-label" for="evaluation-type-switch-{{ $index }}">
                 <span id="evaluation-type-label-{{ $index }}">{{ $selectedType === 'preparatoria' ? 'Preparatoria' : 'Universidad' }}</span>
             </label>
@@ -97,37 +97,6 @@
             <small class="text-secondary-custom">Puedes dejarlo vacío si no aplica</small>
         </div>
     @endforeach
-
-    <script>
-        function updateEvalType{{ $index }}(checkbox) {
-            const type = checkbox.checked ? 'preparatoria' : 'universidad';
-            // update hidden input and visible label
-            const input = document.getElementById('evaluation-type-input-{{ $index }}');
-            const typeLabel = document.getElementById('evaluation-type-label-{{ $index }}');
-            if (input) input.value = type;
-            if (typeLabel) typeLabel.innerText = type === 'preparatoria' ? 'Preparatoria' : 'Universidad';
-
-            // label sets
-            const labels = type === 'preparatoria'
-                ? ['Pensamiento crítico y resolución de problemas', 'Comunicación, alfabetización multimodal y cultura', 'Razonamiento matemático y ciencias de datos', 'Sociedad, cultura y ciudadanía global', 'Ciencias y tecnología para el futuro']
-                : ['Español', 'Matemáticas', 'Área de conocimiento', 'Habilidades blandas', 'Inglés'];
-
-            // scope to this block container
-            const container = document.getElementById('evaluation-type-switch-{{ $index }}')?.closest('.evaluation-block');
-            if (!container) return;
-
-            // find all exam label elements in order
-            const formGroups = container.querySelectorAll('.mb-3');
-            let labelIdx = 0;
-            formGroups.forEach(group => {
-                const labelEl = group.querySelector('.form-label');
-                const hasIcon = labelEl && labelEl.querySelector('i.bi-file-text');
-                if (labelEl && hasIcon && labelIdx < labels.length) {
-                    labelEl.innerHTML = '<i class="bi bi-file-text me-1"></i>' + labels[labelIdx++];
-                }
-            });
-        }
-    </script>
 
     <div class="alert alert-info mt-3">
         <i class="bi bi-info-circle me-2"></i>

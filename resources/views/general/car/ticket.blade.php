@@ -11,7 +11,7 @@
                 <h1 class="h3 fw-bold text-primary mb-2">Comprobante de Compra</h1>
                 <div class="d-flex justify-content-center align-items-center gap-2">
                     <span class="badge bg-success">Compra Exitosa</span>
-                    <span class="text-muted small">#{{ substr(md5(uniqid()), 0, 8) }}</span>
+                    <span class="text-muted small">#{{ $ticket['code'] ?? substr(md5(uniqid()), 0, 8) }}</span>
                 </div>
             </div>
 
@@ -135,13 +135,11 @@
                                     </thead>
                                     <tbody>
                                         @php
-                                            $total = 0;
-                                            $cart = session('last_ticket.cart', []);
+                                            $cart = $ticket['cart'] ?? session('last_ticket.cart', []);
                                         @endphp
                                         @foreach($cart as $item)
                                             @php
-                                                $subtotal = $item['price_per_week'] * count($item['weeks']);
-                                                $total += $subtotal;
+                                                $lineSubtotal = $item['price_per_week'] * count($item['weeks']);
                                             @endphp
                                             <tr>
                                                 <td>
@@ -152,12 +150,40 @@
                                                     <span class="badge bg-primary">{{ count($item['weeks']) }}</span>
                                                 </td>
                                                 <td class="text-end fw-semibold">
-                                                    ${{ number_format($subtotal, 2) }}
+                                                    ${{ number_format($lineSubtotal, 2) }}
                                                 </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
                                     <tfoot class="table-group-divider">
+                                        @php
+                                            $subtotal = $ticket['subtotal'] ?? 0;
+                                            $enrollmentFee = $ticket['enrollment_fee'] ?? 0;
+                                            $discount = $ticket['discount'] ?? 0;
+                                            $total = $ticket['total'] ?? ($subtotal + $enrollmentFee - $discount);
+                                        @endphp
+                                        <tr>
+                                            <td colspan="2" class="text-end">Subtotal cursos:</td>
+                                            <td class="text-end fw-semibold">
+                                                ${{ number_format($subtotal, 2) }}
+                                            </td>
+                                        </tr>
+                                        @if($enrollmentFee > 0)
+                                        <tr>
+                                            <td colspan="2" class="text-end">Cuota de inscripción:</td>
+                                            <td class="text-end fw-semibold">
+                                                ${{ number_format($enrollmentFee, 2) }}
+                                            </td>
+                                        </tr>
+                                        @endif
+                                        @if($discount > 0)
+                                        <tr>
+                                            <td colspan="2" class="text-end">Descuento aplicado:</td>
+                                            <td class="text-end fw-semibold text-danger">
+                                                -${{ number_format($discount, 2) }}
+                                            </td>
+                                        </tr>
+                                        @endif
                                         <tr>
                                             <td colspan="2" class="text-end fw-bold">Total:</td>
                                             <td class="text-end fw-bold text-success h5">
@@ -184,7 +210,7 @@
                                     <li class="mb-1">Envía tu comprobante por WhatsApp para activar tu curso</li>
                                 </ol>
                                 <div class="text-center">
-                                    <a href="https://wa.me/5211234567890" target="_blank" class="btn btn-success btn-sm">
+                                    <a href="https://wa.me/5212227194035" target="_blank" class="btn btn-success btn-sm">
                                         <i class="bi bi-whatsapp me-1"></i> Enviar comprobante por WhatsApp
                                     </a>
                                 </div>

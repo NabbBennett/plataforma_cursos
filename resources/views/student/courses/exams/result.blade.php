@@ -579,6 +579,39 @@
     </div>
 </div>
 
+@php
+    $showEndedModal = session('exam_ended_modal');
+    $endedReason = session('exam_ended_reason');
+@endphp
+
+@if($showEndedModal)
+    <!-- Modal de "Tu examen terminó" -->
+    <div class="modal fade" id="examEndedModal" tabindex="-1" aria-labelledby="examEndedModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="examEndedModalLabel">Tu examen terminó</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if($endedReason === 'timeout')
+                        <p>El tiempo del examen se ha agotado y tus respuestas se guardaron automáticamente.</p>
+                    @else
+                        <p>Tu intento de examen se cerró y has sido llevado a esta pantalla de resultados.</p>
+                    @endif
+                    <p class="mb-0">Si crees que esto fue un error, puedes escribirnos por WhatsApp para revisarlo.</p>
+                </div>
+                <div class="modal-footer border-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <a href="{{ 'https://wa.me/1234567890?text=' . urlencode('Hola, tuve un problema con mi examen del curso ' . ($course->title ?? '') . ' (Examen ' . ($exam->id ?? '') . ').') }}" target="_blank" class="btn btn-success">
+                        Contactar por WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
 @include('student.courses.exams.modal')
 
 <script>
@@ -672,6 +705,28 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Escape') closeImageModal();
         });
     })();
+
+    // Mostrar modal de "examen terminado" si aplica
+    @if($showEndedModal)
+        const examEndedModalEl = document.getElementById('examEndedModal');
+        if (examEndedModalEl) {
+            // Bootstrap 5 (sin jQuery)
+            if (window.bootstrap && bootstrap.Modal) {
+                const modal = new bootstrap.Modal(examEndedModalEl);
+                modal.show();
+            }
+            // Bootstrap 4 (con jQuery)
+            else if (window.$ && typeof window.$.fn.modal === 'function') {
+                window.$('#examEndedModal').modal('show');
+            }
+            // Fallback simple sin Bootstrap JS
+            else {
+                examEndedModalEl.classList.add('show');
+                examEndedModalEl.style.display = 'block';
+                examEndedModalEl.removeAttribute('aria-hidden');
+            }
+        }
+    @endif
 });
 </script>
 

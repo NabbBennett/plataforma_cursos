@@ -21,7 +21,8 @@ class WeekDay extends Model
         'week_id',
         'day_number',
         'title',
-        'recording_link'
+        'recording_link',
+        'resource_id',
     ];
 
     public function week()

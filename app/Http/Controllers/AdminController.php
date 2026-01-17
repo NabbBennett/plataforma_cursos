@@ -24,7 +24,7 @@ class AdminController extends Controller
         }
     }
 
-     public function dashboard() {
+    public function dashboard() {
         $this->checkPermission(['admin', 'ayudante', 'maestro']);
 
         $stats = [
@@ -280,8 +280,10 @@ class AdminController extends Controller
                               !empty($data['live_meet_link']) || 
                               !empty($data['has_live']) || 
                               !empty($data['has_recorded']) || 
+                              !empty($data['has_resources']) || 
                               !empty($data['exam_id']) || 
-                              !empty($data['resource_ids']);
+                              !empty($data['resource_ids']) ||
+                              isset($data['days']);
             
             if (!isset($data['id']) && !$hasValidContent) continue;
 
@@ -312,18 +314,25 @@ class AdminController extends Controller
             WeekDay::where('week_id', $week->id)->delete();
             $firstDayId = null;
 
-            if (!empty($data['has_recorded']) && isset($data['days'])) {
+            // Crear días si hay información de días (grabadas o recursos)
+            if (isset($data['days'])) {
                 foreach ($data['days'] as $dayNumber => $dayData) {
-                    if (isset($dayData['enabled'])) {
+                    $hasDayData = !empty($dayData['enabled']) ||
+                                  !empty($dayData['title']) ||
+                                  !empty($dayData['recording_link']) ||
+                                  !empty($dayData['resource_id']);
+
+                    if ($hasDayData) {
                         $createdDay = WeekDay::create([
                             'course_id' => $course->id,
                             'week_id' => $week->id,
                             'day_number' => $dayNumber,
                             'title' => $dayData['title'] ?? null,
                             'recording_link' => $dayData['recording_link'] ?? null,
+                            'resource_id' => $dayData['resource_id'] ?? null,
                         ]);
 
-                        if (is_null($firstDayId)) {
+                        if (is_null($firstDayId) && !empty($dayData['recording_link'])) {
                             $firstDayId = $createdDay->id;
                         }
                     }

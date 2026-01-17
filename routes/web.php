@@ -227,6 +227,7 @@ Route::get('/student/exams/{course}/{exam}/question/{questionNumber}', [ExamStud
 Route::post('/student/exams/{course}/{exam}/save-answer', [ExamStudentController::class, 'saveAnswer'])->name('student.exams.saveAnswer');
 Route::post('/student/exams/{course}/{exam}/submit', [ExamStudentController::class, 'submit'])->name('student.exams.submit');
 Route::get('/student/exams/{course}/{exam}/result', [ExamStudentController::class, 'result'])->name('student.exams.result');
+Route::get('/student/exams/{course}/{exam}/reason', [ExamStudentController::class, 'reason'])->name('student.exams.reason');
 
 // Vista del recurso
 Route::get('/student/resources/{type}/{id}', [ProfileController::class, 'viewResource'])->name('student.resources.view');

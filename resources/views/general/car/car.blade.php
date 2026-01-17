@@ -485,7 +485,7 @@
                             $weeks = count($item['weeks']);
                             $subtotal += $item['price_per_week'] * $weeks;
                             
-                            if (!in_array($courseId, $userCourses)) $extra += 200;
+                            if (!in_array($courseId, $userCourses)) $extra += 250;
                         }
                         
                         // Obtener información del cupón aplicado

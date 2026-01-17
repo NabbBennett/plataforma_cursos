@@ -96,8 +96,32 @@ class ExamStudentController extends Controller
         $exam = Exam::with('questions.answers')->findOrFail($examId);
         $course = Course::findOrFail($courseId);
         $sessionData = session("exam_{$examId}");
+        $finishedReason = $request->input('finished_reason');
 
-        if (!$sessionData) abort(403, 'Examen no iniciado o expirado.');
+        // Si no hay datos de sesión, probablemente el examen ya fue enviado
+        // (por tiempo agotado o porque el alumno ya lo terminó y volvió atrás).
+        // En vez de mostrar error, intentamos llevarlo a su último resultado.
+        if (!$sessionData) {
+            $existingResult = ExamResult::where('exam_id', $examId)
+                ->where('course_id', $courseId)
+                ->where('user_id', Auth::id())
+                ->latest()
+                ->first();
+
+            if ($existingResult) {
+                // Redirigimos a una vista dedicada que explica
+                // que el examen terminó o hubo un problema de sesión.
+                return redirect()
+                    ->route('student.exams.reason', [
+                        'course' => $courseId,
+                        'exam' => $examId,
+                    ])
+                    ->with('finished_reason', 'expired');
+            }
+
+            // Caso realmente inválido: nunca inició el examen
+            abort(403, 'Examen no iniciado o expirado.');
+        }
 
         $totalQuestions = $exam->questions->count();
         $correct = 0;
@@ -157,9 +181,26 @@ class ExamStudentController extends Controller
             'examAnswers.correctAnswer',
         ]);
 
+        // Si terminó por tiempo (timeout), mostramos el modal informativo en resultados
+        if ($finishedReason === 'timeout') {
+            session()->flash('exam_ended_modal', true);
+            session()->flash('exam_ended_reason', 'timeout');
+        }
+
         session()->forget("exam_{$examId}");
 
         return view('student.courses.exams.result', compact('course', 'exam', 'examResult', 'totalDuration'));
+    }
+
+    // Página especial para mostrar el motivo de finalización
+    // cuando el intento se cerró de forma abrupta (por ejemplo, sin sesión).
+    public function reason($courseId, $examId)
+    {
+        $exam = Exam::findOrFail($examId);
+        $course = Course::findOrFail($courseId);
+        $reason = session('finished_reason', 'expired');
+
+        return view('student.courses.exams.rason', compact('course', 'exam', 'reason'));
     }
 
     public function result($courseId, $examId){

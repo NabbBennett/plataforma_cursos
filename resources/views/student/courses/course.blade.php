@@ -790,7 +790,14 @@
                                     @endif
                                 @endif
 
-                                @if ($data->resource_id)
+                                @php
+                                    // Hay recurso si la semana/bloque tiene resource_id
+                                    // o si la semana tiene recursos por día asignados
+                                    $hasResources = $data->resource_id
+                                        || (!$isEvaluation && isset($data->weekDays) && $data->weekDays->where('resource_id', '!=', null)->count() > 0);
+                                @endphp
+
+                                @if ($hasResources)
                                     <div class="content-item">
                                         <span class="content-label">Recursos</span>
                                         <a href="{{ route('student.resources.view', ['type' => $isEvaluation ? 'evaluation' : 'week', 'id' => $data->id]) }}" class="btn-action btn-secondary">

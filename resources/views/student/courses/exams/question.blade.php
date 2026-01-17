@@ -251,6 +251,7 @@
         <!-- Formulario del examen -->
         <form id="examAnswersForm" method="POST" action="{{ route('student.exams.submit', ['course' => $course->id, 'exam' => $exam->id]) }}">
             @csrf
+            <input type="hidden" name="finished_reason" id="finished_reason" value="manual">
             <div class="row g-4">
                 <!-- Columna de pregunta -->
                 <div class="col-md-6">
@@ -359,6 +360,10 @@ function updateTimer() {
     if (distance < 0) {
         clearInterval(timerInterval);
         document.getElementById("timer").textContent = "00:00";
+        const reasonInput = document.getElementById('finished_reason');
+        if (reasonInput) {
+            reasonInput.value = 'timeout';
+        }
         document.getElementById('examAnswersForm').submit();
         return;
     }

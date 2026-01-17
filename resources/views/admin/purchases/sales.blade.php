@@ -341,7 +341,12 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label for="user_id" class="form-label-custom">Alumno</label>
-                        <select name="user_id" class="form-select form-select-custom" required>
+                        <input
+                            type="text"
+                            id="userSearch"
+                            class="form-control form-control-custom mb-2"
+                            placeholder="Buscar alumno por nombre o email...">
+                        <select name="user_id" id="userSelect" class="form-select form-select-custom" required>
                             <option value="">-- Selecciona un alumno --</option>
                             @foreach ($users as $user)
                                 <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
@@ -601,6 +606,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     form.submit();
                 }
             }, 500); // espera 500ms después de dejar de escribir
+        });
+    }
+
+    // Búsqueda local de alumnos en el select de "Alumno"
+    const userSelect = document.getElementById('userSelect');
+    const userSearch = document.getElementById('userSearch');
+    if (userSelect && userSearch) {
+        const allUserOptions = Array.from(userSelect.options);
+
+        userSearch.addEventListener('input', function () {
+            const term = this.value.toLowerCase();
+
+            // Mantener siempre la primera opción como placeholder
+            const placeholder = allUserOptions[0].cloneNode(true);
+            userSelect.innerHTML = '';
+            userSelect.appendChild(placeholder);
+
+            allUserOptions.slice(1).forEach(option => {
+                const text = option.textContent.toLowerCase();
+                if (!term || text.includes(term)) {
+                    userSelect.appendChild(option.cloneNode(true));
+                }
+            });
         });
     }
 

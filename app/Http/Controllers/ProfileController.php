@@ -124,23 +124,53 @@ class ProfileController extends Controller
         return view('student.courses.recorded', compact('days', 'day'));
     }
 
-    public function viewResource($type, $id)
+    public function viewResource(Request $request, $type, $id)
     {
         if ($type === 'week') {
-            $model = \App\Models\Week::findOrFail($id);
-        } elseif ($type === 'evaluation') {
-            $model = \App\Models\EvaluationBlock::findOrFail($id);
-        } else {
-            abort(404, 'Tipo no válido.');
-        }
+            $week = \App\Models\Week::with('weekDays')->findOrFail($id);
+            $courseId = $week->course_id;
 
-        if (!$model->resource_id) {
+            // Caso 1: semana con recursos por día (weekDays.resource_id)
+            $daysWithResources = $week->weekDays()
+                ->whereNotNull('resource_id')
+                ->orderBy('day_number')
+                ->get();
+
+            if ($daysWithResources->isNotEmpty()) {
+                $dayParam = $request->query('day');
+
+                if ($dayParam) {
+                    $currentDay = $daysWithResources->firstWhere('id', $dayParam) ?? $daysWithResources->first();
+                } else {
+                    $currentDay = $daysWithResources->first();
+                }
+
+                $resource = \App\Models\Resource::findOrFail($currentDay->resource_id);
+                $weekId = $week->id;
+
+                return view('student.courses.resources', compact('resource', 'courseId', 'daysWithResources', 'currentDay', 'weekId'));
+            }
+
+            // Caso 2: recurso directo en la semana
+            if ($week->resource_id) {
+                $resource = \App\Models\Resource::findOrFail($week->resource_id);
+                return view('student.courses.resources', compact('resource', 'courseId'));
+            }
+
             abort(404, 'No hay recurso asignado.');
+        } elseif ($type === 'evaluation') {
+            $block = \App\Models\EvaluationBlock::findOrFail($id);
+
+            if (!$block->resource_id) {
+                abort(404, 'No hay recurso asignado.');
+            }
+
+            $resource = \App\Models\Resource::findOrFail($block->resource_id);
+            $courseId = $block->course_id;
+
+            return view('student.courses.resources', compact('resource', 'courseId'));
         }
 
-        $resource = \App\Models\Resource::findOrFail($model->resource_id);
-        $courseId = $model->course_id;
-
-        return view('student.courses.resources', compact('resource', 'courseId'));
+        abort(404, 'Tipo no válido.');
     }
 }

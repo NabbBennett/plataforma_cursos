@@ -4,34 +4,150 @@
 
 @section('content')
 <style>
-    .resource-container {
+    /* Basado en la vista recorded.blade.php para un look consistente */
+    .resources-recorded-container {
+        max-width: 1100px;
+        margin: 2rem auto;
+        padding: 0 1rem 2rem;
         background-color: var(--bg-primary);
-        min-height: 100vh;
-        padding: 2rem 0;
-        transition: all 0.3s;
+        color: var(--text-primary);
     }
 
-    .resource-header {
-        background-color: var(--bg-secondary);
-        border-radius: 15px;
-        padding: 2rem;
-        margin-bottom: 2rem;
+    .resources-back-button {
+        background: var(--bg-secondary);
         border: 1px solid var(--border-color);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        color: var(--text-primary);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+    }
+
+    .resources-back-button:hover {
+        background: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+        transform: translateY(-2px);
+    }
+
+    .resources-page-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+    }
+
+    .resources-week-info {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+        color: var(--text-secondary);
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .resources-content-layout {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .resources-sidebar {
+        width: 280px;
+        flex-shrink: 0;
+    }
+
+    .resources-sidebar-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .resources-sidebar-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem;
+    }
+
+    .day-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .day-item a {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        background: var(--bg-primary);
+        text-decoration: none;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+
+    .day-item a:hover {
+        border-color: var(--btn-primary-bg);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transform: translateY(-1px);
+    }
+
+    .day-item.active a {
+        background: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+        border-color: var(--btn-primary-bg);
+    }
+
+    .day-number {
+        font-weight: 600;
     }
 
     .resource-title {
         color: var(--text-primary);
         font-weight: 700;
-        margin-bottom: 1rem;
-        text-align: center;
+        margin-bottom: 0.5rem;
     }
 
     .resource-description {
         color: var(--text-secondary);
-        font-size: 1.1rem;
-        text-align: center;
-        line-height: 1.6;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+
+    .file-info {
+        background-color: var(--bg-primary);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        margin-top: 0.5rem;
+        border: 1px solid var(--border-color);
+        font-size: 0.9rem;
+    }
+
+    .file-type-badge {
+        background-color: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .resources-player-section {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .resources-player-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
     }
 
     .viewer-container {
@@ -129,24 +245,6 @@
         letter-spacing: 2px;
     }
 
-    .file-info {
-        background-color: var(--bg-primary);
-        border-radius: 10px;
-        padding: 1rem;
-        margin-top: 1rem;
-        border: 1px solid var(--border-color);
-    }
-
-    .file-type-badge {
-        background-color: var(--btn-primary-bg);
-        color: var(--btn-primary-text);
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
     .preview-header {
         display: flex;
         justify-content: space-between;
@@ -163,24 +261,29 @@
     }
 
     @media (max-width: 768px) {
-        .resource-container {
-            padding: 1rem 0;
+        .resources-recorded-container {
+            margin: 1rem auto;
+            padding: 0 0.75rem 1.5rem;
         }
 
-        .resource-header {
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
+        .resources-content-layout {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .resources-sidebar {
+            width: 100%;
         }
 
         .viewer-container {
             padding: 1rem;
         }
 
-        .resource-title {
+        .resources-page-title {
             font-size: 1.5rem;
         }
 
-        .resource-description {
+        .resources-week-info {
             font-size: 1rem;
         }
 
@@ -192,25 +295,15 @@
             font-size: 18px;
             gap: 20px;
         }
-
-        .preview-header {
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: flex-start;
-        }
     }
 
     @media (max-width: 576px) {
-        .resource-header {
-            padding: 1rem;
-        }
-
         .viewer-container {
             padding: 0.75rem;
         }
 
-        .resource-title {
-            font-size: 1.25rem;
+        .resources-page-title {
+            font-size: 1.3rem;
         }
 
         .pdf-frame, .video-player, .generic-frame {
@@ -222,7 +315,7 @@
             gap: 15px;
         }
 
-        .download-btn, .back-btn {
+        .download-btn, .resources-back-button {
             width: 100%;
             justify-content: center;
         }
@@ -260,25 +353,49 @@
     }
 </style>
 
-<div class="resource-container">
-    <div class="container" style="max-width: 1200px;">
-        <!-- Botón de volver - Corregido -->
-        <a href="{{ url()->previous() }}" class="back-btn slide-in">
-            <i class="bi bi-arrow-left"></i>
-            Volver Atrás
-        </a>
+<div class="resources-recorded-container">
+    <!-- Botón de volver -->
+    <a href="{{ route('courses.show', $courseId) }}" class="resources-back-button slide-in">
+        <i class="bi bi-arrow-left"></i>
+        Volver al curso
+    </a>
 
-        <!-- Header del recurso -->
-        <div class="resource-header fade-in">
-            <h1 class="resource-title">{{ $resource->title }}</h1>
-            @if($resource->description)
-                <p class="resource-description">{{ $resource->description }}</p>
+    <h1 class="resources-page-title">Recursos</h1>
+    <div class="resources-week-info">Recurso asignado al curso</div>
+
+    <div class="resources-content-layout">
+        <!-- Lado izquierdo: lista/detalle de recursos -->
+        <div class="resources-sidebar fade-in">
+            @if(isset($daysWithResources) && $daysWithResources->count() > 0)
+                <h3 class="resources-sidebar-title">Recursos disponibles</h3>
+                <div class="resources-sidebar-card">
+                    @foreach ($daysWithResources as $d)
+                        <div class="day-item {{ isset($currentDay) && $currentDay->id === $d->id ? 'active' : '' }}">
+                            <a href="{{ route('student.resources.view', ['type' => 'week', 'id' => $weekId]) }}?day={{ $d->id }}">
+                                <div class="day-number">Día {{ $d->day_number }}</div>
+                                @if($d->title)
+                                    <div class="day-title" style="font-size:0.85rem; opacity:0.8; margin-top:2px;">{{ $d->title }}</div>
+                                @endif
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <h3 class="resources-sidebar-title">Detalle del recurso</h3>
+                <div class="resources-sidebar-card">
+                    <h2 class="resource-title">{{ $resource->title }}</h2>
+                    @if($resource->description)
+                        <p class="resource-description">{{ $resource->description }}</p>
+                    @endif
+                </div>
             @endif
         </div>
 
-        <!-- Visor del recurso -->
-        <div class="viewer-container fade-in">
-            <div class="file-preview">
+        <!-- Lado derecho: visor del recurso -->
+        <div class="resources-player-section fade-in">
+            <h3 class="resources-player-title">Visor de recurso</h3>
+            <div class="viewer-container">
+                <div class="file-preview">
                 @php
                     $filePath = Storage::disk('public')->url($resource->file_path);
                     $extension = strtolower(pathinfo($resource->file_path, PATHINFO_EXTENSION));

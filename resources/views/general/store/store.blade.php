@@ -160,13 +160,14 @@
                                         <span>{{ count($group['schedules']) }} horarios disponibles</span>
                                     </div>
                                 </div>
-                                
+                                @if(auth()->check() && auth()->user()->isAdmin())
                                 <div class="course-actions">
                                     <a href="{{ route('store.course', $group['schedules'][0]['id']) }}" class="btn-course primary">
                                         <i class="bi bi-eye"></i>
                                         Ver Curso
                                     </a>
                                 </div>
+                                @endif
                             </div>
                         </div>
                     @endforeach

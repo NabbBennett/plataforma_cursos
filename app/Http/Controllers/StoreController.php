@@ -10,6 +10,14 @@ use Illuminate\Support\Carbon;
 
 class StoreController extends Controller
 {
+    private function checkPermission($allowedRoles){
+        $user = auth()->user();
+        
+        if (!$user || !in_array($user->role, $allowedRoles)) {
+            abort(403, 'No tienes permisos para acceder a esta sección.');
+        }
+    }
+
     public function show($id){
         // Cargar el curso con semanas y reseñas (incluyendo el usuario que hizo cada reseña)
         $course = Course::with(['weeks', 'reviews.user'])->findOrFail($id);
@@ -221,10 +229,10 @@ class StoreController extends Controller
         $cursoSubtotal = $item['price_per_week'] * $weeksCount;
         $subtotal += $cursoSubtotal;
         
-        // Calcular inscripción ($200 por curso nuevo)
+        // Calcular inscripción ($250 por curso nuevo)
         $esCursoNuevo = !in_array($courseId, $userCourses);
         if ($esCursoNuevo) {
-            $extra += 200;
+            $extra += 250;
         }
 
         \Log::info('Curso ID: ' . $courseId, [
@@ -233,7 +241,7 @@ class StoreController extends Controller
             'semanas' => $weeksCount,
             'subtotal_curso' => $cursoSubtotal,
             'es_curso_nuevo' => $esCursoNuevo,
-            'inscripcion' => $esCursoNuevo ? 200 : 0
+            'inscripcion' => $esCursoNuevo ? 250 : 0
         ]);
     }
 

@@ -3,6 +3,8 @@
     <input type="hidden" name="weeks[{{ $index }}][id]" value="{{ isset($week) && $week->id ? $week->id : 0 }}">
     @php
         $selectedResourceId = isset($week) && isset($week->resource_id) ? $week->resource_id : 0;
+        $hasRecordedDays = isset($week) && ($week->recording_link || ($week->weekDays && $week->weekDays->count()));
+        $hasResourcesPerDay = isset($week) && ($week->weekDays && $week->weekDays->where('resource_id', '!=', null)->count());
     @endphp
     <div class="week-block-header">
         <div class="d-flex align-items-center gap-2 flex-grow-1">
@@ -56,25 +58,25 @@
         <small class="text-secondary-custom">Enlace para la sesión en vivo de esta semana</small>
     </div>
 
-    {{-- Clases grabadas --}}
+    {{-- Clases grabadas (7 días) --}}
     <div class="mb-3">
-        <div class="form-check form-switch mb-3">
+        <div class="form-check form-switch mb-2">
             <input class="form-check-input" type="checkbox" 
                    id="recorded_checkbox_{{ $index }}"
                    name="weeks[{{ $index }}][has_recorded]"
                    value="1"
                    onchange="toggleRecordedDays({{ $index }})"
-                   {{ (isset($week) && ($week->recording_link || $week->weekDays->count())) ? 'checked' : '' }}>
+                   {{ $hasRecordedDays ? 'checked' : '' }}>
             <label class="form-check-label fw-bold" for="recorded_checkbox_{{ $index }}">
-                <i class="bi bi-play-circle me-1"></i>Clases Grabadas
+                <i class="bi bi-play-circle me-1"></i>Clases grabadas
             </label>
         </div>
 
         <div id="recorded_days_block_{{ $index }}" 
              class="border rounded p-3 bg-var-primary" 
-             style="{{ (isset($week) && ($week->recording_link || $week->weekDays->count())) ? '' : 'display:none;' }}">
+             style="{{ $hasRecordedDays ? '' : 'display:none;' }}">
             
-            <label class="form-label mb-3">Configurar días de clase grabada</label>
+            <label class="form-label mb-3">Configurar días de clase grabada (1 a 7)</label>
             
             <div class="row g-2">
                 @for ($day = 1; $day <= 7; $day++)
@@ -126,39 +128,70 @@
         </div>
     </div>
 
-    <div class="row">
-        {{-- Examen --}}
-        <div class="col-md-6 mb-3">
-            <label class="form-label">
-                <i class="bi bi-file-text me-1"></i>Examen
+    {{-- Recursos por día (otros 7 días visuales) --}}
+    <div class="mb-3">
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox"
+                   id="resources_checkbox_{{ $index }}"
+                   name="weeks[{{ $index }}][has_resources]"
+                   value="1"
+                   onchange="toggleResourceDays({{ $index }})"
+                   {{ $hasResourcesPerDay ? 'checked' : '' }}>
+            <label class="form-check-label fw-bold" for="resources_checkbox_{{ $index }}">
+                <i class="bi bi-bookmarks me-1"></i>Recursos (7 días)</i>
             </label>
-            <select name="weeks[{{ $index }}][exam_id]" class="form-select">
-                <option value="">-- Sin examen --</option>
-                @foreach ($allExams as $exam)
-                    @php $examLabel = $exam->title ? $exam->title : "Examen #{$exam->id}"; @endphp
-                    <option value="{{ $exam->id }}"
-                        {{ (isset($week) && $week->exam_id == $exam->id) ? 'selected' : '' }}>
-                        {{ $examLabel }} ({{ $exam->questions_count }} preguntas, {{ $exam->duration_minutes }} min)
-                    </option>
-                @endforeach
-            </select>
-            <small class="text-secondary-custom">Evaluación al final de esta semana</small>
         </div>
 
-        {{-- Recursos (selector desplegable) --}}
-        <div class="col-md-6 mb-3">
-            <label class="form-label">
-                <i class="bi bi-file-earmark me-1"></i>Recurso
-            </label>
-            <select name="weeks[{{ $index }}][resource_id]" class="form-select">
-                <option value="">-- Sin recurso --</option>
-                @foreach ($resources as $res)
-                    <option value="{{ $res->id }}" {{ $res->id == $selectedResourceId ? 'selected' : '' }}>
-                        {{ $res->title }} ({{ $res->type }})
-                    </option>
-                @endforeach
-            </select>
-            <small class="text-secondary-custom">Selecciona un recurso relacionado con la semana</small>
+        <div id="resource_days_block_{{ $index }}" 
+             class="border rounded p-3 bg-var-primary" 
+             style="{{ $hasResourcesPerDay ? '' : 'display:none;' }}">
+            <label class="form-label mb-3">Configurar recursos por día (1 a 7)</label>
+
+            <div class="row g-2">
+                @for ($day = 1; $day <= 7; $day++)
+                    @php
+                        $dayData = isset($week) ? $week->weekDays->firstWhere('day_number', $day) : null;
+                    @endphp
+                    <div class="col-12">
+                        <div class="card bg-var-secondary border">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">Día {{ $day }}</span>
+                                </div>
+                                <div class="resource-day-fields" data-week-index="{{ $index }}" data-day="{{ $day }}">
+                                    <label class="form-label small">Recurso del día</label>
+                                    <select name="weeks[{{ $index }}][days][{{ $day }}][resource_id]" class="form-select form-select-sm">
+                                        <option value="">-- Sin recurso --</option>
+                                        @foreach ($resources as $res)
+                                            <option value="{{ $res->id }}" {{ $dayData && $dayData->resource_id == $res->id ? 'selected' : '' }}>
+                                                {{ $res->title }} ({{ $res->type }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endfor
+            </div>
         </div>
+    </div>
+
+    {{-- Examen al final --}}
+    <div class="mb-3">
+        <label class="form-label">
+            <i class="bi bi-file-text me-1"></i>Examen
+        </label>
+        <select name="weeks[{{ $index }}][exam_id]" class="form-select">
+            <option value="">-- Sin examen --</option>
+            @foreach ($allExams as $exam)
+                @php $examLabel = $exam->title ? $exam->title : "Examen #{$exam->id}"; @endphp
+                <option value="{{ $exam->id }}"
+                    {{ (isset($week) && $week->exam_id == $exam->id) ? 'selected' : '' }}>
+                    {{ $examLabel }} ({{ $exam->questions_count }} preguntas, {{ $exam->duration_minutes }} min)
+                </option>
+            @endforeach
+        </select>
+        <small class="text-secondary-custom">Evaluación al final de esta semana</small>
     </div>
 </div>

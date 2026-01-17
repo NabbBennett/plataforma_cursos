@@ -328,6 +328,7 @@
             </div>
             
             {{-- Selector de horarios si hay más disponibles --}}
+            @if(auth()->check() && auth()->user()->isAdmin())
             @if(count($schedules) > 0)
                 <div class="schedule-selector-detail">
                     <label class="schedule-label-detail">
@@ -342,6 +343,8 @@
                     </div>
                 </div>
             @endif
+            @endif
+            
             
             <div class="mb-4">
                 <h5>Semanas de duración</h5>

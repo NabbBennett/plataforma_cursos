@@ -856,9 +856,27 @@ window.toggleRecordedDays = function(index) {
     const checkbox = document.getElementById(`recorded_checkbox_${index}`);
     const container = document.getElementById(`recorded_days_block_${index}`);
     
-    if (container && checkbox) {
-        container.style.display = checkbox.checked ? 'block' : 'none';
-    }
+    if (!container || !checkbox) return;
+
+    container.style.display = checkbox.checked ? 'block' : 'none';
+
+    // Al activar "Clases grabadas" mostramos y activamos los 7 días
+    const dayCheckboxes = container.querySelectorAll(`input.form-check-input[id^="day_${index}_"][data-day]`);
+    dayCheckboxes.forEach(cb => {
+        cb.checked = checkbox.checked;
+        const day = cb.dataset.day;
+        const detailsDiv = document.getElementById(`day-${index}-${day}-details`);
+        if (detailsDiv) {
+            detailsDiv.style.display = checkbox.checked ? 'block' : 'none';
+
+            // Si apagamos el switch general, limpiamos los campos
+            if (!checkbox.checked) {
+                detailsDiv.querySelectorAll('input[type="text"], input[type="url"]').forEach(input => {
+                    input.value = '';
+                });
+            }
+        }
+    });
 }
 
 window.toggleDayDetails = function(checkbox) {
@@ -871,8 +889,65 @@ window.toggleDayDetails = function(checkbox) {
     }
 }
 
+// Mostrar/ocultar bloque de recursos (7 días independientes)
+window.toggleResourceDays = function(index) {
+    const checkbox = document.getElementById(`resources_checkbox_${index}`);
+    const container = document.getElementById(`resource_days_block_${index}`);
+    if (!container || !checkbox) return;
+
+    container.style.display = checkbox.checked ? 'block' : 'none';
+
+    // Si se apaga, limpiar selects de recursos
+    if (!checkbox.checked) {
+        const selects = container.querySelectorAll('select');
+        selects.forEach(sel => sel.value = '');
+    }
+}
+
 window.previewExam = function(weekId) {
     window.open(`/admin/weeks/${weekId}/exam`, '_blank');
+}
+
+// Cambiar tipo de bloque de evaluación (Universidad / Preparatoria)
+window.handleEvaluationTypeChange = function(checkbox) {
+    const container = checkbox.closest('.evaluation-block');
+    if (!container) return;
+
+    const type = checkbox.checked ? 'preparatoria' : 'universidad';
+
+    // Actualizar input oculto y etiqueta visible del switch
+    const typeInput = container.querySelector('input[name*="[evaluation_type]"]');
+    const typeLabelSpan = container.querySelector('.form-check-label span');
+    if (typeInput) typeInput.value = type;
+    if (typeLabelSpan) typeLabelSpan.innerText = type === 'preparatoria' ? 'Preparatoria' : 'Universidad';
+
+    // Etiquetas de categorías según el tipo
+    const labels = type === 'preparatoria'
+        ? [
+            'Pensamiento crítico y resolución de problemas',
+            'Comunicación, alfabetización multimodal y cultura',
+            'Razonamiento matemático y ciencias de datos',
+            'Sociedad, cultura y ciudadanía global',
+            'Ciencias y tecnología para el futuro'
+        ]
+        : [
+            'Español',
+            'Matemáticas',
+            'Área de conocimiento',
+            'Habilidades blandas',
+            'Inglés'
+        ];
+
+    // Actualizar los labels de exámenes dentro de este bloque
+    const formGroups = container.querySelectorAll('.mb-3');
+    let labelIdx = 0;
+    formGroups.forEach(group => {
+        const labelEl = group.querySelector('.form-label');
+        const hasIcon = labelEl && labelEl.querySelector('i.bi-file-text');
+        if (labelEl && hasIcon && labelIdx < labels.length) {
+            labelEl.innerHTML = '<i class="bi bi-file-text me-1"></i>' + labels[labelIdx++];
+        }
+    });
 }
 
 // Función para configurar drag and drop en un elemento específico

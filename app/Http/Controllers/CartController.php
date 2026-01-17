@@ -136,7 +136,7 @@ class CartController extends Controller {
                         'paid_weeks' => $weeks
                     ]);
                     $course->increment('enrolled_count');
-                    $extra += 200;
+                    $extra += 250;
                 } else {
                     $existing->increment('paid_weeks', $weeks);
                 }

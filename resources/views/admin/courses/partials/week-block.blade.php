@@ -25,173 +25,181 @@
                 @endif
             </small>
         </div>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="collapse-toggle-btn" onclick="toggleBlockCollapse(this)" title="Colapsar / expandir semana">
+                <i class="bi bi-chevron-up collapse-toggle-icon"></i>
+            </button>
         <button type="button" class="btn-action btn-danger-custom" 
                 onclick="removeWeek(this, {{ $week->id ?? 0 }})"
                 title="Eliminar semana">
             <i class="bi bi-trash"></i>
             <span class="mobile-hidden">Eliminar</span>
         </button>
+        </div>
     </div>
+    <div class="week-block-body">
 
-    <input type="hidden" name="weeks[{{ $index }}][course_id]" value="{{ $course_id }}">
+        <input type="hidden" name="weeks[{{ $index }}][course_id]" value="{{ $course_id }}">
 
-    {{-- Título de la semana --}}
-    <div class="mb-3">
-        <label class="form-label">
-            <i class="bi bi-text-paragraph me-1"></i>Título de la Semana
-        </label>
-        <input type="text" class="form-control" 
-               name="weeks[{{ $index }}][title]" 
-               placeholder="Ej: Introducción al tema..."
-               value="{{ isset($week) ? $week->title : '' }}">
-    </div>
-
-    {{-- Clase en vivo --}}
-    <div class="mb-3">
-        <label class="form-label">
-            <i class="bi bi-camera-video me-1"></i>Clase en vivo
-        </label>
-        <input type="url" class="form-control" 
-               name="weeks[{{ $index }}][live_meet_link]" 
-               placeholder="https://meet.google.com/..."
-               value="{{ isset($week) ? $week->live_meet_link : '' }}">
-        <small class="text-secondary-custom">Enlace para la sesión en vivo de esta semana</small>
-    </div>
-
-    {{-- Clases grabadas (7 días) --}}
-    <div class="mb-3">
-        <div class="form-check form-switch mb-2">
-            <input class="form-check-input" type="checkbox" 
-                   id="recorded_checkbox_{{ $index }}"
-                   name="weeks[{{ $index }}][has_recorded]"
-                   value="1"
-                   onchange="toggleRecordedDays({{ $index }})"
-                   {{ $hasRecordedDays ? 'checked' : '' }}>
-            <label class="form-check-label fw-bold" for="recorded_checkbox_{{ $index }}">
-                <i class="bi bi-play-circle me-1"></i>Clases grabadas
+        {{-- Título de la semana --}}
+        <div class="mb-3">
+            <label class="form-label">
+                <i class="bi bi-text-paragraph me-1"></i>Título de la Semana
             </label>
+            <input type="text" class="form-control" 
+                   name="weeks[{{ $index }}][title]" 
+                   placeholder="Ej: Introducción al tema..."
+                   value="{{ isset($week) ? $week->title : '' }}">
         </div>
 
-        <div id="recorded_days_block_{{ $index }}" 
-             class="border rounded p-3 bg-var-primary" 
-             style="{{ $hasRecordedDays ? '' : 'display:none;' }}">
-            
-            <label class="form-label mb-3">Configurar días de clase grabada (1 a 7)</label>
-            
-            <div class="row g-2">
-                @for ($day = 1; $day <= 7; $day++)
-                    @php
-                        $dayData = isset($week) ? $week->weekDays->firstWhere('day_number', $day) : null;
-                    @endphp
-                    <div class="col-12">
-                        <div class="card bg-var-secondary border">
-                            <div class="card-body">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" 
-                                           id="day_{{ $index }}_{{ $day }}_enabled"
-                                           name="weeks[{{ $index }}][days][{{ $day }}][enabled]"
-                                           value="1"
-                                           data-week-index="{{ $index }}"
-                                           data-day="{{ $day }}"
-                                           onchange="toggleDayDetails(this)"
-                                           {{ $dayData ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-bold" for="day_{{ $index }}_{{ $day }}_enabled">
-                                        Día {{ $day }}
-                                    </label>
-                                </div>
+        {{-- Clase en vivo --}}
+        <div class="mb-3">
+            <label class="form-label">
+                <i class="bi bi-camera-video me-1"></i>Clase en vivo
+            </label>
+            <input type="url" class="form-control" 
+                   name="weeks[{{ $index }}][live_meet_link]" 
+                   placeholder="https://meet.google.com/..."
+                   value="{{ isset($week) ? $week->live_meet_link : '' }}">
+            <small class="text-secondary-custom">Enlace para la sesión en vivo de esta semana</small>
+        </div>
 
-                                <div id="day-{{ $index }}-{{ $day }}-details" 
-                                     class="day-details mt-2" 
-                                     style="{{ $dayData ? '' : 'display:none;' }}">
-                                    <div class="row g-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label small">Título del día</label>
-                                            <input type="text" class="form-control form-control-sm" 
-                                                   name="weeks[{{ $index }}][days][{{ $day }}][title]"
-                                                   placeholder="Ej: Introducción a..."
-                                                   value="{{ $dayData ? $dayData->title : '' }}">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small">Link de grabación</label>
-                                            <input type="url" class="form-control form-control-sm" 
-                                                   name="weeks[{{ $index }}][days][{{ $day }}][recording_link]"
-                                                   placeholder="https://youtube.com/..."
-                                                   value="{{ $dayData ? $dayData->recording_link : '' }}">
+        {{-- Clases grabadas (7 días) --}}
+        <div class="mb-3">
+            <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" 
+                       id="recorded_checkbox_{{ $index }}"
+                       name="weeks[{{ $index }}][has_recorded]"
+                       value="1"
+                       onchange="toggleRecordedDays({{ $index }})"
+                       {{ $hasRecordedDays ? 'checked' : '' }}>
+                <label class="form-check-label fw-bold" for="recorded_checkbox_{{ $index }}">
+                    <i class="bi bi-play-circle me-1"></i>Clases grabadas
+                </label>
+            </div>
+
+            <div id="recorded_days_block_{{ $index }}" 
+                 class="border rounded p-3 bg-var-primary" 
+                 style="{{ $hasRecordedDays ? '' : 'display:none;' }}">
+                
+                <label class="form-label mb-3">Configurar días de clase grabada (1 a 7)</label>
+                
+                <div class="row g-2">
+                    @for ($day = 1; $day <= 7; $day++)
+                        @php
+                            $dayData = isset($week) ? $week->weekDays->firstWhere('day_number', $day) : null;
+                        @endphp
+                        <div class="col-12">
+                            <div class="card bg-var-secondary border">
+                                <div class="card-body">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="day_{{ $index }}_{{ $day }}_enabled"
+                                               name="weeks[{{ $index }}][days][{{ $day }}][enabled]"
+                                               value="1"
+                                               data-week-index="{{ $index }}"
+                                               data-day="{{ $day }}"
+                                               onchange="toggleDayDetails(this)"
+                                               {{ $dayData ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-bold" for="day_{{ $index }}_{{ $day }}_enabled">
+                                            Día {{ $day }}
+                                        </label>
+                                    </div>
+
+                                    <div id="day-{{ $index }}-{{ $day }}-details" 
+                                         class="day-details mt-2" 
+                                         style="{{ $dayData ? '' : 'display:none;' }}">
+                                        <div class="row g-2">
+                                            <div class="col-md-6">
+                                                <label class="form-label small">Título del día</label>
+                                                <input type="text" class="form-control form-control-sm" 
+                                                       name="weeks[{{ $index }}][days][{{ $day }}][title]"
+                                                       placeholder="Ej: Introducción a..."
+                                                       value="{{ $dayData ? $dayData->title : '' }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small">Link de grabación</label>
+                                                <input type="url" class="form-control form-control-sm" 
+                                                       name="weeks[{{ $index }}][days][{{ $day }}][recording_link]"
+                                                       placeholder="https://youtube.com/..."
+                                                       value="{{ $dayData ? $dayData->recording_link : '' }}">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                @endfor
+                    @endfor
+                </div>
             </div>
         </div>
-    </div>
 
-    {{-- Recursos por día (otros 7 días visuales) --}}
-    <div class="mb-3">
-        <div class="form-check form-switch mb-2">
-            <input class="form-check-input" type="checkbox"
-                   id="resources_checkbox_{{ $index }}"
-                   name="weeks[{{ $index }}][has_resources]"
-                   value="1"
-                   onchange="toggleResourceDays({{ $index }})"
-                   {{ $hasResourcesPerDay ? 'checked' : '' }}>
-            <label class="form-check-label fw-bold" for="resources_checkbox_{{ $index }}">
-                <i class="bi bi-bookmarks me-1"></i>Recursos (7 días)</i>
-            </label>
-        </div>
+        {{-- Recursos por día (otros 7 días visuales) --}}
+        <div class="mb-3">
+            <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox"
+                       id="resources_checkbox_{{ $index }}"
+                       name="weeks[{{ $index }}][has_resources]"
+                       value="1"
+                       onchange="toggleResourceDays({{ $index }})"
+                       {{ $hasResourcesPerDay ? 'checked' : '' }}>
+                <label class="form-check-label fw-bold" for="resources_checkbox_{{ $index }}">
+                    <i class="bi bi-bookmarks me-1"></i>Recursos (7 días)</i>
+                </label>
+            </div>
 
-        <div id="resource_days_block_{{ $index }}" 
-             class="border rounded p-3 bg-var-primary" 
-             style="{{ $hasResourcesPerDay ? '' : 'display:none;' }}">
-            <label class="form-label mb-3">Configurar recursos por día (1 a 7)</label>
+            <div id="resource_days_block_{{ $index }}" 
+                 class="border rounded p-3 bg-var-primary" 
+                 style="{{ $hasResourcesPerDay ? '' : 'display:none;' }}">
+                <label class="form-label mb-3">Configurar recursos por día (1 a 7)</label>
 
-            <div class="row g-2">
-                @for ($day = 1; $day <= 7; $day++)
-                    @php
-                        $dayData = isset($week) ? $week->weekDays->firstWhere('day_number', $day) : null;
-                    @endphp
-                    <div class="col-12">
-                        <div class="card bg-var-secondary border">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-bold">Día {{ $day }}</span>
-                                </div>
-                                <div class="resource-day-fields" data-week-index="{{ $index }}" data-day="{{ $day }}">
-                                    <label class="form-label small">Recurso del día</label>
-                                    <select name="weeks[{{ $index }}][days][{{ $day }}][resource_id]" class="form-select form-select-sm">
-                                        <option value="">-- Sin recurso --</option>
-                                        @foreach ($resources as $res)
-                                            <option value="{{ $res->id }}" {{ $dayData && $dayData->resource_id == $res->id ? 'selected' : '' }}>
-                                                {{ $res->title }} ({{ $res->type }})
-                                            </option>
-                                        @endforeach
-                                    </select>
+                <div class="row g-2">
+                    @for ($day = 1; $day <= 7; $day++)
+                        @php
+                            $dayData = isset($week) ? $week->weekDays->firstWhere('day_number', $day) : null;
+                        @endphp
+                        <div class="col-12">
+                            <div class="card bg-var-secondary border">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold">Día {{ $day }}</span>
+                                    </div>
+                                    <div class="resource-day-fields" data-week-index="{{ $index }}" data-day="{{ $day }}">
+                                        <label class="form-label small">Recurso del día</label>
+                                        <select name="weeks[{{ $index }}][days][{{ $day }}][resource_id]" class="form-select form-select-sm">
+                                            <option value="">-- Sin recurso --</option>
+                                            @foreach ($resources as $res)
+                                                <option value="{{ $res->id }}" {{ $dayData && $dayData->resource_id == $res->id ? 'selected' : '' }}>
+                                                    {{ $res->title }} ({{ $res->type }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                @endfor
+                    @endfor
+                </div>
             </div>
         </div>
-    </div>
 
-    {{-- Examen al final --}}
-    <div class="mb-3">
-        <label class="form-label">
-            <i class="bi bi-file-text me-1"></i>Examen
-        </label>
-        <select name="weeks[{{ $index }}][exam_id]" class="form-select">
-            <option value="">-- Sin examen --</option>
-            @foreach ($allExams as $exam)
-                @php $examLabel = $exam->title ? $exam->title : "Examen #{$exam->id}"; @endphp
-                <option value="{{ $exam->id }}"
-                    {{ (isset($week) && $week->exam_id == $exam->id) ? 'selected' : '' }}>
-                    {{ $examLabel }} ({{ $exam->questions_count }} preguntas, {{ $exam->duration_minutes }} min)
-                </option>
-            @endforeach
-        </select>
-        <small class="text-secondary-custom">Evaluación al final de esta semana</small>
+        {{-- Examen al final --}}
+        <div class="mb-3">
+            <label class="form-label">
+                <i class="bi bi-file-text me-1"></i>Examen
+            </label>
+            <select name="weeks[{{ $index }}][exam_id]" class="form-select">
+                <option value="">-- Sin examen --</option>
+                @foreach ($allExams as $exam)
+                    @php $examLabel = $exam->title ? $exam->title : "Examen #{$exam->id}"; @endphp
+                    <option value="{{ $exam->id }}"
+                        {{ (isset($week) && $week->exam_id == $exam->id) ? 'selected' : '' }}>
+                        {{ $examLabel }} ({{ $exam->questions_count }} preguntas, {{ $exam->duration_minutes }} min)
+                    </option>
+                @endforeach
+            </select>
+            <small class="text-secondary-custom">Evaluación al final de esta semana</small>
+        </div>
+
     </div>
 </div>

@@ -304,7 +304,8 @@ class AdminController extends Controller
             $week->course_id = $course->id;
             $week->number = $realWeekCounter++;
             $week->order = $order;
-            $week->title = $data['title'] ?? 'Semana ' . $week->number;
+            // Si no se especifica título, usar "Semana X" automáticamente
+            $week->title = !empty($data['title']) ? $data['title'] : 'Semana ' . $week->number;
             $week->live_meet_link = !empty($data['live_meet_link']) ? $this->convertDriveToPreview($data['live_meet_link']) : null;
             $week->exam_id = $data['exam_id'] ?? null;
             $week->resource_id = $data['resource_id'] ?? null;
@@ -358,10 +359,6 @@ class AdminController extends Controller
                 if (!empty($examIds[$slot])) {
                     $orderedExamIds[] = (int)$examIds[$slot];
                 }
-            }
-
-            if (empty($orderedExamIds)) {
-                continue;
             }
 
             $eval = null;

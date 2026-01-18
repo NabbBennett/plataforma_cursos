@@ -136,6 +136,30 @@
         transform: scale(1.02);
     }
 
+    .week-block-body {
+        margin-top: 1rem;
+    }
+
+    .week-block.collapsed .week-block-body {
+        display: none;
+    }
+
+    .collapse-toggle-btn {
+        padding: 0.35rem 0.6rem;
+        border-radius: 50%;
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-secondary);
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .collapse-toggle-btn:hover {
+        background-color: var(--hover-bg);
+        color: var(--text-primary);
+    }
+
     .evaluation-block {
         border-left: 4px solid #6f42c1;
     }
@@ -670,6 +694,22 @@ let descriptionEditor;
 // Mover estas variables y funciones FUERA del DOMContentLoaded para que sean globales
 let weekIndex = 0;
 let draggedItem = null;
+let autoScrollInterval = null;
+
+function startAutoScroll(direction) {
+    stopAutoScroll();
+    if (direction === 0) return;
+    autoScrollInterval = setInterval(() => {
+        window.scrollBy(0, direction * 20);
+    }, 16);
+}
+
+function stopAutoScroll() {
+    if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+        autoScrollInterval = null;
+    }
+}
 
 // Funciones globales para añadir bloques
 window.addWeek = function() {
@@ -965,6 +1005,7 @@ function setupDragAndDropForElement(element) {
         document.querySelectorAll('.week-block').forEach(block => {
             block.classList.remove('drag-over');
         });
+        stopAutoScroll();
         updateBlockOrder();
     });
     
@@ -1134,6 +1175,41 @@ function initializeCharacterCounters() {
     }
 }
 
+// Colapsar / expandir bloques (acordeón)
+window.toggleBlockCollapse = function(button) {
+    const block = button.closest('.week-block');
+    if (!block) return;
+
+    const isCollapsed = block.classList.contains('collapsed');
+
+    if (isCollapsed) {
+        // Al expandir uno, colapsar todos los demás
+        document.querySelectorAll('.week-block').forEach(b => {
+            b.classList.add('collapsed');
+            const icon = b.querySelector('.collapse-toggle-icon');
+            if (icon) {
+                icon.classList.remove('bi-chevron-up');
+                icon.classList.add('bi-chevron-down');
+            }
+        });
+        block.classList.remove('collapsed');
+    } else {
+        // Colapsar solo este
+        block.classList.add('collapsed');
+    }
+
+    const icon = button.querySelector('.collapse-toggle-icon');
+    if (icon) {
+        if (block.classList.contains('collapsed')) {
+            icon.classList.remove('bi-chevron-up');
+            icon.classList.add('bi-chevron-down');
+        } else {
+            icon.classList.remove('bi-chevron-down');
+            icon.classList.add('bi-chevron-up');
+        }
+    }
+}
+
 // Función para buscar recursos
 window.searchResources = function(weekIndex) {
     const searchInput = document.querySelector(`.resource-search[data-week-index="${weekIndex}"]`);
@@ -1259,12 +1335,44 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inicializar drag and drop
     initializeDragAndDrop();
+
+    // Auto-scroll al arrastrar cerca de los bordes de la ventana
+    document.addEventListener('dragover', function(e) {
+        if (!draggedItem) return;
+
+        const threshold = 80; // px desde el borde
+        const y = e.clientY;
+        const viewportHeight = window.innerHeight;
+        let direction = 0;
+
+        if (y < threshold) {
+            direction = -1; // subir
+        } else if (y > viewportHeight - threshold) {
+            direction = 1; // bajar
+        }
+
+        startAutoScroll(direction);
+    });
+
+    document.addEventListener('drop', function() {
+        stopAutoScroll();
+    });
     
     // Contador de caracteres
     initializeCharacterCounters();
     
     // Inicializar el orden al cargar
     updateBlockOrder();
+
+    // Iniciar todos los bloques colapsados por defecto
+    document.querySelectorAll('.week-block').forEach(block => {
+        block.classList.add('collapsed');
+        const icon = block.querySelector('.collapse-toggle-icon');
+        if (icon) {
+            icon.classList.remove('bi-chevron-up');
+            icon.classList.add('bi-chevron-down');
+        }
+    });
 });
 
 // NicEdit initialization and syncing for course description

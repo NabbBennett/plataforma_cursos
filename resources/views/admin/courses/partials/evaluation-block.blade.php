@@ -16,12 +16,19 @@
                 @endif
             </small>
         </div>
-        <button type="button" class="btn-action btn-danger-custom"
-                onclick="removeEvaluation(this, {{ isset($evaluationBlock) && $evaluationBlock->id ? $evaluationBlock->id : 0 }})"
-                title="Eliminar bloque">
-            <i class="bi bi-trash"></i><span class="mobile-hidden">Eliminar</span>
-        </button>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="collapse-toggle-btn" onclick="toggleBlockCollapse(this)" title="Colapsar / expandir bloque de evaluación">
+                <i class="bi bi-chevron-up collapse-toggle-icon"></i>
+            </button>
+            <button type="button" class="btn-action btn-danger-custom"
+                    onclick="removeEvaluation(this, {{ isset($evaluationBlock) && $evaluationBlock->id ? $evaluationBlock->id : 0 }})"
+                    title="Eliminar bloque">
+                <i class="bi bi-trash"></i><span class="mobile-hidden">Eliminar</span>
+            </button>
+        </div>
     </div>
+
+    <div class="week-block-body">
 
     <input type="hidden" name="course_id" value="{{ $course_id }}">
     <input type="hidden"
@@ -102,5 +109,7 @@
         <i class="bi bi-info-circle me-2"></i>
         <strong>Nota:</strong> Este bloque se mostrará después de
         {{ $after_week_id > 0 ? "la semana #$after_week_id" : "todas las semanas" }}.
+    </div>
+
     </div>
 </div>

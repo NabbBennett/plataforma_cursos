@@ -454,17 +454,26 @@ public function edit(Exam $exam){
         return back()->with('success', 'Examen eliminado correctamente.');
     }
 
-    public function doings(Exam $exam)
+    public function doings(Request $request, Exam $exam)
     {
         $this->checkPermission(['admin', 'maestro', 'ayudante']);
 
+        $query = ExamResult::with('user')
+            ->where('exam_id', $exam->id);
 
-        $results = ExamResult::with('user')
-            ->where('exam_id', $exam->id)
+        if ($search = $request->input('search')) {
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $results = $query
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(15)
+            ->appends($request->only('search'));
 
-        return view('admin.exams.doings', compact('exam','results'));
+        return view('admin.exams.doings', compact('exam', 'results', 'search'));
     }
 
     public function results(Exam $exam)

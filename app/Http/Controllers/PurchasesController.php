@@ -97,7 +97,7 @@ class PurchasesController extends Controller
             [
                 'type' => 'manual',
                 'paid_weeks' => $request->paid_weeks,
-                'weeks_unlocked' => 0, // Semanas desbloqueadas comienzan en 0
+                'weeks_unlocked' => 3, // Semanas desbloqueadas comienzan en 3
                 'start_date' => $startDate,
             ]
         );
@@ -201,8 +201,8 @@ class PurchasesController extends Controller
             'user_id' => $user->id,
             'course_id' => $course->id,
             'type' => $request->type,
-            // Semanas desbloqueadas siempre inician en 0; se gestionan aparte
-            'weeks_unlocked' => 0,
+            // Semanas desbloqueadas inician en 3
+            'weeks_unlocked' => 3,
             'paid_weeks' => $request->type === 'full' ? $course->number_of_weeks : 1
         ]);
 

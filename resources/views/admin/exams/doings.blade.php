@@ -16,6 +16,25 @@
 .btn-reset:hover { background:#c82333; }
 .empty { text-align:center; padding:3rem; color:var(--text-secondary); }
 
+/* Paginación personalizada */
+.pagination-custom .page-link {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.pagination-custom .page-link:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.pagination-custom .page-item.active .page-link {
+    background-color: var(--btn-primary-bg);
+    border-color: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+}
+
 /* Modo oscuro (si usas clase en body) */
 body.dark-mode .results-container,
 body.dark-mode .results-table,
@@ -99,6 +118,23 @@ body.dark-mode .results-table .text-secondary {
             </div>
         @endif
 
+            {{-- Buscador de alumnos debajo del título del examen --}}
+            <div class="mb-3">
+                <form method="GET" action="{{ route('admin.exams.doings', $exam->id) }}" class="row g-2 align-items-center">
+                    <div class="col-md-6">
+                        <h6 class="mb-0"><i class="bi bi-search me-2"></i>Buscar alumno</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ request('search') }}"
+                            class="form-control"
+                            placeholder="Buscar por nombre o correo...">
+                    </div>
+                </form>
+            </div>
+
         @if($results->count() > 0)
             <div class="table-responsive">
                 <table class="table results-table table-hover">
@@ -147,6 +183,115 @@ body.dark-mode .results-table .text-secondary {
                     </tbody>
                 </table>
             </div>
+
+            {{-- Paginación de resultados --}}
+            @if(method_exists($results, 'hasPages') && $results->hasPages())
+                <div class="mt-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <small class="text-secondary">
+                                Mostrando {{ $results->count() }} intentos
+                                @if(method_exists($results, 'total'))
+                                    de {{ $results->total() }}
+                                @endif
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <nav aria-label="Paginación de resultados" class="d-flex justify-content-end">
+                                @php
+                                    $paginator = $results->appends([
+                                        'search' => request('search'),
+                                    ]);
+
+                                    $currentPage = $paginator->currentPage();
+                                    $lastPage = $paginator->lastPage();
+                                    $pages = [];
+
+                                    if ($lastPage <= 5) {
+                                        for ($i = 1; $i <= $lastPage; $i++) {
+                                            $pages[] = $i;
+                                        }
+                                    } else {
+                                        $pages[] = 1; // siempre primera
+
+                                        if ($currentPage <= 3) {
+                                            $pages[] = 2;
+                                            $pages[] = 3;
+                                            $pages[] = 4;
+                                        } elseif ($currentPage >= $lastPage - 2) {
+                                            $pages[] = $lastPage - 3;
+                                            $pages[] = $lastPage - 2;
+                                            $pages[] = $lastPage - 1;
+                                        } else {
+                                            $pages[] = $currentPage - 1;
+                                            $pages[] = $currentPage;
+                                            $pages[] = $currentPage + 1;
+                                        }
+
+                                        $pages[] = $lastPage; // siempre última
+
+                                        $pages = array_values(array_unique($pages));
+                                        sort($pages);
+                                    }
+
+                                    $previousPage = null;
+                                @endphp
+
+                                <ul class="pagination pagination-sm pagination-custom mb-0">
+                                    {{-- Anterior --}}
+                                    @if ($paginator->onFirstPage())
+                                        <li class="page-item disabled">
+                                            <span class="page-link">
+                                                <i class="bi bi-chevron-left me-1"></i> Anterior
+                                            </span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev">
+                                                <i class="bi bi-chevron-left me-1"></i> Anterior
+                                            </a>
+                                        </li>
+                                    @endif
+
+                                    {{-- Números de página --}}
+                                    @foreach ($pages as $page)
+                                        @if (!is_null($previousPage) && $page - $previousPage > 1)
+                                            <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                                        @endif
+
+                                        @if ($page == $currentPage)
+                                            <li class="page-item active" aria-current="page">
+                                                <span class="page-link">{{ $page }}</span>
+                                            </li>
+                                        @else
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ $paginator->url($page) }}">{{ $page }}</a>
+                                            </li>
+                                        @endif
+
+                                        @php $previousPage = $page; @endphp
+                                    @endforeach
+
+                                    {{-- Siguiente --}}
+                                    @if ($paginator->hasMorePages())
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next">
+                                                Siguiente <i class="bi bi-chevron-right ms-1"></i>
+                                            </a>
+                                        </li>
+                                    @else
+                                        <li class="page-item disabled">
+                                            <span class="page-link">
+                                                Siguiente <i class="bi bi-chevron-right ms-1"></i>
+                                            </span>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            @endif
         @else
             <div class="empty">
                 <i class="bi bi-clipboard-check" style="font-size:3rem;"></i>

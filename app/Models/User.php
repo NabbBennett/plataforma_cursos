@@ -55,6 +55,21 @@ class User extends Authenticatable
         return $this->hasMany(UserAnswer::class);
     }
 
+    public function examResults()
+    {
+        return $this->hasMany(ExamResult::class);
+    }
+
+    public function statistics()
+    {
+        return $this->hasMany(Statistic::class);
+    }
+
+    public function courseReviews()
+    {
+        return $this->hasMany(CourseReview::class);
+    }
+
     public function getAvatarUrlAttribute()
     {
         return asset("images/avatars/avatar{$this->avatar}.jpg");
@@ -63,6 +78,31 @@ class User extends Authenticatable
     public function getBannerUrlAttribute()
     {
         return asset("images/banners/banner{$this->banner}.jpg");
+    }
+
+    protected static function booted()
+    {
+        parent::booted();
+
+        static::deleting(function (User $user) {
+            // Eliminar compras del usuario
+            $user->purchases()->delete();
+
+            // Eliminar respuestas de práctica del usuario
+            $user->userAnswers()->delete();
+
+            // Eliminar estadísticas de exámenes del usuario
+            $user->statistics()->delete();
+
+            // Eliminar resultados de exámenes y sus respuestas
+            $user->examResults()->each(function ($result) {
+                $result->answers()->delete();
+                $result->delete();
+            });
+
+            // Eliminar reseñas de cursos hechas por el usuario
+            $user->courseReviews()->delete();
+        });
     }
 
     /**

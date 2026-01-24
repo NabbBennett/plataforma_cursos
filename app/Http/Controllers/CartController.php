@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller {
     
-    // Añadir curso al carrito
+    // Añadir curso y pasar directamente al ticket (checkout inmediato)
     public function add(Request $request, $courseId){
         $course = Course::with(['weeks' => function ($q) {
             $q->orderBy('number');
@@ -22,7 +22,8 @@ class CartController extends Controller {
 
         $selectedWeeks = $course->weeks->take($request->weeks_count)->pluck('id')->toArray();
 
-        $cart = session()->get('cart', []);
+        // Construimos el carrito sólo con este curso
+        $cart = [];
 
         $cart[$courseId] = [
             'title' => $course->title,
@@ -33,7 +34,8 @@ class CartController extends Controller {
 
         session()->put('cart', $cart);
 
-        return redirect()->route('cart.view')->with('success', 'Curso añadido al carrito.');
+        // Procesar compra inmediatamente y redirigir al ticket
+        return $this->checkout($request);
     }
 
     public function update(Request $request, $courseId) {

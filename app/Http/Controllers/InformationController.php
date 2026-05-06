@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Course;
+use App\Models\EvaluationBlock;
 use App\Models\InstitutionInformation;
+use App\Models\Week;
 use Illuminate\Support\Facades\Storage;
 
 class InformationController extends Controller{

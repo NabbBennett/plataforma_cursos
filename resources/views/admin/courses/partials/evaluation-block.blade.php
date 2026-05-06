@@ -71,9 +71,13 @@
                 'slot5' => 'Inglés',
             ];
 
-        $existingExams = isset($evaluationBlock) && $evaluationBlock->relationLoaded('exams')
-            ? $evaluationBlock->exams->sortBy('id')->values()
-            : collect();
+        $existingExams = collect();
+
+        if (isset($evaluationBlock)) {
+            $existingExams = $evaluationBlock->relationLoaded('exams')
+                ? $evaluationBlock->exams->values()
+                : $evaluationBlock->exams()->orderBy('slot_index', 'asc')->get();
+        }
 
         if ($existingExams->isEmpty() && isset($evaluationBlock) && $evaluationBlock->exam_id) {
             $fallbackExam = \App\Models\Exam::find($evaluationBlock->exam_id);
@@ -81,11 +85,19 @@
                 $existingExams = collect([$fallbackExam]);
             }
         }
+        
+        // Mapear exámenes por slot_index para fácil acceso
+        $examsBySlot = [];
+        foreach ($existingExams as $exam) {
+            $slotIndex = $exam->slot_index !== null ? $exam->slot_index : (count($examsBySlot));
+            $examsBySlot[$slotIndex] = $exam;
+        }
     @endphp
 
     @foreach ($categoryLabels as $catKey => $label)
         @php
-            $selectedExam = $existingExams->get($loop->index);
+            $slotIndex = $loop->index;
+            $selectedExam = $examsBySlot[$slotIndex] ?? null;
         @endphp
         <div class="mb-3">
             <label class="form-label">

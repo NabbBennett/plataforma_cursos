@@ -13,6 +13,7 @@ class Exam extends Model
         'title',
         'week_id',
         'evaluation_block_id',
+        'slot_index',
         'duration_minutes'
     ];
 

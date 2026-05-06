@@ -717,13 +717,20 @@
                                         ];
 
                                     if ($isEvaluation) {
-                                        $examsInBlock = $data->relationLoaded('exams') ? $data->exams : collect();
-                                        $examsInBlock = $examsInBlock->sortBy(function($e){ return $e->slot_index ?? $e->id; })->values();
+                                        $examsInBlock = $data->relationLoaded('exams')
+                                            ? $data->exams
+                                            : $data->exams()->orderBy('slot_index', 'asc')->get();
+                                        $examsBySlot = [];
 
-                                        if ($examsInBlock->isEmpty() && isset($data->exam_id)) {
+                                        foreach ($examsInBlock->sortBy(function($e){ return $e->slot_index ?? $e->id; })->values() as $examItem) {
+                                            $slotIndex = $examItem->slot_index !== null ? (int) $examItem->slot_index : count($examsBySlot);
+                                            $examsBySlot[$slotIndex] = $examItem;
+                                        }
+
+                                        if (empty($examsBySlot) && isset($data->exam_id)) {
                                             $fallbackExam = \App\Models\Exam::find($data->exam_id);
                                             if ($fallbackExam) {
-                                                $examsInBlock = collect([$fallbackExam]);
+                                                $examsBySlot[0] = $fallbackExam;
                                             }
                                         }
                                     } else {
@@ -737,7 +744,7 @@
                                 @if ($isEvaluation)
                                     @php $categoryKeys = array_keys($categoryLabels); @endphp
                                     @foreach ($categoryKeys as $idx => $catKey)
-                                        @php $exam = $examsInBlock->get($idx); @endphp
+                                        @php $exam = $examsBySlot[$idx] ?? null; @endphp
                                         <div class="content-item">
                                             <span class="content-label">{{ $categoryLabels[$catKey] }}</span>
                                             @if ($exam)

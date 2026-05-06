@@ -30,10 +30,10 @@ class EvaluationBlock extends Model
         return $this->belongsTo(Week::class, 'after_week_id');
     }
 
-    // Relación con el examen si aplica
+    // Relación con el examen principal de compatibilidad
     public function exam()
     {
-        return $this->hasOne(Exam::class);
+        return $this->belongsTo(Exam::class, 'exam_id');
     }
 
     public function resource()
@@ -43,6 +43,6 @@ class EvaluationBlock extends Model
 
     public function exams()
     {
-        return $this->hasMany(\App\Models\Exam::class, 'evaluation_block_id');
+        return $this->hasMany(\App\Models\Exam::class, 'evaluation_block_id')->orderBy('slot_index', 'asc');
     }
 }

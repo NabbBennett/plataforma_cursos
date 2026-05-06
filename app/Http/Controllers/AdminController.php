@@ -347,17 +347,16 @@ class AdminController extends Controller
         // Procesar bloques de evaluación (hasta cinco exámenes)
         $evalsData = $request->input('evaluation_blocks', []);
         $processedEvalIds = [];
+        $slotKeys = ['slot1', 'slot2', 'slot3', 'slot4', 'slot5'];
 
         foreach ($evalsData as $evalKey => $evalData) {
             $examIds = $evalData['exam_ids'] ?? [];
             $type = isset($evalData['evaluation_type']) ? $evalData['evaluation_type'] : 'universidad';
-            // Fixed slot keys so switching types keeps the same payload structure
-            $slots = ['slot1','slot2','slot3','slot4','slot5'];
-
-            $orderedExamIds = [];
-            foreach ($slots as $slot) {
+            // Mapear examIds preservando el índice del slot
+            $slotIndexToExamId = [];
+            foreach ($slotKeys as $index => $slot) {
                 if (!empty($examIds[$slot])) {
-                    $orderedExamIds[] = (int)$examIds[$slot];
+                    $slotIndexToExamId[$index] = (int)$examIds[$slot];
                 }
             }
 
@@ -383,20 +382,23 @@ class AdminController extends Controller
             $afterWeekId = $evalData['after_week_id'] ?? null;
             $eval->after_week_id = $afterWeekId > 0 ? $afterWeekId : null;
             $eval->evaluation_type = $evalData['evaluation_type'] ?? ($eval->evaluation_type ?? 'universidad');
-            $eval->exam_id = is_array($orderedExamIds) && isset($orderedExamIds[0]) ? (is_array($orderedExamIds[0]) ? $orderedExamIds[0]['id'] : $orderedExamIds[0]) : null; // Mantiene compatibilidad
+            $eval->exam_id = !empty($slotIndexToExamId) ? reset($slotIndexToExamId) : null; // Mantiene compatibilidad con el primer examen
             $eval->live_meet_link = null;
             $eval->recording_link = null;
             $eval->resource_id = null;
             $eval->save();
 
             // Limpiar exámenes que ya no pertenecen a este bloque
-            Exam::where('evaluation_block_id', $eval->id)->update(['evaluation_block_id' => null]);
+            Exam::where('evaluation_block_id', $eval->id)->update(['evaluation_block_id' => null, 'slot_index' => null]);
 
-            // Asignar los exámenes seleccionados al bloque
-            // Asignar los exámenes seleccionados al bloque (sin slot_index en este paso si no existe)
-            $idsToAssign = collect($orderedExamIds)->map(function($e){ return is_array($e) ? $e['id'] : $e; })->all();
-            if (!empty($idsToAssign)) {
-                Exam::whereIn('id', $idsToAssign)->update(['evaluation_block_id' => $eval->id]);
+            // Asignar los exámenes seleccionados al bloque con su índice de slot correcto
+            if (!empty($slotIndexToExamId)) {
+                foreach ($slotIndexToExamId as $slotIndex => $examId) {
+                    Exam::whereKey($examId)->update([
+                        'evaluation_block_id' => $eval->id,
+                        'slot_index' => $slotIndex,
+                    ]);
+                }
             }
             
             if (!in_array($eval->id, $processedEvalIds)) {

@@ -286,6 +286,34 @@
                 </span>
             </div>
 
+            <form method="GET" action="{{ route('admin.resources.index') }}" class="mb-4">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-9">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border border-end-0" style="border-color: var(--border-color); color: var(--text-secondary);">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text"
+                                   name="search"
+                                   value="{{ request('search') }}"
+                                   class="form-control bg-transparent"
+                                   style="border-color: var(--border-color); color: var(--text-primary);"
+                                   placeholder="Buscar recurso por título">
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn-create w-100 justify-content-center">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                        @if(request()->filled('search'))
+                            <a href="{{ route('admin.resources.index') }}" class="btn-action btn-view w-100 justify-content-center">
+                                <i class="bi bi-x-lg"></i> Limpiar
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </form>
+
             @if ($resources->count() > 0)
                 <div class="table-responsive">
                     <table class="table table-custom table-hover mb-0">
@@ -365,13 +393,17 @@
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
                         <div class="mb-2 mb-md-0">
                             <p class="mb-0 text-secondary-custom">
-                                Mostrando <span class="fw-bold text-primary-custom">{{ $resources->firstItem() }}</span> 
-                                a <span class="fw-bold text-primary-custom">{{ $resources->lastItem() }}</span> 
-                                de <span class="fw-bold text-primary-custom">{{ $resources->total() }}</span> resultados
+                                @if($resources->total() > 0)
+                                    Mostrando <span class="fw-bold text-primary-custom">{{ $resources->firstItem() }}</span> 
+                                    a <span class="fw-bold text-primary-custom">{{ $resources->lastItem() }}</span> 
+                                    de <span class="fw-bold text-primary-custom">{{ $resources->total() }}</span> resultados
+                                @else
+                                    Sin resultados para esta búsqueda
+                                @endif
                             </p>
                         </div>
                         <div>
-                            {{ $resources->links() }}
+                            {{ $resources->appends(request()->query())->links() }}
                         </div>
                     </div>
                 </div>

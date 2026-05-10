@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ResourceController extends Controller
 {   
@@ -17,15 +18,28 @@ class ResourceController extends Controller
         }
     }
     
-    public function index()
+    public function index(Request $request)
     {
         $this->checkPermission(['admin', 'maestro']);
+
+        $search = trim((string) $request->query('search', ''));
+
         try {
-            $resources = Resource::latest()->paginate(10);
+            $resources = Resource::query()
+                ->when($search !== '', function ($query) use ($search) {
+                    $query->where('title', 'like', '%' . $search . '%');
+                })
+                ->latest()
+                ->paginate(10)
+                ->withQueryString();
+
             return view('admin.resources.index', compact('resources'));
         } catch (\Exception $e) {
-            // Si hay error, pasa un array vacío
-            $resources = [];
+            $resources = new LengthAwarePaginator([], 0, 10, 1, [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]);
+
             return view('admin.resources.index', compact('resources'));
         }
     }

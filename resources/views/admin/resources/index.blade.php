@@ -403,7 +403,7 @@
                             </p>
                         </div>
                         <div>
-                            {{ $resources->appends(request()->query())->links() }}
+                            {{ $resources->appends(request()->query())->links('pagination::bootstrap-5') }}
                         </div>
                     </div>
                 </div>

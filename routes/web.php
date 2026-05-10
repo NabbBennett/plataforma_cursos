@@ -66,6 +66,21 @@ Route::get('/course-image', function (Request $request) {
 
     return Storage::disk('public')->response($path);
 })->name('course.image');
+Route::get('/file', function (Request $request) {
+    $path = $request->query('path');
+
+    if (!is_string($path) || trim($path) === '') {
+        abort(404);
+    }
+
+    $path = ltrim(str_replace('\\', '/', trim($path)), '/');
+
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+
+    return Storage::disk('public')->response($path);
+})->name('public.file');
 Route::post('/store/course/{id}/review', [StoreController::class, 'storeReview'])->name('course.review.store')->middleware('auth');
 Route::post('/cart/coupon', [StoreController::class, 'applyCoupon'])->name('coupon.apply');
 Route::post('/cart/remove-coupon', [StoreController::class, 'removeCoupon'])->name('coupon.remove');

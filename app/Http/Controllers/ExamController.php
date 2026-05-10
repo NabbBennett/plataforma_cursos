@@ -187,7 +187,7 @@ public function edit(Exam $exam){
                     ];
                 }
                 
-                $imagePath = $answer->image_path ? asset('storage/' . $answer->image_path) : null;
+                $imagePath = $answer->getImageUrl();
                 $imagePreview = $imagePath ? "<img src='{$imagePath}' class='image-preview' alt='Imagen existente'>" : '';
                 
                 return [
@@ -206,7 +206,7 @@ public function edit(Exam $exam){
             $wrong3Data = $getAnswerData($wrongAnswers->get(2), 'wrong3');
             
             // Datos de la pregunta
-            $questionImagePath = $question->image_path ? asset('storage/' . $question->image_path) : null;
+            $questionImagePath = $question->getImageUrl();
             $questionImagePreview = $questionImagePath ? "<img src='{$questionImagePath}' class='image-preview' alt='Imagen de pregunta existente'>" : '';
             
             return [

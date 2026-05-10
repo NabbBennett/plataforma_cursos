@@ -397,7 +397,7 @@
             <div class="viewer-container">
                 <div class="file-preview">
                 @php
-                    $filePath = Storage::disk('public')->url($resource->file_path);
+                    $filePath = $resource->file_url;
                     $extension = strtolower(pathinfo($resource->file_path, PATHINFO_EXTENSION));
                 @endphp
 

@@ -261,7 +261,7 @@
                     <div class="question-container" style="min-height: 180px;">
                         <div style="color: var(--text-primary);">
                             @if($question->image_path)
-                                <img src="{{ asset('storage/' . $question->image_path) }}" alt="Pregunta" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain;">
+                                <img src="{{ $question->getImageUrl() }}" alt="Pregunta" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain;">
                             @else
                                 {!! $question->text !!}
                             @endif
@@ -287,7 +287,7 @@
                                        {{ session("exam_{$exam->id}.finished") ? 'disabled' : '' }}>
                                 <label class="form-check-label" for="answer_{{ $answer->id }}" style="display: flex; align-items: center; gap: 10px;">
                                     @if($answer->image_path)
-                                        <img src="{{ asset('storage/' . $answer->image_path) }}" alt="Respuesta" style="max-width: 120px; max-height: 80px; border-radius: 4px; object-fit: contain;">
+                                        <img src="{{ $answer->getImageUrl() }}" alt="Respuesta" style="max-width: 120px; max-height: 80px; border-radius: 4px; object-fit: contain;">
                                     @else
                                         {!! $answer->text !!}
                                     @endif

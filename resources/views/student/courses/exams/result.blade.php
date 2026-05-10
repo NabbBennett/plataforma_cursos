@@ -446,10 +446,10 @@
                                             <td><span>{{ $question->theme ?? $answer->topic ?? '-' }}</span></td>
                                             <td>
                                                 @if($question->image_path)
-                                                      <img src="{{ asset('storage/' . $question->image_path) }}"
+                                                      <img src="{{ $question->getImageUrl() }}"
                                                           alt="Pregunta"
                                                           class="zoomable-image"
-                                                          data-src="{{ asset('storage/' . $question->image_path) }}"
+                                                          data-src="{{ $question->getImageUrl() }}"
                                                           data-alt="Pregunta"
                                                           role="button"
                                                           aria-label="Ampliar pregunta"
@@ -461,10 +461,10 @@
                                             </td>
                                             <td>
                                                 @if($selectedAnswer->image_path)
-                                                      <img src="{{ asset('storage/' . $selectedAnswer->image_path) }}"
+                                                      <img src="{{ $selectedAnswer->getImageUrl() }}"
                                                           alt="Respuesta"
                                                           class="zoomable-image"
-                                                          data-src="{{ asset('storage/' . $selectedAnswer->image_path) }}"
+                                                          data-src="{{ $selectedAnswer->getImageUrl() }}"
                                                           data-alt="Respuesta"
                                                           role="button"
                                                           aria-label="Ampliar respuesta"
@@ -513,10 +513,10 @@
                                             <td><span>{{ $question->theme ?? $answer->topic ?? '-' }}</span></td>
                                             <td>
                                                 @if($question->image_path)
-                                                      <img src="{{ asset('storage/' . $question->image_path) }}"
+                                                      <img src="{{ $question->getImageUrl() }}"
                                                           alt="Pregunta"
                                                           class="zoomable-image"
-                                                          data-src="{{ asset('storage/' . $question->image_path) }}"
+                                                          data-src="{{ $question->getImageUrl() }}"
                                                           data-alt="Pregunta"
                                                           role="button"
                                                           aria-label="Ampliar pregunta"
@@ -529,10 +529,10 @@
                                             <td>
                                                 @if($answer->selected_answer_id && $selectedAnswer)
                                                     @if($selectedAnswer->image_path)
-                                                         <img src="{{ asset('storage/' . $selectedAnswer->image_path) }}"
+                                                         <img src="{{ $selectedAnswer->getImageUrl() }}"
                                                              alt="Tu respuesta"
                                                              class="zoomable-image"
-                                                             data-src="{{ asset('storage/' . $selectedAnswer->image_path) }}"
+                                                             data-src="{{ $selectedAnswer->getImageUrl() }}"
                                                              data-alt="Tu respuesta"
                                                              role="button"
                                                              aria-label="Ampliar tu respuesta"
@@ -547,10 +547,10 @@
                                             </td>
                                             <td>
                                                 @if($correctAnswer->image_path)
-                                                      <img src="{{ asset('storage/' . $correctAnswer->image_path) }}"
+                                                      <img src="{{ $correctAnswer->getImageUrl() }}"
                                                           alt="Respuesta correcta"
                                                           class="zoomable-image"
-                                                          data-src="{{ asset('storage/' . $correctAnswer->image_path) }}"
+                                                          data-src="{{ $correctAnswer->getImageUrl() }}"
                                                           data-alt="Respuesta correcta"
                                                           role="button"
                                                           aria-label="Ampliar respuesta correcta"

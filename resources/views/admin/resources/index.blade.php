@@ -329,7 +329,7 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex gap-2 justify-content-center mobile-stack">
-                                            <a href="{{ Storage::url($resource->file_path) }}" 
+                                            <a href="{{ $resource->file_url }}" 
                                                target="_blank" 
                                                class="btn-action btn-view"
                                                title="Vista previa">

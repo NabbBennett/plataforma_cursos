@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 
 class Question extends Model
 {
@@ -26,9 +27,17 @@ class Question extends Model
     }
 
     public function getImageUrl(){
-        return $this->image_path 
-            ? asset('storage/' . $this->image_path)
-            : null;
+        if (empty($this->image_path)) {
+            return null;
+        }
+
+        $path = ltrim(str_replace('\\', '/', $this->image_path), '/');
+
+        if (Storage::disk('public')->exists($path)) {
+            return route('public.file', ['path' => $path]);
+        }
+
+        return asset('storage/' . $path);
     }
 
     public function hasImage(){

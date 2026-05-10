@@ -265,7 +265,7 @@
         <!-- Imagen del curso -->
         <div class="col-md-5">
             @if ($course->image)
-                <img src="{{ asset('storage/' . $course->image) }}" class="img-fluid rounded course-image" alt="Imagen del curso {{ $course->title }}">
+                <img src="{{ $course->image_url }}" class="img-fluid rounded course-image" alt="Imagen del curso {{ $course->title }}">
             @else
                 <div class="bg-secondary text-white text-center p-5 rounded course-image" style="min-height:300px; display:flex; align-items:center; justify-content:center;">
                     <div>

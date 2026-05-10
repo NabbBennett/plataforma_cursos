@@ -404,7 +404,11 @@
                     <div class="cart-item d-flex flex-column flex-md-row">
                         <!-- Imagen del curso -->
                         <div class="cart-item-image-container">
-                            @if(!empty($item['image']))
+                            @if(!empty($item['image_url']))
+                                <img src="{{ $item['image_url'] }}" 
+                                     class="cart-item-image" 
+                                     alt="{{ $item['title'] }}">
+                            @elseif(!empty($item['image']))
                                 <img src="{{ asset('storage/' . $item['image']) }}" 
                                      class="cart-item-image" 
                                      alt="{{ $item['title'] }}">

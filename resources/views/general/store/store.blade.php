@@ -135,7 +135,7 @@
                         <div class="course-card">
                             <div class="course-image-container">
                                 @if($group['image'])
-                                    <img src="{{ asset('storage/' . $group['image']) }}" class="course-image" alt="{{ $group['title'] }}">
+                                    <img src="{{ $group['image_url'] ?? asset('storage/' . $group['image']) }}" class="course-image" alt="{{ $group['title'] }}">
                                 @else
                                     <div class="course-image-placeholder">
                                         <i class="bi bi-book"></i>

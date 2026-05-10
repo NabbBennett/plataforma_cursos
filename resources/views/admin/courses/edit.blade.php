@@ -598,7 +598,7 @@
                             <input type="file" class="form-control" id="imageInput" name="image" accept="image/*" onchange="previewImage(this)">
                             <div class="mt-2" id="imagePreviewContainer">
                                 @if($course->image)
-                                    <img src="{{ asset('storage/' . $course->image) }}" class="image-preview" id="currentImage" alt="Imagen actual del curso">
+                                    <img src="{{ $course->image_url }}" class="image-preview" id="currentImage" alt="Imagen actual del curso">
                                     <small class="text-secondary-custom d-block mt-1" id="imageHint">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Imagen actual. Seleccione una nueva para reemplazar.

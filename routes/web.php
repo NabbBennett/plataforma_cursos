@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 
 use App\Http\Controllers\ExamController;
@@ -41,6 +42,30 @@ Route::post('/contacto', [ContactController::class, 'contactSubmit'])->name('con
 //Vista de tienda
 Route::get('/store', [StoreController::class, 'store'])->name('store');
 Route::get('/store/course/{id}', [StoreController::class, 'show'])->name('store.course');
+Route::get('/course-image', function (Request $request) {
+    $path = $request->query('path');
+
+    if (!is_string($path) || trim($path) === '') {
+        abort(404);
+    }
+
+    $path = str_replace('\\', '/', trim($path));
+
+    foreach (['storage/', 'public/'] as $prefix) {
+        if (str_starts_with($path, $prefix)) {
+            $path = substr($path, strlen($prefix));
+            break;
+        }
+    }
+
+    $path = ltrim($path, '/');
+
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+
+    return Storage::disk('public')->response($path);
+})->name('course.image');
 Route::post('/store/course/{id}/review', [StoreController::class, 'storeReview'])->name('course.review.store')->middleware('auth');
 Route::post('/cart/coupon', [StoreController::class, 'applyCoupon'])->name('coupon.apply');
 Route::post('/cart/remove-coupon', [StoreController::class, 'removeCoupon'])->name('coupon.remove');

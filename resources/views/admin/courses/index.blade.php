@@ -415,7 +415,7 @@
                                 <tr>
                                     <td>
                                         @if ($course->image)
-                                            <img src="{{ asset('storage/' . $course->image) }}" 
+                                                    <img src="{{ $course->image_url }}" 
                                                  alt="{{ $course->title }}" 
                                                  class="course-image"
                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">

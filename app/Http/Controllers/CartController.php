@@ -85,6 +85,7 @@ class CartController extends Controller {
 
             // Asigna la imagen
             $item['image'] = $course && $course->image ? $course->image : null;
+            $item['image_url'] = $course ? $course->image_url : null;
 
             // Calcula semanas compradas por el usuario para este curso
             $weeksCompradas = $user->purchases()

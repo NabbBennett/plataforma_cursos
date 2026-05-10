@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 
 class Course extends Model
 {
@@ -83,5 +84,37 @@ class Course extends Model
 
     public function countForRating($rating){
         return $this->reviews()->where('rating', $rating)->count();
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (empty($this->image)) {
+            return null;
+        }
+
+        $path = str_replace('\\', '/', trim($this->image));
+
+        if (preg_match('/^https?:\/\//i', $path)) {
+            return $path;
+        }
+
+        $path = ltrim($path, '/');
+
+        foreach (['storage/', 'public/'] as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                $path = substr($path, strlen($prefix));
+                break;
+            }
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            return route('course.image', ['path' => $path]);
+        }
+
+        if (file_exists(public_path($path))) {
+            return asset($path);
+        }
+
+        return asset('storage/' . $path);
     }
 }

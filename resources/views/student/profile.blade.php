@@ -45,7 +45,7 @@
                     @if($curso)
                     <div class="course-horizontal-card">
                         <div class="course-horizontal-image">
-                            <img src="{{ $curso->image ? asset('storage/' . $curso->image) : 'https://via.placeholder.com/200x120/4A5568/FFFFFF?text=CURSO' }}" 
+                            <img src="{{ $curso->image_url ?? 'https://via.placeholder.com/200x120/4A5568/FFFFFF?text=CURSO' }}" 
                                  alt="{{ $curso->title }}">
                         </div>
                         <div class="course-horizontal-content">
@@ -75,7 +75,7 @@
                 @foreach($cursosRecomendados as $curso)
                 <div class="carousel-slide">
                     <div class="course-card">
-                        <img src="{{ $curso->image ? asset('storage/' . $curso->image) : 'https://via.placeholder.com/300x160/4A5568/FFFFFF?text=RECOMENDADO' }}" 
+                        <img src="{{ $curso->image_url ?? 'https://via.placeholder.com/300x160/4A5568/FFFFFF?text=RECOMENDADO' }}" 
                              alt="{{ $curso->title }}" class="course-image">
                         <div class="course-content">
                             <h3 class="course-title">{{ $curso->title }}</h3>
